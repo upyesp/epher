@@ -51,6 +51,11 @@ jobs:
         env:
           A11Y_DIST: _site/pwa
 
+      - name: Browser regression - 2D zoom and reset keep the pane
+        run: node scripts/browser/graph-zoom.mjs
+        env:
+          A11Y_DIST: _site/pwa
+
       - name: Audit the website (SR + low-vision perspectives)
         run: node scripts/a11y/site-audit.mjs _site
 

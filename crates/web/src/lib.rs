@@ -17,7 +17,9 @@ use epher_core::graph::{
     analyze, free_names, parse_graph_source, sample_data_plot, sample_spec, CurveKind, CurveSpec,
     DataPlot, InterestPoint, SampledCurve,
 };
-use epher_core::{history_expression, CatalogKind, DisplayPrefs, Notation, Session, Value};
+use epher_core::{
+    history_expression, CatalogKind, DisplayPrefs, Env, Notation, Session, Value,
+};
 use epher_i18n::Localizer;
 use epher_shell::{classify, message, prepare};
 use std::cell::RefCell;
@@ -38,6 +40,14 @@ use yew::prelude::*;
 struct GraphLive {
     curves: Vec<SampledCurve>,
     trace: Option<graph::TracePoint>,
+    /// The environment the pane's plots were DRAWN against (ADR-0012
+    /// amendment): a multi-piece submit runs in a script scope that
+    /// closes before the session is published, and its definitions do
+    /// not cross back — yet every re-sample (zoom, reset, slider, tick)
+    /// must still see them, or the pane silently wipes. Re-samples
+    /// absorb this over the live session (fresh bindings win, stored
+    /// defs fill the gaps).
+    draw_env: Option<Env>,
 }
 
 /// A running parameter animation (ADR-0015): the constant `name` steps by
@@ -178,20 +188,41 @@ fn curve_spec(c: &SampledCurve) -> CurveSpec {
     }
 }
 
-/// Re-sample every curve against the (possibly changed) session environment.
-fn resample(curves: &mut [SampledCurve], session: &Session) {
+/// The environment re-samples run against: the live session (fresh
+/// bindings — moved constants, `ans`) with the pane's draw-time
+/// definitions absorbed. A script-scoped `def` draws its plot but does
+/// not cross back into the session (ADR-0012 amendment), so without the
+/// absorbed snapshot every re-sample would silently drop the curve:
+/// `sample_spec` reports a fully-undefined domain as `Ok` with no
+/// points, not an error.
+fn sampling_env(session: &Session, draw_env: Option<&Env>) -> Env {
+    let mut env = session.env().clone();
+    if let Some(draw) = draw_env {
+        env.absorb_defs(draw);
+    }
+    env
+}
+
+/// Re-sample every curve against the (possibly changed) sampling
+/// environment. A re-sample that loses every point (`Ok` with no
+/// samples — the definition is gone from the env, or the domain is
+/// fully undefined) never replaces drawn samples: the pane keeps
+/// rendering what the user drew instead of silently wiping it.
+fn resample(curves: &mut [SampledCurve], env: &Env) {
     for c in curves.iter_mut() {
-        if let Ok(samples) = sample_spec(&curve_spec(c), 120, session.env()) {
-            c.samples = samples;
+        if let Ok(samples) = sample_spec(&curve_spec(c), 120, env) {
+            if !samples.is_empty() || c.samples.is_empty() {
+                c.samples = samples;
+            }
         }
     }
 }
 
 /// Re-sample every surface against the current environment (a moved
 /// constant changes the mesh).
-fn resample_surfaces(surfaces: &mut [epher_core::graph::Surface], session: &Session) {
+fn resample_surfaces(surfaces: &mut [epher_core::graph::Surface], env: &Env) {
     for surface in surfaces.iter_mut() {
-        if let Ok(fresh) = epher_core::graph::sample_surface(&surface.source, 30, session.env()) {
+        if let Ok(fresh) = epher_core::graph::sample_surface(&surface.source, 30, env) {
             *surface = fresh;
         }
     }
@@ -199,9 +230,9 @@ fn resample_surfaces(surfaces: &mut [epher_core::graph::Surface], session: &Sess
 
 /// Re-sample every 3D parametric curve against the current environment
 /// (ADR-0054): a moved constant reshapes the curve.
-fn resample_space_curves(curves: &mut [epher_core::graph::SpaceCurve], session: &Session) {
+fn resample_space_curves(curves: &mut [epher_core::graph::SpaceCurve], env: &Env) {
     for c in curves.iter_mut() {
-        if let Ok(fresh) = epher_core::graph::sample_space_curve(&c.source, 240, session.env()) {
+        if let Ok(fresh) = epher_core::graph::sample_space_curve(&c.source, 240, env) {
             *c = fresh;
         }
     }
@@ -229,7 +260,7 @@ fn space_curve_references(curve: &epher_core::graph::SpaceCurve, name: &str) -> 
 fn resample_solar(
     solar: &mut Option<epher_core::astro::SolarScene>,
     source: &Option<String>,
-    session: &Session,
+    env: &Env,
 ) {
     let Some(_scene) = solar.as_ref() else {
         return;
@@ -241,10 +272,10 @@ fn resample_solar(
     if let Ok(expr) = epher_core::parse(src) {
         epher_core::graph::free_names(&expr, &mut names);
     }
-    if !names.iter().any(|n| session.env().constant(n).is_some()) {
+    if !names.iter().any(|n| env.constant(n).is_some()) {
         return;
     }
-    if let Ok(jd) = epher_core::astro::eval_jd(src, session.env()) {
+    if let Ok(jd) = epher_core::astro::eval_jd(src, env) {
         if let Ok(fresh) = epher_core::astro::solar_scene(jd) {
             *solar = Some(fresh);
         }
@@ -4521,6 +4552,10 @@ fn epher_app() -> Html {
             // set their own message and are not evaluations.
             let mut script_outputs: Vec<String> = Vec::new();
             let mut last_was_eval = false;
+            // The environment a plot in this submit was drawn in (set by
+            // the graph/graph3d/solar arms below): stored on the pane so
+            // re-samples survive the script scope closing.
+            let mut drew_env: Option<Env> = None;
             // `;` and newlines separate statements only where the
             // tokenizer sees them: inside a string literal or a comment
             // they are text, and inside a block comment a newline is
@@ -4649,6 +4684,11 @@ fn epher_app() -> Html {
                                 samples,
                                 fill: spec.fill,
                             });
+                            // The environment this curve was sampled in:
+                            // the script scope closes before the session
+                            // is published, and re-samples (zoom, reset,
+                            // sliders, ticks) must still see its defs.
+                            drew_env = Some(s.env().clone());
                             // Graphing prints nothing to the answer area
                             // (ADR-0027): the command joins the history
                             // list, and the plot itself is the result.
@@ -4724,6 +4764,7 @@ fn epher_app() -> Html {
                                     *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                                 }
                                 curve3ds_local.push(fresh);
+                                drew_env = Some(s.env().clone());
                                 result.set(String::new());
                                 if mobile_layout() {
                                     scroll_pane.emit("graph-pane");
@@ -4764,6 +4805,7 @@ fn epher_app() -> Html {
                                 *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                             }
                             surfaces.push(fresh);
+                            drew_env = Some(s.env().clone());
                             // Same as 2D: no answer echo, the surface is
                             // the result (ADR-0027).
                             result.set(String::new());
@@ -4826,6 +4868,7 @@ fn epher_app() -> Html {
                             data_local = None;
                             surfaces.clear();
                             solar = Some(scene);
+                            drew_env = Some(s.env().clone());
                             solar_source = Some(source.to_string());
                             solar_hidden.set(Vec::new());
                             view.set(home);
@@ -5012,6 +5055,20 @@ fn epher_app() -> Html {
                 let mut l = (*live).borrow_mut();
                 l.curves = curves.clone();
                 l.trace = None;
+                // Newest scope shadows earlier stored ones: this
+                // submit's env keeps its defs, absorbs the stored ones
+                // it lacks; a redefinition lands, stale extras linger
+                // harmlessly (insert-only, nothing overwrites).
+                if let Some(env) = drew_env {
+                    l.draw_env = match l.draw_env.take() {
+                        Some(stored) => {
+                            let mut env = env;
+                            env.absorb_defs(&stored);
+                            Some(env)
+                        }
+                        None => Some(env),
+                    };
+                }
             }
             // Mobile (ADR-0035): once the graph pane has been cleared,
             // slide back to the calculator; there is nothing left to
@@ -5078,6 +5135,7 @@ fn epher_app() -> Html {
         let solar_source_handle = solar_source.clone();
         let surface3d_cell = surface3d_cell.clone();
         let hidden = hidden.clone();
+        let live = live.clone();
         Callback::from(move |(name, value): (String, f64)| {
             let mut s = session_live.borrow().clone();
             s.set_constant(
@@ -5085,14 +5143,18 @@ fn epher_app() -> Html {
                 Value::float(value),
                 format!("const {name} = {value}"),
             );
+            // Sliders re-sample against the pane's draw-time defs too: a
+            // script-scoped function must not vanish on the first drag.
+            let draw_env = (*live).borrow().draw_env.clone();
+            let env = sampling_env(&s, draw_env.as_ref());
             let mut curves = (*graph).clone();
-            resample(&mut curves, &s);
+            resample(&mut curves, &env);
             let mut surfaces = (*surface).clone();
-            resample_surfaces(&mut surfaces, &s);
+            resample_surfaces(&mut surfaces, &env);
             let mut curve3ds_local = (*curve3ds).clone();
-            resample_space_curves(&mut curve3ds_local, &s);
+            resample_space_curves(&mut curve3ds_local, &env);
             let mut solar = (*solar_handle).clone();
-            resample_solar(&mut solar, &*solar_source_handle, &s);
+            resample_solar(&mut solar, &*solar_source_handle, &env);
             let found = analyze(&curves, s.env());
             session.set(s.clone());
             *session_live.borrow_mut() = s;
@@ -5145,18 +5207,24 @@ fn epher_app() -> Html {
                 Value::float(value),
                 format!("const {name} = {value}"),
             );
+            let draw_env = (*live).borrow().draw_env.clone();
+            let env = sampling_env(&s, draw_env.as_ref());
             let mut curves = (*graph).clone();
             for c in curves.iter_mut() {
                 if curve_references(c, &name) {
-                    if let Ok(samples) = sample_spec(&curve_spec(c), 120, s.env()) {
-                        c.samples = samples;
+                    if let Ok(samples) = sample_spec(&curve_spec(c), 120, &env) {
+                        // A re-sample that loses every point never wipes
+                        // drawn samples (the same rule as the sliders).
+                        if !samples.is_empty() || c.samples.is_empty() {
+                            c.samples = samples;
+                        }
                     }
                 }
             }
             let mut surfaces = (*surface).clone();
             for sf in surfaces.iter_mut() {
                 if surface_references(sf, &name) {
-                    if let Ok(fresh) = epher_core::graph::sample_surface(&sf.source, 30, s.env()) {
+                    if let Ok(fresh) = epher_core::graph::sample_surface(&sf.source, 30, &env) {
                         *sf = fresh;
                     }
                 }
@@ -5166,7 +5234,7 @@ fn epher_app() -> Html {
             for c in curve3ds_local.iter_mut() {
                 if space_curve_references(c, &name) {
                     if let Ok(fresh) =
-                        epher_core::graph::sample_space_curve(&c.source, 240, s.env())
+                        epher_core::graph::sample_space_curve(&c.source, 240, &env)
                     {
                         *c = fresh;
                     }
@@ -5176,9 +5244,9 @@ fn epher_app() -> Html {
             // scene rebuilds only when its time expression references the
             // animated constant (ADR-0037).
             let mut solar = (*solar_handle).clone();
-            resample_solar(&mut solar, &*solar_source_handle, &s);
+            resample_solar(&mut solar, &*solar_source_handle, &env);
             if n % 4 == 0 {
-                let found = analyze(&curves, s.env());
+                let found = analyze(&curves, &env);
                 pois.set(poi_labels(&found, &localizer));
             }
             session.set(s.clone());
@@ -5809,10 +5877,17 @@ fn epher_app() -> Html {
                 return;
             }
             let s = session_live.borrow().clone();
-            let mut curves = (*live).borrow().curves.clone();
+            let (mut curves, draw_env) = {
+                let l = (*live).borrow();
+                (l.curves.clone(), l.draw_env.clone())
+            };
             if curves.is_empty() {
                 return;
             }
+            // Re-sample against the pane's draw-time defs (a script
+            // scope closes before the session is published — ADR-0012
+            // amendment — but the plot must keep zooming as drawn).
+            let env = sampling_env(&s, draw_env.as_ref());
             for c in curves.iter_mut() {
                 if matches!(c.kind, epher_core::graph::CurveKind::Cartesian(_)) {
                     // Zoomed: sample inside the window; reset: back to
@@ -5826,26 +5901,41 @@ fn epher_app() -> Html {
                         domain,
                         fill: c.fill,
                     };
-                    if let Ok(samples) = epher_core::graph::sample_spec(&spec, 120, s.env()) {
-                        c.samples = samples;
+                    if let Ok(samples) = epher_core::graph::sample_spec(&spec, 120, &env) {
+                        // A re-sample that loses every point never wipes
+                        // drawn samples: the curve keeps rendering what
+                        // the user drew instead of vanishing.
+                        if !samples.is_empty() || c.samples.is_empty() {
+                            c.samples = samples;
+                        }
                     }
                 }
             }
-            // A window the curves cannot sample must never be committed
-            // (every re-sampled point errors or is non-finite — `graph
-            // ln(x)` zoomed fully into x <= 0): geometry_in finds no
-            // sample in it, the pane renders `html! {}` — no curve, no
-            // axes — and while blank every further zoom re-samples from
-            // the dead window, so nothing the user does visibly helps
-            // until the window happens to re-enter defined territory
-            // (zooming out with the cursor near the window's far edge
-            // pins that edge and never gets there). Bounce instead: the
-            // plot stays exactly as it was.
-            if window.is_some()
-                && !curves
-                    .iter()
-                    .any(|c| c.samples.iter().any(|s| s.y.is_finite()))
-            {
+            // The pane must never lose the curve it just showed: capture
+            // whether the CURRENT window holds a finite sample and refuse
+            // any commit whose window holds none. This covers a dead
+            // window (every re-sample of it dropped — `graph ln(x)`
+            // zoomed fully into x <= 0: the axes-only fallback in
+            // geometry_in would draw an empty frame — no curve — and
+            // zooming out with the cursor near the window's far edge
+            // pins that edge forever) AND a reset whose sampling env
+            // lost the plot's definitions. The plot stays exactly as it
+            // was. (A deliberate gap view — zooming into the space
+            // between a curve's branches — still works through the zoom
+            // slider, whose windows always span sampled territory.)
+            let has_sample_in =
+                |cs: &[SampledCurve], w: Option<(f64, f64)>| match w {
+                    Some((lo, hi)) => cs.iter().any(|c| {
+                        c.samples
+                            .iter()
+                            .any(|s| s.y.is_finite() && s.x >= lo && s.x <= hi)
+                    }),
+                    None => cs
+                        .iter()
+                        .any(|c| c.samples.iter().any(|s| s.y.is_finite())),
+                };
+            let showed_a_curve = has_sample_in(&curves, view2d_cell.borrow().to_owned());
+            if showed_a_curve && !has_sample_in(&curves, window) {
                 return;
             }
             (*live).borrow_mut().trace = None;

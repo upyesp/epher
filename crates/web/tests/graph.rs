@@ -2,11 +2,11 @@
 //! each frontend renders). SVG as a string so the tests run natively, no
 //! browser needed.
 
-use epher_core::graph::{CurveKind, InterestKind, SampledCurve, parse_graph_source, sample_spec};
-use epher_core::{Env, Sample};
+use epher_core::graph::{parse_graph_source, sample_spec, CurveKind, InterestKind, SampledCurve};
+use epher_core::{Env, Sample, Session};
 use epher_web::graph::{
-    DEFAULT_STROKE_WIDTH, Poi, TracePoint, geometry, geometry_in, graph_svg, segments, ticks,
-    trace_nearest,
+    geometry, geometry_in, graph_svg, segments, ticks, trace_nearest, Poi, TracePoint,
+    DEFAULT_STROKE_WIDTH,
 };
 use epher_web::{anchored_window, slider_window, zoom_slider_value};
 
@@ -362,17 +362,25 @@ struct ZoomState {
     render: Vec<SampledCurve>,
     window: Option<(f64, f64)>,
     base_span: f64,
+    env: Env,
 }
 
 impl ZoomState {
     fn new(source: &str) -> Self {
-        let c = curve(source);
+        Self::sampled(source, curve(source), env())
+    }
+
+    /// A pane whose samples were drawn inside a script scope: the
+    /// samples are baked, and `env` is whatever re-sampling will run
+    /// against (the caller models the submit path's env choice).
+    fn sampled(source: &str, c: SampledCurve, env: Env) -> Self {
         let base = epher_web::zoom_base(std::slice::from_ref(&c)).expect("base window");
         Self {
             render: vec![c.clone()],
             live: vec![c],
             window: None,
             base_span: base.1 - base.0,
+            env,
         }
     }
 
@@ -389,10 +397,25 @@ impl ZoomState {
     }
 
     /// apply_zoom_window: re-sample every Cartesian curve over the
-    /// window from the live store, publish to the pane — unless the
-    /// bounce guard rejects a window the curves cannot sample.
+    /// window from the live store against the pane's sampling env,
+    /// publish to the pane — unless a guard refuses (see the comment
+    /// in src/lib.rs): no drawn sample is wiped by an empty re-sample,
+    /// and a pane that just showed a curve is never committed into a
+    /// window that holds none of it.
     fn apply(&mut self, window: Option<(f64, f64)>) -> bool {
         let mut curves = self.live.clone();
+        let has_sample_in =
+            |cs: &[SampledCurve], w: Option<(f64, f64)>| match w {
+                Some((lo, hi)) => cs.iter().any(|c| {
+                    c.samples
+                        .iter()
+                        .any(|s| s.y.is_finite() && s.x >= lo && s.x <= hi)
+                }),
+                None => cs
+                    .iter()
+                    .any(|c| c.samples.iter().any(|s| s.y.is_finite())),
+            };
+        let showed_a_curve = has_sample_in(&curves, self.window);
         for c in curves.iter_mut() {
             if matches!(c.kind, CurveKind::Cartesian(_)) {
                 let domain = match window {
@@ -404,17 +427,17 @@ impl ZoomState {
                     domain,
                     fill: c.fill,
                 };
-                if let Ok(samples) = sample_spec(&spec, 120, &env()) {
-                    c.samples = samples;
+                if let Ok(samples) = sample_spec(&spec, 120, &self.env) {
+                    // A re-sample that loses every point never wipes
+                    // drawn samples.
+                    if !samples.is_empty() || c.samples.is_empty() {
+                        c.samples = samples;
+                    }
                 }
             }
         }
-        if window.is_some()
-            && !curves
-                .iter()
-                .any(|c| c.samples.iter().any(|s| s.y.is_finite()))
-        {
-            return false; // bounced: the fix — nothing is committed
+        if showed_a_curve && !has_sample_in(&curves, window) {
+            return false; // bounced: the plot stays exactly as it was
         }
         self.render = curves;
         self.window = window;
@@ -438,9 +461,12 @@ fn zooming_toward_a_curve_s_undefined_region_bounces_and_keeps_the_pane() {
     // has no values. The cursor rests over that half (viewBox x = 170
     // of 48..632, data x ≈ -5.8) and the user scrolls up a few notches.
     // Before the fix the third notch committed a window every re-sample
-    // of which errors, the pane rendered nothing, and the only way back
-    // was clearing the results pane (zooming out with the cursor near
-    // the window's far edge pins that edge and never re-crosses x = 0).
+    // of which errors — the pane lost the curve (in v0.9.8 entirely,
+    // html! {}, axes and all) and the only way back was clearing the
+    // results pane (zooming out with the cursor near the window's far
+    // edge pins that edge and never re-crosses x = 0). Now the third
+    // notch bounces — its window holds none of the curve — and the
+    // plot stays exactly as it was.
     let mut z = ZoomState::new("ln(x)");
     assert!(!z.pane_blank(), "the plot draws before any zoom");
 
@@ -467,6 +493,11 @@ fn zooming_toward_a_curve_s_undefined_region_bounces_and_keeps_the_pane() {
         z.render[0].samples.iter().any(|s| s.y.is_finite()),
         "the published curve still has samples"
     );
+
+    // A window with no sample of the curve in it is refused outright,
+    // however it was reached.
+    assert!(!z.apply(Some((-7.5, -0.01))), "a dead window is refused");
+    assert!(!z.pane_blank());
 
     // Zooming out still works exactly as before, in either direction
     // and as many notches as the user likes.
@@ -498,4 +529,95 @@ fn zoom_base_falls_back_to_the_domains_when_the_samples_are_gone() {
         Some((-10.0, 10.0)),
         "the domain union keeps the controls alive"
     );
+}
+
+#[test]
+fn a_script_scoped_def_keeps_zoom_and_reset_working_after_the_scope_closes() {
+    // The reported incident, replayed end to end: the front page's
+    // planck example defines the function and graphs it in ONE
+    // submitted script. The web submit runs that script in a scope that
+    // closes before the session is published, and its defs cross only
+    // by `share` (ADR-0012 amendment) — so the curve keeps its drawn
+    // samples but every re-sample ran against a def-less env, which
+    // answers `Ok` with no points (the wipe): wheel zoom bounced as a
+    // silent no-op and Reset blanked the whole pane. The pane now keeps
+    // the draw-time env and absorbs it before re-sampling.
+    let mut session = Session::default();
+    session.begin_script();
+    assert!(
+        !session
+            .submit("def planck(x) = (2 * h * c ^ 2) / ((x * 1e-9) ^ 5 * (exp((h * c) / ((x * 1e-9) * k_b * 5778)) - 1))")
+            .contains("error")
+    );
+    let spec = parse_graph_source("planck(x) from 100 to 2000").unwrap();
+    let samples = sample_spec(&spec, 120, session.env()).unwrap();
+    assert_eq!(samples.len(), 120, "the draw-time env samples the curve");
+    let draw_env = session.env().clone();
+    session.end_script();
+    assert!(
+        sample_spec(&spec, 120, session.env()).unwrap().is_empty(),
+        "the published session lost the def (the wipe signature)"
+    );
+
+    // What `sampling_env` builds for the pane: session env + absorbed
+    // draw-time snapshot.
+    let mut env = session.env().clone();
+    env.absorb_defs(&draw_env);
+    let curve = SampledCurve {
+        source: "planck(x) from 100 to 2000".to_string(),
+        kind: spec.kind,
+        domain: spec.domain,
+        samples,
+        fill: spec.fill,
+    };
+    let mut z = ZoomState::sampled("planck(x) from 100 to 2000", curve, env);
+    assert!(!z.pane_blank(), "the drawn plot renders");
+
+    // Wheel: the re-samples are faithful, so every notch applies.
+    for _ in 0..3 {
+        assert!(z.wheel(340.0, -100.0), "zoom-in notches apply");
+        assert!(!z.pane_blank(), "the pane never blanks");
+    }
+    // Reset rebuilds the drawn plot: window cleared, samples intact.
+    assert!(z.apply(None), "reset applies");
+    assert!(z.window.is_none());
+    assert!(!z.pane_blank());
+    assert!(
+        z.render[0].samples.iter().all(|s| s.y.is_finite()),
+        "reset re-samples the curve fully"
+    );
+}
+
+#[test]
+fn a_lost_draw_env_never_blanks_the_pane_it_just_rendered() {
+    // Defense in depth: even when the sampling env CANNOT re-sample the
+    // curve (the draw-time snapshot is gone; sample_spec answers Ok
+    // with no points), neither zoom nor reset may blank a pane that
+    // just rendered — drawn samples are never wiped, so the pane stays
+    // visible (stale but honest) instead of rendering `html! {}`.
+    let mut session = Session::default();
+    session.begin_script();
+    let _ = session.submit("def planck(x) = (2 * h * c ^ 2) / ((x * 1e-9) ^ 5 * (exp((h * c) / ((x * 1e-9) * k_b * 5778)) - 1))");
+    let spec = parse_graph_source("planck(x) from 100 to 2000").unwrap();
+    let samples = sample_spec(&spec, 120, session.env()).unwrap();
+    session.end_script();
+    let curve = SampledCurve {
+        source: "planck(x) from 100 to 2000".to_string(),
+        kind: spec.kind,
+        domain: spec.domain,
+        samples,
+        fill: spec.fill,
+    };
+    // The def-less published env, no snapshot absorbed.
+    let mut z = ZoomState::sampled("planck(x) from 100 to 2000", curve, session.env().clone());
+    assert!(!z.pane_blank());
+    for _ in 0..3 {
+        assert!(
+            z.wheel(340.0, -100.0),
+            "zoom keeps applying (the drawn samples stay visible)"
+        );
+        assert!(!z.pane_blank());
+    }
+    assert!(z.apply(None), "reset applies");
+    assert!(!z.pane_blank(), "reset must never blank the pane");
 }

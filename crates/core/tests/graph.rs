@@ -787,3 +787,64 @@ fn space_curves_parse_sample_and_project() {
     let frame = epher_core::graph::curve_frame(&curve, &view);
     assert_eq!(frame.len(), 7);
 }
+
+// ===== the fully-undefined-domain contract and the draw-env snapshot (ADR-0012) =====
+
+#[test]
+fn a_fully_undefined_domain_samples_to_ok_not_an_error() {
+    // The contract the frontends must guard: `sample` drops every
+    // erroring point, so a domain the expression cannot evaluate
+    // anywhere reports `Ok` with NO samples — not an error. A caller
+    // that assigns that result over drawn samples silently wipes the
+    // curve (the 2026-11 "graph disappears" incident).
+    let spec = parse_graph_source("ln(x) from -2 to -0.001").unwrap();
+    let samples = sample_spec(&spec, 120, &env()).unwrap();
+    assert!(samples.is_empty());
+}
+
+#[test]
+fn absorb_defs_restores_a_script_scoped_def_for_resampling() {
+    // The web/PWA submit: a multi-piece script runs in a scope that
+    // closes before the session is published, and its defs cross only
+    // by `share` (ADR-0012 amendment). The pane keeps a draw-time env
+    // snapshot and absorbs it before every re-sample.
+    let mut session = Session::default();
+    session.begin_script();
+    assert!(
+        !session
+            .submit("def f(x) = x ^ 2 + 1")
+            .contains("error"),
+        "the def runs inside the script scope"
+    );
+    let draw_env = session.env().clone();
+    let spec = parse_graph_source("f(x) from 0 to 3").unwrap();
+    let drawn = sample_spec(&spec, 24, session.env()).unwrap();
+    assert_eq!(drawn.len(), 24, "the draw-time env samples the curve");
+
+    session.end_script();
+    // The def did not cross back: the published session cannot sample it.
+    assert!(
+        sample_spec(&spec, 24, session.env())
+            .unwrap()
+            .is_empty()
+    );
+
+    // Absorbing the draw-time snapshot restores the curve exactly.
+    let mut env = session.env().clone();
+    env.absorb_defs(&draw_env);
+    let fresh = sample_spec(&spec, 24, &env).unwrap();
+    assert_eq!(fresh.len(), 24);
+    assert!(fresh.iter().all(|s| s.y.is_finite()));
+
+    // Existing definitions win: a session-level redefinition shadows
+    // the stored snapshot (the newest scope is authoritative).
+    session.submit("def f(x) = -x");
+    let mut env2 = session.env().clone();
+    env2.absorb_defs(&draw_env);
+    let fresh2 = sample_spec(&spec, 24, &env2).unwrap();
+    assert_eq!(fresh2.len(), 24);
+    assert!(
+        fresh2.iter().all(|s| s.y <= 0.0),
+        "the session's own def shadows the absorbed snapshot"
+    );
+}

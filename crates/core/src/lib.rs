@@ -328,6 +328,31 @@ impl Env {
     fn set_bindings(&mut self, bindings: HashMap<String, Value>) {
         self.bindings = bindings;
     }
+
+    /// Pull the function and constant definitions `other` carries that
+    /// `self` lacks (ADR-0012 amendment). A script-scoped `def` draws
+    /// its plot but does not cross back into the session — so the
+    /// frontends keep a draw-time snapshot of the environment and
+    /// absorb it before every re-sample (zoom, reset, slider, tick),
+    /// keeping the pane zoomable and resettable exactly as drawn.
+    /// Existing definitions win: the newest scope shadows whatever
+    /// earlier scopes left behind. Bindings (variables, `ans`) are
+    /// deliberately NOT absorbed — the session's own scratchpad stays
+    /// authoritative, so moved constants re-sample with fresh values.
+    pub fn absorb_defs(&mut self, other: &Env) {
+        if !Rc::ptr_eq(&self.functions, &other.functions) {
+            let functions = Rc::make_mut(&mut self.functions);
+            for (name, function) in other.functions.iter() {
+                functions.entry(name.clone()).or_insert_with(|| function.clone());
+            }
+        }
+        if !Rc::ptr_eq(&self.constants, &other.constants) {
+            let constants = Rc::make_mut(&mut self.constants);
+            for (name, value) in other.constants.iter() {
+                constants.entry(name.clone()).or_insert_with(|| value.clone());
+            }
+        }
+    }
 }
 
 /// A parsed piece of mathematics that can be evaluated to a [`Value`], a domain
