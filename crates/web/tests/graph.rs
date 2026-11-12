@@ -8,7 +8,7 @@ use epher_web::graph::{
     geometry, geometry_in, graph_svg, segments, ticks, trace_nearest, Poi, TracePoint,
     DEFAULT_STROKE_WIDTH,
 };
-use epher_web::{anchored_window, slider_window, zoom_slider_value};
+use epher_web::{anchored_window, slider_names, slider_window, tune_value, zoom_slider_value};
 
 fn env() -> Env {
     Env::default()
@@ -34,6 +34,89 @@ fn samples_of(ys: &[f64]) -> Vec<Sample> {
             y: *y,
         })
         .collect()
+}
+
+#[test]
+fn a_script_scoped_constant_still_gets_its_slider_and_value() {
+    // The examples page opens scripts with `const` knobs — the report's
+    // sequence is `const a = 1` + `graph sin(x * a)`: the multi-piece
+    // submit runs in a script scope whose constants evaporate from the
+    // session when it closes (ADR-0012 amendment; merging them back was
+    // considered and rejected), and the tune panel gated its sliders on
+    // the session's const sources — so the curve drew but the slider and
+    // its play button never appeared. The knobs must survive the close
+    // exactly as the pane's re-samples do, resolved against the
+    // pane's draw-time environment.
+    let mut s = Session::new();
+    s.begin_script();
+    s.submit_quiet("const a = 1");
+    let draw_env = s.env().clone();
+    s.end_script();
+
+    // The session really did forget the constant (the documented
+    // scope rule, not a defect).
+    assert!(s.const_sources().get("a").is_none());
+    assert!(s.env().constant("a").is_none());
+
+    let spec = parse_graph_source("sin(x * a)").unwrap();
+    let samples = sample_spec(&spec, 120, &draw_env).unwrap();
+    let curve = SampledCurve {
+        source: "sin(x * a)".to_string(),
+        kind: spec.kind,
+        domain: spec.domain,
+        samples,
+        fill: spec.fill,
+    };
+
+    // With the draw env the knob exists, with the value the pane drew.
+    assert_eq!(
+        slider_names(&[curve.clone()], &[], &s, Some(&draw_env)),
+        vec!["a".to_string()]
+    );
+    assert_eq!(tune_value(&s, Some(&draw_env), "a"), Some(1.0));
+
+    // Without a draw env (nothing drawn this session) there is no
+    // knob: the evaporation stands.
+    assert!(slider_names(&[curve], &[], &s, None).is_empty());
+    assert_eq!(tune_value(&s, None, "a"), None);
+}
+
+#[test]
+fn slider_gates_still_know_interactive_constants_and_skip_builtins() {
+    // A constant typed interactively (not in a script) keeps its knob
+    // from the session's const sources alone, as before; built-in
+    // constants are inherited, never defined by the user, and get no
+    // slider even though the env resolves them.
+    let mut s = Session::new();
+    s.submit_quiet("const k = 3");
+    let mk = |source: &str| {
+        let spec = parse_graph_source(source).unwrap();
+        let samples = sample_spec(&spec, 120, s.env()).unwrap();
+        SampledCurve {
+            source: source.to_string(),
+            kind: spec.kind,
+            domain: spec.domain,
+            samples,
+            fill: spec.fill,
+        }
+    };
+    let k = mk("sin(x * k)");
+    assert_eq!(
+        slider_names(&[k], &[], &s, None),
+        vec!["k".to_string()],
+        "interactive constants gate on the session's const sources"
+    );
+
+    let pi = mk("sin(x * pi)");
+    assert!(
+        slider_names(&[pi.clone()], &[], &s, None).is_empty(),
+        "builtins get no slider from the session"
+    );
+    let inherited = s.env().clone();
+    assert!(
+        slider_names(&[pi], &[], &s, Some(&inherited)).is_empty(),
+        "builtins get no slider even through a draw env that merely inherited them"
+    );
 }
 
 #[test]

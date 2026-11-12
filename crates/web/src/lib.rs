@@ -99,10 +99,39 @@ fn slider_span(v: f64) -> (f64, f64) {
     }
 }
 
-fn slider_names(
+/// Whether the tune panel offers `name` a slider (ADR-0014/0015): a
+/// constant the user defined — interactively this session (the
+/// session's const sources) or inside the script that drew the current
+/// pane. A script's constants evaporate from the session when its
+/// scope closes (ADR-0012 amendment — merging them back was considered
+/// and rejected), so the published session never records their
+/// sources; the pane's knobs must survive the close exactly as the
+/// pane's re-samples do, through the draw-time environment. Built-in
+/// constants (`pi`, `h`) are inherited, never defined here, and get no
+/// slider.
+fn slider_gate(session: &Session, draw_env: Option<&Env>, name: &str) -> bool {
+    session.const_sources().contains_key(name)
+        || draw_env.is_some_and(|e| e.defines(name))
+}
+
+/// The value a tune-panel row shows: the session's constant first
+/// (fresh — a slider drag or play tick rewrites it in place,
+/// ADR-0014), falling back to the draw-time snapshot for a
+/// script-scoped constant the session never received.
+pub fn tune_value(session: &Session, draw_env: Option<&Env>, name: &str) -> Option<f64> {
+    const_value(session, name).or_else(|| {
+        draw_env.and_then(|e| match e.constant(name) {
+            Some(Value::Float(v)) => Some(*v),
+            _ => None,
+        })
+    })
+}
+
+pub fn slider_names(
     curves: &[SampledCurve],
     surfaces: &[epher_core::graph::Surface],
     session: &Session,
+    draw_env: Option<&Env>,
 ) -> Vec<String> {
     let mut names = std::collections::BTreeSet::new();
     for c in curves {
@@ -110,7 +139,7 @@ fn slider_names(
             let mut found = std::collections::BTreeSet::new();
             free_names(expr, &mut found);
             for n in found {
-                if session.const_sources().contains_key(&n) {
+                if slider_gate(session, draw_env, &n) {
                     names.insert(n);
                 }
             }
@@ -130,7 +159,7 @@ fn slider_names(
             let mut found = std::collections::BTreeSet::new();
             free_names(&expr, &mut found);
             for n in found {
-                if session.const_sources().contains_key(&n) {
+                if slider_gate(session, draw_env, &n) {
                     names.insert(n);
                 }
             }
@@ -141,9 +170,10 @@ fn slider_names(
 
 /// The constants a 3D curve set references; the 3D pane's sliders
 /// (ADR-0054).
-fn curve3d_slider_names(
+pub fn curve3d_slider_names(
     curves: &[epher_core::graph::SpaceCurve],
     session: &Session,
+    draw_env: Option<&Env>,
 ) -> Vec<String> {
     let mut names = std::collections::BTreeSet::new();
     for c in curves {
@@ -153,7 +183,7 @@ fn curve3d_slider_names(
             free_names(&y, &mut found);
             free_names(&z, &mut found);
             for n in found {
-                if session.const_sources().contains_key(&n) {
+                if slider_gate(session, draw_env, &n) {
                     names.insert(n);
                 }
             }
@@ -165,13 +195,13 @@ fn curve3d_slider_names(
 /// The constants the solar pane's time expression references; the source
 /// is stored as written (e.g. `t` or `now() + 10`), so its free names come
 /// straight from the expression tree (ADR-0037).
-fn solar_slider_names(source: &str, session: &Session) -> Vec<String> {
+pub fn solar_slider_names(source: &str, session: &Session, draw_env: Option<&Env>) -> Vec<String> {
     let mut names = std::collections::BTreeSet::new();
     if let Ok(expr) = epher_core::parse(source) {
         let mut found = std::collections::BTreeSet::new();
         free_names(&expr, &mut found);
         for n in found {
-            if session.const_sources().contains_key(&n) {
+            if slider_gate(session, draw_env, &n) {
                 names.insert(n);
             }
         }
@@ -6375,12 +6405,18 @@ fn epher_app() -> Html {
     // Slider rows for a list of constant names; the 2D plot gets the
     // constants its curves reference, the 3D plot the constants its
     // surfaces reference (ADR-0014/0015). Dragging the animated slider
-    // stops playback; the play button (re)starts it.
+    // stops playback; the play button (re)starts it. The constants are
+    // resolved against the pane's draw-time environment too: a script's
+    // constants evaporate from the session when the scope closes
+    // (ADR-0012 amendment), and the examples page opens scripts with
+    // `const` knobs — `const a = 1; graph sin(x * a)` must still show
+    // the slider and its play button, with the value the pane drew.
+    let tune_draw = live.borrow().draw_env.clone();
     let build_rows = |names: &[String]| -> Vec<Html> {
         names
             .iter()
             .filter_map(|name| {
-                let v = const_value(&session, name)?;
+                let v = tune_value(&session, tune_draw.as_ref(), name)?;
                 // While this constant plays, the slider window is the play
                 // span fixed at press time: the thumb travels the whole
                 // track and wraps cleanly from the right end back to the
@@ -6466,15 +6502,15 @@ fn epher_app() -> Html {
             })
             .collect()
     };
-    let curve_sliders = slider_names(&graph, &[], &session);
-    let mut surface_sliders = slider_names(&[], &surface, &session);
-    for n in curve3d_slider_names(&curve3ds, &session) {
+    let curve_sliders = slider_names(&graph, &[], &session, tune_draw.as_ref());
+    let mut surface_sliders = slider_names(&[], &surface, &session, tune_draw.as_ref());
+    for n in curve3d_slider_names(&curve3ds, &session, tune_draw.as_ref()) {
         if !surface_sliders.contains(&n) {
             surface_sliders.push(n);
         }
     }
     let solar_sliders = match (*solar_source).as_deref() {
-        Some(src) => solar_slider_names(src, &session),
+        Some(src) => solar_slider_names(src, &session, tune_draw.as_ref()),
         None => Vec::new(),
     };
     let curve_rows = build_rows(&curve_sliders);
