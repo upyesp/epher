@@ -2,10 +2,11 @@
 //! each frontend renders). SVG as a string so the tests run natively, no
 //! browser needed.
 
-use epher_core::graph::{parse_graph_source, sample_spec, CurveKind, InterestKind, SampledCurve};
+use epher_core::graph::{CurveKind, InterestKind, SampledCurve, parse_graph_source, sample_spec};
 use epher_core::{Env, Sample};
 use epher_web::graph::{
-    geometry, graph_svg, segments, ticks, trace_nearest, Poi, TracePoint, DEFAULT_STROKE_WIDTH,
+    DEFAULT_STROKE_WIDTH, Poi, TracePoint, geometry, geometry_in, graph_svg, segments, ticks,
+    trace_nearest,
 };
 use epher_web::{anchored_window, slider_window, zoom_slider_value};
 
@@ -341,5 +342,160 @@ fn three_d_width_contract_follows_the_layout() {
         epher_core::graph_svg::three_d_default_width(false)
             * epher_core::graph_svg::THREE_D_PX_PER_WIDTH,
         2.0
+    );
+}
+
+// ===== zoom: "the graph disappears and won't come back" (recreation + fix) =====
+
+/// The app's 2D zoom state, modeled faithfully on the real wiring:
+/// `live` is the store the wheel/slider base reads (last-submitted
+/// samples — only submit and the animation tick write it), `render` is
+/// the pane state `apply_zoom_window` publishes (re-sampled curves),
+/// and `window` is the stored zoom window (view2d). `wheel` replays
+/// `on_zoom2d` (the anchor math and the exp(delta_y/300) factor of the
+/// wheel listener in src/graph.rs) and `apply` replays
+/// `apply_zoom_window` with the bounce guard — all against the same
+/// pure pieces (anchored_window, sample_spec, geometry, geometry_in),
+/// so the test runs without a browser.
+struct ZoomState {
+    live: Vec<SampledCurve>,
+    render: Vec<SampledCurve>,
+    window: Option<(f64, f64)>,
+    base_span: f64,
+}
+
+impl ZoomState {
+    fn new(source: &str) -> Self {
+        let c = curve(source);
+        let base = epher_web::zoom_base(std::slice::from_ref(&c)).expect("base window");
+        Self {
+            render: vec![c.clone()],
+            live: vec![c],
+            window: None,
+            base_span: base.1 - base.0,
+        }
+    }
+
+    /// One wheel notch; false when the callback would bail (no base).
+    fn wheel(&mut self, cursor_px: f64, delta_y: f64) -> bool {
+        use epher_core::graph_svg::{LEFT, RIGHT};
+        let Some(base) = epher_web::zoom_base(&self.live) else {
+            return false; // on_zoom2d's `let Some(base) = base_of() else { return }`
+        };
+        let cur = self.window.unwrap_or(base);
+        let anchor = cur.0 + (cursor_px - LEFT) / (RIGHT - LEFT) * (cur.1 - cur.0);
+        let factor = (delta_y / 300.0).exp().clamp(0.5, 2.0);
+        self.apply(Some(anchored_window(cur, anchor, factor, self.base_span)))
+    }
+
+    /// apply_zoom_window: re-sample every Cartesian curve over the
+    /// window from the live store, publish to the pane — unless the
+    /// bounce guard rejects a window the curves cannot sample.
+    fn apply(&mut self, window: Option<(f64, f64)>) -> bool {
+        let mut curves = self.live.clone();
+        for c in curves.iter_mut() {
+            if matches!(c.kind, CurveKind::Cartesian(_)) {
+                let domain = match window {
+                    Some((lo, hi)) => (lo, hi),
+                    None => c.domain,
+                };
+                let spec = epher_core::graph::CurveSpec {
+                    kind: c.kind.clone(),
+                    domain,
+                    fill: c.fill,
+                };
+                if let Ok(samples) = sample_spec(&spec, 120, &env()) {
+                    c.samples = samples;
+                }
+            }
+        }
+        if window.is_some()
+            && !curves
+                .iter()
+                .any(|c| c.samples.iter().any(|s| s.y.is_finite()))
+        {
+            return false; // bounced: the fix — nothing is committed
+        }
+        self.render = curves;
+        self.window = window;
+        true
+    }
+
+    /// The pane's graph_html gate: it renders `html! {}` — no curve,
+    /// no axes, nothing — exactly when this is true.
+    fn pane_blank(&self) -> bool {
+        match self.window {
+            Some((lo, hi)) => geometry_in(&self.render, lo, hi).is_none(),
+            None => geometry(&self.render).is_none(),
+        }
+    }
+}
+
+#[test]
+fn zooming_toward_a_curve_s_undefined_region_bounces_and_keeps_the_pane() {
+    // The report's sequence: `graph ln(x)` auto-fits to its full
+    // (-10, 10) domain, so the left half of the plot is x < 0, where ln
+    // has no values. The cursor rests over that half (viewBox x = 170
+    // of 48..632, data x ≈ -5.8) and the user scrolls up a few notches.
+    // Before the fix the third notch committed a window every re-sample
+    // of which errors, the pane rendered nothing, and the only way back
+    // was clearing the results pane (zooming out with the cursor near
+    // the window's far edge pins that edge and never re-crosses x = 0).
+    let mut z = ZoomState::new("ln(x)");
+    assert!(!z.pane_blank(), "the plot draws before any zoom");
+
+    let mut applied = 0;
+    for _ in 0..8 {
+        if z.wheel(170.0, -100.0) {
+            applied += 1;
+        }
+        assert!(
+            !z.pane_blank(),
+            "the pane must never blank, whatever the wheel does"
+        );
+    }
+    assert_eq!(
+        applied, 2,
+        "the third notch bounced instead of entering ln's dead half"
+    );
+    let (lo, hi) = z.window.expect("a live window after zooming in");
+    assert!(
+        hi > 0.0,
+        "the window kept a foothold in defined x: ({lo}, {hi})"
+    );
+    assert!(
+        z.render[0].samples.iter().any(|s| s.y.is_finite()),
+        "the published curve still has samples"
+    );
+
+    // Zooming out still works exactly as before, in either direction
+    // and as many notches as the user likes.
+    for _ in 0..6 {
+        assert!(z.wheel(340.0, 300.0), "zoom-out notches apply");
+        assert!(!z.pane_blank());
+    }
+    let (lo, hi) = z.window.expect("window set");
+    assert!(hi - lo > z.base_span, "the window widened past the base");
+}
+
+#[test]
+fn zoom_base_falls_back_to_the_domains_when_the_samples_are_gone() {
+    // geometry() needs one finite sample anywhere; when a state has
+    // none (the animation tick can produce this: it re-samples live
+    // curves as a constant slides through an undefined region and
+    // commits even empty results), the old base lookup returned None
+    // and both zoom callbacks bailed before touching the window — the
+    // controls' dead state. The domains take over instead.
+    let mut c = curve("ln(x)");
+    assert!(epher_web::zoom_base(&[c.clone()]).is_some());
+    c.samples.clear();
+    assert!(
+        geometry(&[c.clone()]).is_none(),
+        "the degraded state is real"
+    );
+    assert_eq!(
+        epher_web::zoom_base(&[c]),
+        Some((-10.0, 10.0)),
+        "the domain union keeps the controls alive"
     );
 }

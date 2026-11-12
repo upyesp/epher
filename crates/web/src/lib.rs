@@ -1057,6 +1057,24 @@ pub fn slider_window(z: f64, base: (f64, f64), center: f64) -> (f64, f64) {
     (center - span / 2.0, center + span / 2.0)
 }
 
+/// The base window the 2D zoom controls work against (ADR-0038): the
+/// pane geometry's x range, which for curves is the domains' union and
+/// never moves with a zoom. When the geometry is gone — every sample
+/// of every curve dropped or non-finite, e.g. an animation sliding a
+/// constant into a region the expression cannot evaluate — the domains
+/// themselves take over: a `None` base would bail both `on_zoom2d` and
+/// `on_set_zoom2d` before they touch the window and pin the slider at
+/// 0, the zoom controls' dead state.
+pub fn zoom_base(curves: &[SampledCurve]) -> Option<(f64, f64)> {
+    if let Some(g) = graph::geometry(curves) {
+        return Some((g.x_min, g.x_max));
+    }
+    curves
+        .iter()
+        .map(|c| c.domain)
+        .reduce(|a, b| (a.0.min(b.0), a.1.max(b.1)))
+}
+
 /// Apple platforms (iOS, iPadOS, macOS) get the SF Symbols glyphs for
 /// copy and share; everything else gets the squared Android/Windows
 /// marks (ADR-0038). The share SHEET is always the OS's own -
@@ -5813,6 +5831,23 @@ fn epher_app() -> Html {
                     }
                 }
             }
+            // A window the curves cannot sample must never be committed
+            // (every re-sampled point errors or is non-finite — `graph
+            // ln(x)` zoomed fully into x <= 0): geometry_in finds no
+            // sample in it, the pane renders `html! {}` — no curve, no
+            // axes — and while blank every further zoom re-samples from
+            // the dead window, so nothing the user does visibly helps
+            // until the window happens to re-enter defined territory
+            // (zooming out with the cursor near the window's far edge
+            // pins that edge and never gets there). Bounce instead: the
+            // plot stays exactly as it was.
+            if window.is_some()
+                && !curves
+                    .iter()
+                    .any(|c| c.samples.iter().any(|s| s.y.is_finite()))
+            {
+                return;
+            }
             (*live).borrow_mut().trace = None;
             trace.set(None);
             *view2d_cell.borrow_mut() = window;
@@ -5830,7 +5865,7 @@ fn epher_app() -> Html {
                 graph::data_geometry(d, None).map(|g| (g.x_min, g.x_max))
             } else {
                 let l = live.borrow();
-                graph::geometry(&l.curves).map(|g| (g.x_min, g.x_max))
+                zoom_base(&l.curves)
             }
         }
     };
@@ -6458,8 +6493,7 @@ fn epher_app() -> Html {
             .map(|base| zoom_slider_value(*view2d, base))
             .unwrap_or(0.0)
     } else {
-        graph::geometry(&graph)
-            .map(|g| (g.x_min, g.x_max))
+        zoom_base(&graph)
             .map(|base| zoom_slider_value(*view2d, base))
             .unwrap_or(0.0)
     };
