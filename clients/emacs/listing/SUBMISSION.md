@@ -53,6 +53,14 @@ Remaining human checks before the PR:
 
 ## Status
 
+- 2026-11-14: riscy's second comment (2026-10-18) asked for the summary
+  line to name the mode, not the language, and the PR has carried the
+  `awaiting-upstream` label since 2026-11-01. Fixed on main: line 1 now
+  reads "Major mode for the epher scripting language" and the Commentary
+  opens with epher-mode as the subject, so the two agree. Byte-compile
+  stays warning-free; package-lint and checkdoc are unaffected (comments
+  only). Committed with `melpa/melpa#10256` in the message per
+  CONTRIBUTING.org.
 - 2026-09-30: `epher.el` passes package-lint (one deliberate
   `with-eval-after-load` warning for the optional lsp-mode
   registration), checkdoc, and a warning-free byte-compile, and

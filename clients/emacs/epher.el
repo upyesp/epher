@@ -1,4 +1,4 @@
-;;; epher.el --- Calculator language with inline answers and unit conversion -*- lexical-binding: t; -*-
+;;; epher.el --- Major mode for the epher scripting language -*- lexical-binding: t; -*-
 
 ;; Author: upyesp <upyesp@gmail.com>
 ;; Assisted-by: z.ai:GLM5.3
@@ -12,9 +12,10 @@
 
 ;;; Commentary:
 
-;; epher is a calculator language: you write ordinary math, with units
-;; that convert, and every statement's answer appears inline, right next
-;; to the line that produced it.
+;; epher-mode is a major mode for the scripting language of the epher
+;; calculator: you write ordinary math, with units that convert, and
+;; every statement's answer appears inline, right next to the line
+;; that produced it.
 ;;
 ;; `epher-mode' gives you:
 ;;
