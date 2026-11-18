@@ -70,11 +70,12 @@ definition, a destructuring, `if`, `while`, `for`, `solve`, `return`,
   hexadecimal, `0b101`, `0o17`, `0xFF`. Digits after the prefix must
   suit the base. A base prefix changes the spelling, never the value:
   `0xFF` *is* `255`.
-- Imaginary suffix: a number directly followed by `i`, with
-  no letter or `_` after the `i`, is one imaginary literal: `4i`,
-  `2.5i`, `0xFFi`. `3 + 4i` is a sum of two literals. `4it` is
-  *not* imaginary; it is the number `4` followed by the name `it`,
-  which the grammar then rejects.
+- Unit suffix: a number directly followed by `i`, `j`, or `k`, with
+  no letter or `_` after it, is one imaginary literal: `4i`, `3j`,
+  `2.5k`, `0xFFi`. `1 + 2i + 3j + 4k` is a sum of four literals (the
+  quaternion spelling, ADR-0085). `4it` is *not* imaginary; it is the
+  number `4` followed by the name `it`, which the grammar then
+  rejects.
 - All numbers are 64-bit binary floats. Integers are exact up to
   2^53; beyond that, spelling a literal keeps at most the 53 most
   significant bits.
@@ -118,11 +119,13 @@ then    to      while      xor
 comparisons and predicates (`1 < 2`, `isprime(7)`), and a bare `true`
 is an unknown-name error.
 
-One further name is reserved: `i`, the imaginary unit. It cannot be
-re-bound by assignment, by `const`, or by a destructuring pattern; see
+Three further names are reserved: `i`, the imaginary unit, and `j` and
+`k`, the other two quaternion units. None of them can be re-bound by
+assignment, by `const`, or by a destructuring pattern; see
 [Names, scope, and the session store](#8-names-scope-and-the-session-store).
-`i` is not a keyword; it resolves as a built-in constant and can be
-shadowed by nothing.
+They are not keywords; they resolve as built-in constants and can be
+shadowed by nothing (a `for` loop's variable and a function parameter
+still take the names, because they never persist).
 
 ## 5. Types and values
 
@@ -133,6 +136,7 @@ shadowed by nothing.
 | Decimal | produced by `dec(x)` | `dec(0.1)` |
 | Big (exact integer/decimal) | produced by `big(x)`, bitwise results | `big(2) ^ 100` |
 | Complex | imaginary literals, complex results | `3+4i`, `sqrt(-1)` |
+| Quaternion | `quaternion(w, x, y, z)` or the four-term literal | `1 + 2i + 3j + 4k`, `qaxis({0, 0, 1}, 90 deg)` |
 | Boolean | comparisons and predicates only | `1 < 2`, `isprime(7)` |
 | String | `"..."` | `"hello"` |
 | List | `{a, b, c}`, a data column of reals, or a list of strings | `{1, 2, 3}`, `split("a b", " ")` |
@@ -360,11 +364,13 @@ constant, or a function, never two (ADR-0012).
   frontends, across sessions and frontends of the same installation
   through the shared store (the `.epher` folder; the PWA keeps the
   same shape in browser storage).
-- **The imaginary unit is reserved.** `i = 5`, `const i = …`, and a
+- **The units are reserved.** `i = 5`, `const i = …`, and a
   destructuring pattern naming `i` are all refused with
   `cannot assign to i: that name is the imaginary unit`, so no
-  session, store, or frontend can shadow `3+4i`. A stored `i` from an
-  older release is dropped silently when the store loads.
+  session, store, or frontend can shadow `3+4i`. `j` and `k` follow
+  the same rule with `that name is the quaternion unit`. A stored `i`,
+  `j`, or `k` from an older release is dropped silently when the store
+  loads.
 - A `for` loop's variable exists only for the loop: it is removed
   afterwards, and a prior binding is restored (nothing a loop does
   reaches the store).
@@ -390,7 +396,9 @@ user `const` of the same name shadows it by the resolution order.
 | `e` | `2.718281828459045` | Euler's number, the natural-log base |
 | `phi` | `1.618033988749895` | the golden ratio, (1+√5)/2 |
 | `gamma` | `0.5772156649015329` | the Euler–Mascheroni constant |
-| `i` | `0+1i (the imaginary unit)` | the imaginary unit: the one reserved name (assignment refuses it) |
+| `i` | `0+1i (the imaginary unit)` | the imaginary unit (reserved: assignment refuses it) |
+| `j` | `j (the quaternion unit)` | the quaternion unit j: reserved (assignment refuses it) |
+| `k` | `k (the quaternion unit)` | the quaternion unit k: reserved (assignment refuses it) |
 
 ### 9.2 Astronomy
 
@@ -451,7 +459,9 @@ user `const` of the same name shadows it by the resolution order.
 
 The imaginary unit's value is the complex number with real part 0 and
 imaginary part 1; its literal spellings `i` and `4i` tokenize as
-[literals](#3-lexical-grammar).
+[literals](#3-lexical-grammar). The quaternion units are the values
+with one of the last three parts set (`j` is `0 + 0i + 1j + 0k`), and
+`3j`/`3k` tokenize the same way `4i` does.
 
 ## 10. Built-in functions
 
@@ -666,6 +676,47 @@ latitude and longitude in degrees.
 `i` the loop variable and `i` the imaginary unit coexist inside a
 `for` loop exactly because the loop scopes its variable; see
 [Statements](#7-statements).
+
+### 10.14 Quaternions
+
+A quaternion is `w + xi + yj + zk`, the scalar part first (the SPICE,
+MATLAB, and Octave order). Plain numbers and complex values promote
+into quaternion arithmetic; rational, decimal, big, quantities,
+matrices, and lists do not. A vector is a 3-element list (`{x, y, z}`)
+and an angle is in radians, so `30 deg` converts. `q2m` and `m2q`
+follow SPICE's names and its scalar-part-`>= 0` rule for `m2q`.
+
+| Function | Answers |
+|---|---|
+| `quaternion(w, x, y, z)` | a quaternion, scalar first; also written `1 + 2i + 3j + 4k` |
+| `re(q)`, `im(q)` | the scalar part, and the vector part as `{x, y, z}` |
+| `conj(q)`, `qconj(q)` | quaternion conjugate |
+| `abs(q)`, `qnorm(q)` | magnitude |
+| `qunit(q)` | unit quaternion in the same direction |
+| `qinv(q)` | multiplicative inverse |
+| `qw(q)`, `qx(q)`, `qy(q)`, `qz(q)` | scalar part, coefficient of i, coefficient of j, coefficient of k |
+| `qaxis(axis, angle)` | unit quaternion for a turn, or the axis of a rotation |
+| `qaxis(q)` | the axis of the rotation, as a 3-element vector |
+| `qangle(q)` | rotation angle in radians |
+| `qrot(q, v)` | rotate a 3-element vector by `q` (`q v q^-1`) |
+| `q2m(q)` | 3x3 rotation matrix of the quaternion |
+| `m2q(M)` | quaternion of a 3x3 rotation matrix (scalar part >= 0) |
+| `qslerp(q1, q2, t)` | spherical interpolation along the shortest path |
+| `qeq2hor(jd, lat, lon)` | equatorial to horizon rotation (east, north, up) |
+
+The two-argument `qaxis` normalizes the axis and takes the angle in
+radians; the one-argument form extracts the axis. `qangle` reports the
+angle the quaternion encodes in `0..2pi`, so `q` and `-q` name the same
+rotation with angles `t` and `2pi - t`; `m2q` always answers the
+representative whose scalar part is not negative. `exp`, `ln`, `log`,
+`sqrt`, and `^` extend to quaternions (`exp` and `ln` are the rotation
+map); the trigonometric family refuses them.
+`==` and `!=` compare components of two quaternions; there is no
+ordering, and `q == 3` is a type error. `qrot` rotates:
+`q * {1, 0, 0}` is a type error, because rotation happens by name.
+`qeq2hor` is geometric (no refraction and no parallax), so it matches
+`alt`/`az` for a star or planet and differs by up to about a degree for
+the Moon, whose parallax needs its distance.
 
 ## 11. Units
 

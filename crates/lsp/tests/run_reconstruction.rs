@@ -41,7 +41,7 @@ fn normalize(lines: Vec<ScriptLine>) -> Vec<(u32, String, Option<String>, bool)>
 
 #[test]
 fn assignments_defs_and_consts_rebuild_exactly() {
-    assert_lines_match("x = 40 + 2\ndef double(n) = n * 2\nconst k = double(x)\nk * 2\n");
+    assert_lines_match("x = 40 + 2\ndef double(n) = n * 2\nconst kk = double(x)\nkk * 2\n");
 }
 
 #[test]

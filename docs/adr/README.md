@@ -109,6 +109,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0082 | The macOS build runs when the Linux and Windows builds run | 2026-11-10 | accepted (supersedes 0075) |
 | 0083 | The landing hero is a real capture of all five surfaces | 2026-11-10 | accepted (supersedes the ADR-0030 hero on this point) |
 | 0084 | The macOS GUI hands off to the wrapper-free build | 2026-11-11 | accepted (amends 0011) |
+| 0085 | Quaternions are a first-class value with reserved `j` and `k` | 2026-11-18 | accepted (amends 0043, 0065) |
 
 ## Decision chains
 
@@ -179,6 +180,8 @@ at the end of the chain.
   arithmetic, statistics, distributions, tests, regression)**
   → **0045 (seeded random, the constants browser)** → **0055 (answers
   flow on one line, separated by semicolons, in the apps)**
+  → **0085 (quaternions: `Value::Quaternion`, reserved `j`/`k`, the
+  rotation family, `qeq2hor`)**
 - **In-app guide** - 0018 → 0018 amendment (ToC) → **0038 (search box
   with chapter + snippet hits)** → **0053 (the guide loads on demand:
   fetched from static files or read from the installed files, never

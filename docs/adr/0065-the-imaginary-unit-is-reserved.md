@@ -4,7 +4,9 @@ Date: 2026-09-17
 
 Status: Accepted. Resolves the open question left by ADR-0064;
 amends ADR-0043 (shadowable built-ins) and ADR-0063 (for loops scope
-their variable).
+their variable). Amended 2026-11-18 by ADR-0085: `j` and `k` join `i`
+as the quaternion units, with the same reservation mechanics, and the
+rename advice in the consequences below no longer offers `k`.
 
 ## Context
 

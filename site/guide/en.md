@@ -250,7 +250,7 @@ x = x + 1
 > Names can contain letters and underscores, like `radius` or `my_total`.
 > They cannot contain spaces or start with a number.
 
-One name is reserved: `i`, the imaginary unit (section 1.18).
+Three names are reserved: `i`, `j` and `k`, the imaginary and quaternion units (sections 1.18 and 1.29).
 
 The special variable `ans` always holds the previous answer, like the
 `Ans` key on a pocket calculator, handy for chained calculations:
@@ -1112,7 +1112,7 @@ sqrt(-1)
 i
 ```
 
-Unlike every other built-in name, `i` cannot be reused: `i = 5` is refused, so the imaginary unit can never be shadowed - not by an assignment, not by an old saved session.
+Unlike every other built-in name, `i` cannot be reused: `i = 5` is refused, so the imaginary unit can never be shadowed - not by an assignment, not by an old saved session. `j` and `k`, the other two quaternion units (section 1.29), follow the same rule.
 
 Write a complex number with the `i` suffix, no multiplication sign
 needed: `3 + 4i` is one literal, `2.5i` works, and so do the based
@@ -1193,8 +1193,8 @@ The variable solved for is `x` when it appears, otherwise the single
 other variable. Constants and bound variables act as parameters:
 
 ```epher
-const k = 3
-solve k*x == 12
+const kk = 3
+solve kk*x == 12
 ```
 
 ```text
@@ -2067,6 +2067,96 @@ The ephemeris is computed by the solar-ephemeris crate
 (github.com/Protonmatter/sol), validated against JPL Horizons; thank you to
 its author. Accuracy is arcsecond-class for the Sun, Moon and planets over
 roughly 5000 years around the present.
+
+**Rotations: quaternions.** A quaternion has four parts, written
+`w + xi + yj + zk`, scalar first. `j` and `k` are the other two units
+like `i`, so the four-term sum is one literal:
+
+```epher
+1 + 2i + 3j + 4k
+```
+
+```text
+1 + 2i + 3j + 4k
+```
+
+`quaternion(1, 2, 3, 4)` spells the same value. Multiplication is
+Hamilton's: the units anticommute and each squares to -1:
+
+```epher
+i * j
+j * i
+k * k
+```
+
+```text
+k
+-k
+-1
+```
+
+A unit quaternion carries a turn. `qaxis(axis, angle)` builds the turn
+(angles are radians, so `90 deg` converts), `qrot` turns a 3-element
+vector, and `qangle`/`qaxis` read the turn back:
+
+```epher
+q = qaxis({0, 0, 1}, 90 deg)
+qrot(q, {1, 0, 0})
+deg(qangle(q))
+qaxis(q)
+```
+
+```text
+0.707106781187 + 0.707106781187k
+{0.000000000000000222044604925, 1, 0}
+90
+{0, 0, 1}
+```
+
+The 2e-16 is float rounding, not a wrong answer: `cos(45 deg)` is not an
+exact binary fraction. `q2m` and `m2q` bridge to the 3x3 rotation matrix
+(`m2q` always returns a scalar part of at least zero), and `qslerp`
+interpolates along the shortest path:
+
+```epher
+q = qaxis({0, 0, 1}, 90 deg)
+m2q(q2m(q))
+qslerp(quaternion(1, 0, 0, 0), q, 0.5)
+```
+
+```text
+0.707106781187 + 0.707106781187k
+0.707106781187 + 0.707106781187k
+0.923879532511 + 0.382683432365k
+```
+
+**The horizon as a rotation.** `qeq2hor(jd, lat, lon)` answers the
+quaternion that turns an equatorial unit vector into the observer's
+horizon frame, whose axes are east, north and up. A star is a unit
+vector built from its `ra` and `decl`; rotate it and read the altitude
+and azimuth back, and they match `alt`/`az` (to the arcsecond for a star
+or planet; for the Moon use `alt`/`az` themselves, because its parallax
+is nearly a degree):
+
+```epher
+const t = 2460000.5
+sun = {cos(decl(10, t) deg) * cos(ra(10, t) deg), cos(decl(10, t) deg) * sin(ra(10, t) deg), sin(decl(10, t) deg)}
+h = qrot(qeq2hor(t, 51.5, -0.12), sun)
+deg(asin(h[3])) - alt(10, t, 51.5, -0.12)
+deg(atan2(h[1], h[2])) + 360 - az(10, t, 51.5, -0.12)
+```
+
+```text
+{0.914303104842, -0.371610460864, -0.161107100565}
+{-0.0585591573677, 0.670732553317, -0.739383978058}
+0.00165243764796
+-0.00000103645606941
+```
+
+The two differences are arcsecond-scale; the Sun's own parallax (8.8
+arcseconds) is the larger term, which is why a star agrees to rounding.
+Constants and functions in this section are in the [reference](../reference/).
+
 
 ### 1.30 Finance
 

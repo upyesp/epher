@@ -1,6 +1,8 @@
 # ADR-0043: complex numbers, equation solving, numeric calculus, exact display, and result formats
 
-- Status: accepted
+- Status: accepted (amended 2026-11-18: ADR-0085 adds quaternions to
+  the promotion tower; floats and complex values promote into them, the
+  exact layers still do not)
 - Date: 2026-08-31
 - Roadmap: feature-gap analysis round 2 (core block: T1.1, T1.2, T1.4, T2.5, T2.1)
 

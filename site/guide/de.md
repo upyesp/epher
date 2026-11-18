@@ -254,7 +254,7 @@ x = x + 1
 > Namen dürfen Buchstaben und Unterstriche enthalten, wie `radius` oder
 > `my_total`. Sie dürfen keine Leerzeichen enthalten und nicht mit einer Zahl beginnen.
 
-Ein Name ist reserviert: `i`, die imaginäre Einheit (Abschnitt 1.18).
+Drei Namen sind reserviert: `i`, `j` und `k`, die imaginäre Einheit und die beiden Quaternionseinheiten (Abschnitte 1.18 und 1.29).
 
 Die besondere Variable `ans` enthält immer die vorherige Antwort, wie
 die `Ans`-Taste eines Taschenrechners, praktisch für Kettenrechnungen:
@@ -1124,7 +1124,7 @@ sqrt(-1)
 i
 ```
 
-Anders als jeder andere eingebaute Name kann `i` nicht wiederverwendet werden: `i = 5` wird abgelehnt, sodass die imaginäre Einheit nie verdeckt werden kann - weder durch eine Zuweisung noch durch eine alte gespeicherte Sitzung.
+Anders als jeder andere eingebaute Name kann `i` nicht wiederverwendet werden: `i = 5` wird abgelehnt, sodass die imaginäre Einheit nie verdeckt werden kann - weder durch eine Zuweisung noch durch eine alte gespeicherte Sitzung. `j` und `k`, die beiden anderen Quaternionseinheiten (Abschnitt 1.29), folgen derselben Regel.
 
 Schreiben Sie eine komplexe Zahl mit dem `i`-Suffix, ohne Multiplikationszeichen: `3 + 4i` ist ein Literal, `2.5i` funktioniert, ebenso die Basisliterale (`0xFFi`). Die übliche Arithmetik erweitert sich: Addieren, Subtrahieren, Multiplizieren, Dividieren und Potenzen funktionieren, und `i` folgt der normalen Rangfolge (`i ^ 2` bindet wie jede Potenz).
 
@@ -1193,8 +1193,8 @@ x = 1
 Die gesuchte Variable ist `x`, wenn sie vorkommt, sonst die einzige andere Variable. Konstanten und gebundene Variablen wirken als Parameter:
 
 ```epher
-const k = 3
-solve k*x == 12
+const kk = 3
+solve kk*x == 12
 ```
 
 ```text
@@ -2020,6 +2020,97 @@ Die Ephemeride rechnet das Crate solar-ephemeris
 (github.com/Protonmatter/sol), geprüft gegen JPL Horizons; Dank an seinen
 Autor. Die Genauigkeit ist bogensekundenklassig für Sonne, Mond und
 Planeten über etwa 5000 Jahre um die Gegenwart.
+**Drehungen: Quaternionen.** Ein Quaternion hat vier Teile, geschrieben
+`w + xi + yj + zk`, der Skalarteil zuerst. `j` und `k` sind die beiden
+anderen Einheiten wie `i`, also ist die Summe mit vier Termen ein Literal:
+
+```epher
+1 + 2i + 3j + 4k
+```
+
+```text
+1 + 2i + 3j + 4k
+```
+
+`quaternion(1, 2, 3, 4)` schreibt denselben Wert. Die Multiplikation ist
+Hamiltons Regel: die Einheiten antikommutieren, und jede quadriert zu -1:
+
+```epher
+i * j
+j * i
+k * k
+```
+
+```text
+k
+-k
+-1
+```
+
+Ein Einheitsquaternion trägt eine Drehung. `qaxis(axis, angle)` baut sie
+(Winkel in Radiant, `90 deg` rechnet um), `qrot` dreht einen Vektor aus
+drei Elementen, und `qangle`/`qaxis` lesen die Drehung zurück:
+
+```epher
+q = qaxis({0, 0, 1}, 90 deg)
+qrot(q, {1, 0, 0})
+deg(qangle(q))
+qaxis(q)
+```
+
+```text
+0.707106781187 + 0.707106781187k
+{0.000000000000000222044604925, 1, 0}
+90
+{0, 0, 1}
+```
+
+Die 2e-16 ist Gleitkomma-Rundung, keine falsche Antwort: `cos(45 deg)`
+ist kein exakter Binärbruch. `q2m` und `m2q` bilden auf die 3x3-Drehmatrix
+ab (`m2q` liefert immer einen Skalarteil von mindestens null), und
+`qslerp` interpoliert auf dem kürzesten Weg:
+
+```epher
+q = qaxis({0, 0, 1}, 90 deg)
+m2q(q2m(q))
+qslerp(quaternion(1, 0, 0, 0), q, 0.5)
+```
+
+```text
+0.707106781187 + 0.707106781187k
+0.707106781187 + 0.707106781187k
+0.923879532511 + 0.382683432365k
+```
+
+**Der Horizont als Drehung.** `qeq2hor(jd, lat, lon)` liefert das
+Quaternion, das einen äquatorialen Einheitsvektor in das Horizontsystem
+des Beobachters dreht, dessen Achsen Ost, Nord und Oben sind. Ein Stern
+ist ein Einheitsvektor aus seiner `ra` und `decl`; dreht man ihn und
+liest Höhe und Azimut zurück, stimmen sie mit `alt`/`az` überein (auf die
+Bogensekunde für Stern oder Planet; für den Mond nimmt man `alt`/`az`
+selbst, denn seine Parallaxe ist fast ein Grad):
+
+```epher
+const t = 2460000.5
+sun = {cos(decl(10, t) deg) * cos(ra(10, t) deg), cos(decl(10, t) deg) * sin(ra(10, t) deg), sin(decl(10, t) deg)}
+h = qrot(qeq2hor(t, 51.5, -0.12), sun)
+deg(asin(h[3])) - alt(10, t, 51.5, -0.12)
+deg(atan2(h[1], h[2])) + 360 - az(10, t, 51.5, -0.12)
+```
+
+```text
+{0.914303104842, -0.371610460864, -0.161107100565}
+{-0.0585591573677, 0.670732553317, -0.739383978058}
+0.00165243764796
+-0.00000103645606941
+```
+
+Die beiden Differenzen liegen im Bogensekundenbereich; die Parallaxe der
+Sonne (8,8 Bogensekunden) ist der größere Anteil, deshalb stimmt ein
+Stern bis auf Rundung. Konstanten und Funktionen stehen in der
+[Referenz](../reference/).
+
+
 ### 1.30 Finanzen
 
 epher spricht Geld genauso wie Astronomie: ein Zeitwert-Löser, eine

@@ -59,6 +59,8 @@ join({upper(name), ext}, ".")` },
       { cap: "ex-a14", capText: "Planck's blackbody curve for the Sun (5778 K), wavelength in nanometres. The constants `h`, `c` and `k_b` are built in.", kind: "epher", code: `def planck(x) = (2 * h * c ^ 2) / ((x * 1e-9) ^ 5 * (exp((h * c) / ((x * 1e-9) * k_b * 5778)) - 1))\ngraph planck(x) from 100 to 2000` },
       { cap: "ex-a15", capText: "The solar system at an instant: orbits, trails, and labelled dots. Give the time as a constant and press play to watch the planets move.", kind: "epher", code: `const t = now()\nsolar3d t` },
       { cap: "ex-a16", capText: "A transit light curve: a smooth 1.2 percent dip as an exoplanet crosses its star, modelled with a logistic ingress.", kind: "epher", code: `def flux(x) = 1 - 0.012 / (1 + exp((abs(x) - 0.04) * 200))\ngraph flux(x) from -0.2 to 0.2` },
+      { cap: "ex-a20", capText: "Quaternions: the four-part literal, and a 90 degree turn about z applied to a vector.", kind: "epher", code: `q = qaxis({0, 0, 1}, 90 deg)\nqrot(q, {1, 0, 0})` },
+      { cap: "ex-a21", capText: "The horizon as a rotation: `qeq2hor` turns the Sun's equatorial unit vector into altitude and azimuth at the observer.", kind: "epher", code: `const t = 2460000.5\nqrot(qeq2hor(t, 51.5, -0.12), {cos(decl(10, t) deg) * cos(ra(10, t) deg), cos(decl(10, t) deg) * sin(ra(10, t) deg), sin(decl(10, t) deg)})` },
     ],
   },
   {

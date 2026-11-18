@@ -408,6 +408,34 @@ solar3d t</code></pre>
 </div>
 </div>
 </figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a20">Quaternions: the four-part literal, and a 90 degree turn about z applied to a vector.</figcaption>
+<div class="example" tabindex="0">
+<pre tabindex="0"><code class="language-epher">q = <span class="tok-fn">qaxis</span>({<span class="tok-num">0</span>, <span class="tok-num">0</span>, <span class="tok-num">1</span>}, <span class="tok-num">90</span> deg)
+<span class="tok-fn">qrot</span>(q, {<span class="tok-num">1</span>, <span class="tok-num">0</span>, <span class="tok-num">0</span>})</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a21">The horizon as a rotation: `qeq2hor` turns the Sun's equatorial unit vector into altitude and azimuth at the observer.</figcaption>
+<div class="example" tabindex="0">
+<pre tabindex="0"><code class="language-epher"><span class="tok-kw">const</span> t = <span class="tok-num">2460000.5</span>
+<span class="tok-fn">qrot</span>(<span class="tok-fn">qeq2hor</span>(t, <span class="tok-num">51.5</span>, -<span class="tok-num">0.12</span>), {<span class="tok-fn">cos</span>(<span class="tok-fn">decl</span>(<span class="tok-num">10</span>, t) deg) * <span class="tok-fn">cos</span>(<span class="tok-fn">ra</span>(<span class="tok-num">10</span>, t) deg), <span class="tok-fn">cos</span>(<span class="tok-fn">decl</span>(<span class="tok-num">10</span>, t) deg) * <span class="tok-fn">sin</span>(<span class="tok-fn">ra</span>(<span class="tok-num">10</span>, t) deg), <span class="tok-fn">sin</span>(<span class="tok-fn">decl</span>(<span class="tok-num">10</span>, t) deg)})</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
 </section>
 <section class="ex-section">
 <h2 data-i18n="ex-h-cli">The command line</h2>

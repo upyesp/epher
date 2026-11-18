@@ -252,7 +252,7 @@ x = x + 1
 > Los nombres pueden contener letras y guiones bajos, como `radius` o
 > `my_total`. No pueden contener espacios ni empezar por un número.
 
-Un nombre está reservado: `i`, la unidad imaginaria (sección 1.18).
+Tres nombres están reservados: `i`, `j` y `k`, la unidad imaginaria y las dos unidades cuaterniónicas (secciones 1.18 y 1.29).
 
 La variable especial `ans` contiene siempre la respuesta anterior,
 como la tecla `Ans` de una calculadora de bolsillo, útil para encadenar
@@ -1116,7 +1116,7 @@ sqrt(-1)
 i
 ```
 
-A diferencia de cualquier otro nombre integrado, `i` no puede reutilizarse: `i = 5` se rechaza, así que la unidad imaginaria nunca puede quedar oculta - ni por una asignación, ni por una sesión antigua guardada.
+A diferencia de cualquier otro nombre integrado, `i` no puede reutilizarse: `i = 5` se rechaza, así que la unidad imaginaria nunca puede quedar oculta - ni por una asignación, ni por una sesión antigua guardada. `j` y `k`, las otras dos unidades cuaterniónicas (sección 1.29), siguen la misma regla.
 
 Escribe un número complejo con el sufijo `i`, sin signo de multiplicación: `3 + 4i` es un literal, `2.5i` funciona, y también los literales con base (`0xFFi`). La aritmética habitual se extiende: sumar, restar, multiplicar, dividir y potencias funcionan, e `i` sigue la precedencia normal (`i ^ 2` se agrupa como cualquier potencia).
 
@@ -1185,8 +1185,8 @@ x = 1
 La variable a resolver es `x` si aparece, si no la única otra variable. Las constantes y variables ligadas actúan como parámetros:
 
 ```epher
-const k = 3
-solve k*x == 12
+const kk = 3
+solve kk*x == 12
 ```
 
 ```text
@@ -2016,6 +2016,97 @@ La efeméride la calcula el crate solar-ephemeris
 (github.com/Protonmatter/sol), validado contra JPL Horizons; gracias a su
 autor. La precisión es de clase arcsecond para el Sol, la Luna y los
 planetas a lo largo de unos 5000 años alrededor del presente.
+**Rotaciones: cuaterniones.** Un cuaternión tiene cuatro partes, escrito
+`w + xi + yj + zk`, la escalar primero. `j` y `k` son las otras dos
+unidades como `i`, así que la suma de cuatro términos es un literal:
+
+```epher
+1 + 2i + 3j + 4k
+```
+
+```text
+1 + 2i + 3j + 4k
+```
+
+`quaternion(1, 2, 3, 4)` escribe el mismo valor. La multiplicación es la
+de Hamilton: las unidades anticonmutan y cada una al cuadrado da -1:
+
+```epher
+i * j
+j * i
+k * k
+```
+
+```text
+k
+-k
+-1
+```
+
+Un cuaternión unitario lleva un giro. `qaxis(axis, angle)` lo construye
+(los ángulos van en radianes, `90 deg` convierte), `qrot` gira un vector
+de tres elementos, y `qangle`/`qaxis` leen el giro:
+
+```epher
+q = qaxis({0, 0, 1}, 90 deg)
+qrot(q, {1, 0, 0})
+deg(qangle(q))
+qaxis(q)
+```
+
+```text
+0.707106781187 + 0.707106781187k
+{0.000000000000000222044604925, 1, 0}
+90
+{0, 0, 1}
+```
+
+El 2e-16 es redondeo de coma flotante, no una respuesta errónea:
+`cos(45 deg)` no es una fracción binaria exacta. `q2m` y `m2q` tienden un
+puente a la matriz de giro 3x3 (`m2q` siempre devuelve una parte escalar
+de al menos cero), y `qslerp` interpola por el camino más corto:
+
+```epher
+q = qaxis({0, 0, 1}, 90 deg)
+m2q(q2m(q))
+qslerp(quaternion(1, 0, 0, 0), q, 0.5)
+```
+
+```text
+0.707106781187 + 0.707106781187k
+0.707106781187 + 0.707106781187k
+0.923879532511 + 0.382683432365k
+```
+
+**El horizonte como rotación.** `qeq2hor(jd, lat, lon)` da el cuaternión
+que gira un vector unitario ecuatorial al sistema horizontal del
+observador, cuyos ejes son este, norte y arriba. Una estrella es un
+vector unitario construido con su `ra` y `decl`; gíralo y lee la altura y
+el acimut, y coinciden con `alt`/`az` (al segundo de arco para una
+estrella o un planeta; para la Luna usa `alt`/`az`, porque su paralaje es
+casi un grado):
+
+```epher
+const t = 2460000.5
+sun = {cos(decl(10, t) deg) * cos(ra(10, t) deg), cos(decl(10, t) deg) * sin(ra(10, t) deg), sin(decl(10, t) deg)}
+h = qrot(qeq2hor(t, 51.5, -0.12), sun)
+deg(asin(h[3])) - alt(10, t, 51.5, -0.12)
+deg(atan2(h[1], h[2])) + 360 - az(10, t, 51.5, -0.12)
+```
+
+```text
+{0.914303104842, -0.371610460864, -0.161107100565}
+{-0.0585591573677, 0.670732553317, -0.739383978058}
+0.00165243764796
+-0.00000103645606941
+```
+
+Las dos diferencias son del orden del segundo de arco; la paralaje del
+Sol (8,8 segundos de arco) es el término mayor, por eso una estrella
+coincide hasta el redondeo. Las constantes y funciones están en la
+[referencia](../reference/).
+
+
 ### 1.30 Finanzas
 
 epher habla de dinero tan bien como de astronomía: un solucionador de
