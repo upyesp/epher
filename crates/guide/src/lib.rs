@@ -13,8 +13,10 @@
 //! markdown feature set is bounded by the guide itself: ATX headings
 //! (1–4), fenced code blocks (`epher`, `sh`, `text`), flat lists, pipe
 //! tables, blockquotes, paragraphs, and the inline marks `` `code` ``,
-//! `**bold**`, `*italic*`. No links, images, or raw HTML; so both
-//! renderers stay small and every byte of text is escaped.
+//! `**bold**`, `*italic*`. No images or raw HTML. Link syntax
+//! `[label](target)` may appear (the astronomy section's pointer at the
+//! language reference); both renderers degrade it to its label — they
+//! display no links — and every byte of text is escaped.
 
 /// The locales the guide ships in, matching site/guide/*.md.
 pub const LOCALES: [&str; 8] = ["ar", "de", "en", "es", "fr", "hi", "pt", "zh-CN"];
@@ -141,6 +143,37 @@ fn escape_html(s: &str) -> String {
 /// Inline markdown → HTML. Escapes first, then applies the three inline
 /// marks the guide uses. `` `code` `` spans win over everything else, and
 /// `**bold**` is applied before `*italic*`.
+/// Degrade markdown link syntax to its label: `[label](target)`
+/// becomes `label`. The in-app renderers display no links (ADR-0018);
+/// the one cross-reference in the guide — the astronomy section's
+/// pointer at the language reference — renders as plain text here,
+/// while the website build (a separate renderer) turns it into a real
+/// link. Subset parser: no nesting, no escapes, non-greedy.
+fn strip_links(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut rest = s;
+    while let Some(open) = rest.find('[') {
+        let after_open = &rest[open + 1..];
+        if let Some(close_rel) = after_open.find(']') {
+            let target = &after_open[close_rel + 1..];
+            if let Some(target_rest) = target.strip_prefix('(') {
+                if let Some(paren_rel) = target_rest.find(')') {
+                    out.push_str(&rest[..open]);
+                    out.push_str(&after_open[..close_rel]);
+                    rest = &target_rest[paren_rel + 1..];
+                    continue;
+                }
+            }
+        }
+        // No link construct starting here: keep up to and including
+        // this bracket, and keep scanning after it.
+        out.push_str(&rest[..=open]);
+        rest = &rest[open + 1..];
+    }
+    out.push_str(rest);
+    out
+}
+
 fn inline(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for (i, seg) in s.split('`').enumerate() {
@@ -151,7 +184,7 @@ fn inline(s: &str) -> String {
             out.push_str("</code>");
             continue;
         }
-        for (j, part) in seg.split("**").enumerate() {
+        for (j, part) in strip_links(seg).split("**").enumerate() {
             if j % 2 == 1 {
                 out.push_str("<strong>");
             }
@@ -174,7 +207,10 @@ fn inline(s: &str) -> String {
 
 /// Strip the inline marks for plain-text output.
 fn strip_inline(s: &str) -> String {
-    s.replace("**", "").replace('*', "").replace('`', "")
+    strip_links(s)
+        .replace("**", "")
+        .replace('*', "")
+        .replace('`', "")
 }
 
 /// `#`–`####` → (level, rest); nothing else.
@@ -618,5 +654,47 @@ mod tests {
         assert!(t.contains(&TLine::Text("Para code bold.".into())));
         assert!(t.contains(&TLine::Code("1+1".into())));
         assert!(t.contains(&TLine::Quote("note".into())));
+    }
+
+    #[test]
+    fn html_degrades_link_syntax_to_its_label() {
+        let md = "Constants and functions in this section are in the [reference](../../reference/#9-built-in-constants).\n";
+        let h = render_html(md, "Contents");
+        assert!(
+            h.contains("<p>Constants and functions in this section are in the reference.</p>"),
+            "{h}"
+        );
+        assert!(!h.contains('['), "{h}");
+        assert!(!h.contains("]("), "{h}");
+    }
+
+    #[test]
+    fn text_degrades_link_syntax_to_its_label() {
+        let md = "See [the reference](../../reference/) for constants.\n";
+        let t = render_text(md);
+        assert!(
+            t.contains(&TLine::Text("See the reference for constants.".into())),
+            "{t:?}"
+        );
+    }
+
+    #[test]
+    fn code_spans_keep_bracket_text_literal() {
+        let md = "Para `[1](2)` stays.\n";
+        let h = render_html(md, "Contents");
+        assert!(h.contains("<code>[1](2)</code>"), "{h}");
+    }
+
+    #[test]
+    fn the_full_english_guide_renders_with_no_raw_link_syntax() {
+        let md = std::fs::read_to_string(site_guide().join("en.md")).unwrap();
+        let h = render_html(&md, "Contents");
+        assert!(!h.contains("]("), "raw link syntax survived in the HTML");
+        let t = render_text(&md);
+        assert!(
+            t.iter()
+                .all(|l| !matches!(l, TLine::Text(s) if s.contains("]("))),
+            "raw link syntax survived in the text rendering"
+        );
     }
 }

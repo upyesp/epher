@@ -2108,7 +2108,7 @@ deg(atan2(h[1], h[2])) + 360 - az(10, t, 51.5, -0.12)
 Die beiden Differenzen liegen im Bogensekundenbereich; die Parallaxe der
 Sonne (8,8 Bogensekunden) ist der größere Anteil, deshalb stimmt ein
 Stern bis auf Rundung. Konstanten und Funktionen stehen in der
-[Referenz](../reference/).
+[Referenz](../../reference/#9-built-in-constants).
 
 
 ### 1.30 Finanzen
