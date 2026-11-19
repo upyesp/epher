@@ -75,7 +75,7 @@ def allb(k0, n, q) = if q >= n - 1 then "" else if mon(k0 + q + 1) == mon(k0 + q
 // ---- results ------------------------------------------------------------------
 const k0 = kfirst(jd(year, 1, 1))
 const count = nfull(k0, 0, 0)
-const j = findb(k0, count, 0)
+const off = findb(k0, count, 0)
 print("full moons in", year, ":", count)
 print(if allb(k0, count, 0) == "" then "no month holds two full moons" else "month(s) with two full moons: " + allb(k0, count, 0))
 
@@ -84,8 +84,8 @@ built-in ephemeris knows nothing of the series above): the Moon's lit
 face at both instants reads its full-moon ceiling. The ceiling is
 0.9986, not 1, because the Moon runs up to 5 degrees off the ecliptic
 (see full-moons.epher for the geometry). */
-print("the pair:", iso(fullmoon(k0 + j)), "and", iso(fullmoon(k0 + j + 1)), "UT")
-print("self-check, illum at them:", illum(11, fullmoon(k0 + j)), "and", illum(11, fullmoon(k0 + j + 1)))
+print("the pair:", iso(fullmoon(k0 + off)), "and", iso(fullmoon(k0 + off + 1)), "UT")
+print("self-check, illum at them:", illum(11, fullmoon(k0 + off)), "and", illum(11, fullmoon(k0 + off + 1)))
 
 /* ---- expected output ----
 = full moons in 2026 : 13

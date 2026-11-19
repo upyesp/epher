@@ -33,19 +33,19 @@ const obs_t = 5                // the observation time, minutes
 const obs_temp = 70            // temperature observed at obs_t, C
 
 // ---- the rate constant from the one observation -----------------------------
-const k = ln((t0 - tenv)/(obs_temp - tenv))/obs_t   // per minute
+const kk = ln((t0 - tenv)/(obs_temp - tenv))/obs_t   // per minute
 
 // ---- the model --------------------------------------------------------------
-def cool(t) = tenv + (t0 - tenv)*e^(-k*t)
+def cool(t) = tenv + (t0 - tenv)*e^(-kk*t)
 
 // ---- the observation reproduces, and 10 minutes is 160/3 C ------------------
-print("rate constant k, per minute:", k)
+print("rate constant k, per minute:", kk)
 print("temperature at 5 minutes:", cool(obs_t))
 print("the observation is reproduced:", abs(cool(obs_t) - obs_temp) < 1e-9)
 print("temperature at 10 minutes:", cool(10))
 
 // ---- time to reach 40 C, from the inverted closed form ----------------------
-def treach(target) = -ln((target - tenv)/(t0 - tenv))/k
+def treach(target) = -ln((target - tenv)/(t0 - tenv))/kk
 print("time to reach 40 C, minutes:", treach(40))
 print("temperature there, by the model:", cool(treach(40)))
 print("the round trip lands on the target:", abs(cool(treach(40)) - 40) < 1e-6)

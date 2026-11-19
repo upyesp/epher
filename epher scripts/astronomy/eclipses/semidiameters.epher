@@ -40,28 +40,28 @@ def sdarc(rkm, b, j) = 206265 * rkm * 1000 / (dist(b, j) * au)   // s = 206265 R
 def sdmoon(j) = diam(11, j) / 2 * 60                      // Moon semidiameter, arcmin (engine diam, deg)
 
 // ---- results ------------------------------------------------------------------
-const j = jd(day[1], day[2], day[3], 12)
-print("geocentric semidiameters at", iso(j), "UT")
-print("Sun: ", diam(10, j) / 2 * 3600, "arcsec =", diam(10, j) / 2 * 60, "arcmin")
-print("Moon:", diam(11, j) / 2 * 3600, "arcsec =", sdmoon(j), "arcmin")
-print("Mercury:", sdarc(2439.7, 1, j), "arcsec (radius 2439.7 km)")
-print("Venus:  ", sdarc(6051.8, 2, j), "arcsec (radius 6051.8 km)")
-print("Mars:   ", sdarc(3396.2, 4, j), "arcsec (radius 3396.2 km)")
-print("Jupiter:", sdarc(71492, 5, j), "arcsec (radius 71492 km)")
-print("Saturn: ", sdarc(60268, 6, j), "arcsec (radius 60268 km)")
-print("Uranus: ", sdarc(25559, 7, j), "arcsec (radius 25559 km)")
-print("Neptune:", sdarc(24764, 8, j), "arcsec (radius 24764 km)")
+const jd0 = jd(day[1], day[2], day[3], 12)
+print("geocentric semidiameters at", iso(jd0), "UT")
+print("Sun: ", diam(10, jd0) / 2 * 3600, "arcsec =", diam(10, jd0) / 2 * 60, "arcmin")
+print("Moon:", diam(11, jd0) / 2 * 3600, "arcsec =", sdmoon(jd0), "arcmin")
+print("Mercury:", sdarc(2439.7, 1, jd0), "arcsec (radius 2439.7 km)")
+print("Venus:  ", sdarc(6051.8, 2, jd0), "arcsec (radius 6051.8 km)")
+print("Mars:   ", sdarc(3396.2, 4, jd0), "arcsec (radius 3396.2 km)")
+print("Jupiter:", sdarc(71492, 5, jd0), "arcsec (radius 71492 km)")
+print("Saturn: ", sdarc(60268, 6, jd0), "arcsec (radius 60268 km)")
+print("Uranus: ", sdarc(25559, 7, jd0), "arcsec (radius 25559 km)")
+print("Neptune:", sdarc(24764, 8, jd0), "arcsec (radius 24764 km)")
 
 /* Cross-check the Sun: the same radius formula with the built-in
 r_sun constant against the engine's diam accessor - the two agree to
 the roundness of the radius constant. */
-print("Sun cross-check: radius formula", 206265 * r_sun / (dist(10, j) * au), "vs engine", diam(10, j) / 2 * 3600, "arcsec")
+print("Sun cross-check: radius formula", 206265 * r_sun / (dist(10, jd0) * au), "vs engine", diam(10, jd0) / 2 * 3600, "arcsec")
 
 /* The eclipse geometry ratio: alpha = Moon semidiameter / Sun
 semidiameter. Under 1 the Moon's disk is smaller than the Sun's and
 a central eclipse is annular; over 1 totality fits. On 2026-02-17
 the eclipse was annular, which the printed alpha predicts. */
-const a = (diam(11, j) / 2) / (diam(10, j) / 2)
+const a = (diam(11, jd0) / 2) / (diam(10, jd0) / 2)
 print("alpha (Moon/Sun semidiameter ratio):", a)
 print("verdict:", if a < 1 then "Moon smaller: annular geometry" else "Moon large enough: totality possible")
 

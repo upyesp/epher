@@ -11,19 +11,19 @@ two ten-thousandths.
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.
 
-The knobs to edit are `num`, `p` and `k` below. Everything above the
+The knobs to edit are `num`, `p` and `kk` below. Everything above the
 results section is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const num = 1000   // trials, say components tested
 const p = 0.002  // failure probability per trial
-const k = 3      // the cut point: P(X <= k)
+const kk = 3      // the cut point: P(X <= kk)
 
 // ---- the exact binomial and the Poisson approximation ---------------------------------
-print("exact binomial P(X <= 3):", binomcdf(k, num, p))
-print("Poisson approximation:", poissoncdf(k, num * p))
-print("difference:", binomcdf(k, num, p) - poissoncdf(k, num * p))
+print("exact binomial P(X <= 3):", binomcdf(kk, num, p))
+print("Poisson approximation:", poissoncdf(kk, num * p))
+print("difference:", binomcdf(kk, num, p) - poissoncdf(kk, num * p))
 
 // ---- the parameters --------------------------------------------------------------------
 print("rate lambda = num * p:", num * p)

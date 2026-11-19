@@ -61,22 +61,22 @@ def azv(j) = deg(acos((sin(rad(declin(j))) * cos(rad(lat)) - cos(rad(declin(j)))
 def aznoaa(j) = if ha(j) > 0 then 360 - azv(j) else azv(j)
 
 // ---- results: the NOAA chain, printed step by step -----------------------------
-const j = jd(day[1], day[2], day[3], hr)
-print("NOAA solar position for", iso(j), "UT at lat", lat, "lon", lon)
-print("step 1  Julian centuries n:", t(j))
-print("step 2  geometric mean longitude L0:", l0(j), "deg")
-print("step 3  geometric mean anomaly M:", manom(j), "deg")
-print("step 4  eccentricity e:", eccen(j))
-print("step 5  equation of center C:", eqcen(j), "deg")
-print("step 6  true longitude:", trlon(j), "deg")
-print("step 7  omega:", omega(j), "deg")
-print("step 8  apparent longitude:", applon(j), "deg")
-print("step 9  mean obliquity:", mobliq(j), "deg; corrected:", cobliq(j), "deg")
-print("step 10 declination:", declin(j), "deg")
-print("step 11 equation of time:", eot(j), "min")
-print("step 12 hour angle:", ha(j), "deg")
-print("step 13 altitude:", altv(j), "deg; zenith distance:", zen(j), "deg")
-print("step 14 azimuth:", aznoaa(j), "deg from north")
+const jd0 = jd(day[1], day[2], day[3], hr)
+print("NOAA solar position for", iso(jd0), "UT at lat", lat, "lon", lon)
+print("step 1  Julian centuries n:", t(jd0))
+print("step 2  geometric mean longitude L0:", l0(jd0), "deg")
+print("step 3  geometric mean anomaly M:", manom(jd0), "deg")
+print("step 4  eccentricity e:", eccen(jd0))
+print("step 5  equation of center C:", eqcen(jd0), "deg")
+print("step 6  true longitude:", trlon(jd0), "deg")
+print("step 7  omega:", omega(jd0), "deg")
+print("step 8  apparent longitude:", applon(jd0), "deg")
+print("step 9  mean obliquity:", mobliq(jd0), "deg; corrected:", cobliq(jd0), "deg")
+print("step 10 declination:", declin(jd0), "deg")
+print("step 11 equation of time:", eot(jd0), "min")
+print("step 12 hour angle:", ha(jd0), "deg")
+print("step 13 altitude:", altv(jd0), "deg; zenith distance:", zen(jd0), "deg")
+print("step 14 azimuth:", aznoaa(jd0), "deg from north")
 
 /* Cross-check against the engine's built-in alt and az (the same
 instant, same place): the engine runs a fuller VSOP2013-based model
@@ -86,8 +86,8 @@ low-precision declination series drifts up to about 0.01 deg over
 the year, and refraction would add more near the horizon), so this
 print is the honest per-run comparison and the engine is the
 reference side. */
-print("cross-check: NOAA altitude", altv(j), "deg vs engine", alt(10, j, lat, lon), "deg")
-print("cross-check: NOAA azimuth", aznoaa(j), "deg vs engine", az(10, j, lat, lon), "deg")
+print("cross-check: NOAA altitude", altv(jd0), "deg vs engine", alt(10, jd0, lat, lon), "deg")
+print("cross-check: NOAA azimuth", aznoaa(jd0), "deg vs engine", az(10, jd0, lat, lon), "deg")
 
 /* ---- expected output ----
 = NOAA solar position for 2026-06-21T12:30:00 UT at lat 51.4779 lon 0

@@ -12,19 +12,19 @@ with 50 and 50.
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.
 
-The knobs to edit are `num`, `p` and `k` below. Everything above the
+The knobs to edit are `num`, `p` and `kk` below. Everything above the
 results section is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const num = 100    // trials of a fair coin
 const p = 0.5    // success probability per trial
-const k = 55     // the cut point: P(X <= k)
+const kk = 55     // the cut point: P(X <= kk)
 
 // ---- the exact binomial and the normal approximation --------------------------------
-print("exact binomial P(X <= 55):", binomcdf(k, num, p))
-print("normal approximation with correction:", normcdf((k + 0.5 - num * p) / sqrt(num * p * (1 - p))))
-print("difference:", binomcdf(k, num, p) - normcdf((k + 0.5 - num * p) / sqrt(num * p * (1 - p))))
+print("exact binomial P(X <= 55):", binomcdf(kk, num, p))
+print("normal approximation with correction:", normcdf((kk + 0.5 - num * p) / sqrt(num * p * (1 - p))))
+print("difference:", binomcdf(kk, num, p) - normcdf((kk + 0.5 - num * p) / sqrt(num * p * (1 - p))))
 
 // ---- the parameters of the approximating normal ----------------------------------------
 print("mean num * p:", num * p)

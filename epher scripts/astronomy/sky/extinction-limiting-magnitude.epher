@@ -20,12 +20,12 @@ the limit drops by the extinction k * airmass(h). Honest grade: about
 0.5 magnitude either way - the law ignores seeing, optics quality,
 magnification and sky brightness, and extinction varies with the night.
 
-Knobs: the extinction k per airmass, the aperture D (mm), the naked-eye
+Knobs: the extinction kk per airmass, the aperture D (mm), the naked-eye
 limit NELM at the zenith and the eye-pupil diameter d_eye (mm).
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
-const k = 0.2               // extinction, magnitudes per airmass at the zenith
+const kk = 0.2               // extinction, magnitudes per airmass at the zenith
 const D = 200               // telescope aperture, mm
 const NELM = 6              // naked-eye limiting magnitude at the zenith
 const d_eye = 7             // dark-adapted pupil, mm
@@ -33,7 +33,7 @@ const d_eye = 7             // dark-adapted pupil, mm
 // ---- model ------------------------------------------------------------------
 const m0 = NELM + 5 * log(D / d_eye)   // telescope limit at the zenith, mag
 def X(h) = airmass(h)                     // built-in airmass at altitude h
-def ext(h) = k * X(h)                     // extinction in magnitudes at h
+def ext(h) = kk * X(h)                     // extinction in magnitudes at h
 def mlim(h) = m0 - ext(h)                 // limiting magnitude at h
 
 /* ---- results ----------------------------------------------------------------
@@ -42,7 +42,7 @@ the object's light crosses twice the zenith air, costing 0.4 mag, and
 at 5 deg the same telescope sees barely a magnitude fainter than the
 naked eye does overhead - which is why observers wait for objects to
 climb. */
-print("extinction", k, "mag per airmass; telescope", D, "mm; naked-eye limit NELM", NELM)
+print("extinction", kk, "mag per airmass; telescope", D, "mm; naked-eye limit NELM", NELM)
 print("limiting magnitude at the zenith:", m0, "mag")
 print("at 90 deg (zenith): airmass", X(90))
 print("  extinction", ext(90), "mag; limiting", mlim(90), "mag")
