@@ -4,6 +4,12 @@
 - **Deciders:** epher maintainers
 - **Date:** 2026-08
 
+Amended 2026-11-19: the guide carries one cross-reference link per
+locale (the astronomy section's pointer at the language reference).
+The two in-app renderers still display no links: they degrade
+`[label](target)` to its label, and every byte stays escaped. The
+website build renders the real link.
+
 ## Context
 
 Two requests landed together:

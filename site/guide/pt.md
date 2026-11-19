@@ -2097,7 +2097,7 @@ deg(atan2(h[1], h[2])) + 360 - az(10, t, 51.5, -0.12)
 As duas diferenças são da ordem do segundo de arco; a paralaxe do Sol
 (8,8 segundos de arco) é o termo maior, por isso uma estrela coincide
 até o arredondamento. Constantes e funções estão na
-[referência](../reference/).
+[referência](../../reference/#9-built-in-constants).
 
 
 ### 1.30 Finanças

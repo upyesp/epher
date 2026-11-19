@@ -2155,7 +2155,7 @@ deg(atan2(h[1], h[2])) + 360 - az(10, t, 51.5, -0.12)
 
 The two differences are arcsecond-scale; the Sun's own parallax (8.8
 arcseconds) is the larger term, which is why a star agrees to rounding.
-Constants and functions in this section are in the [reference](../reference/).
+Constants and functions in this section are in the [reference](../../reference/#9-built-in-constants).
 
 
 ### 1.30 Finance

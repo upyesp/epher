@@ -2122,7 +2122,7 @@ deg(atan2(h[1], h[2])) + 360 - az(10, t, 51.5, -0.12)
 Les deux écarts sont de l'ordre de la seconde d'arc ; la parallaxe du
 Soleil (8,8 secondes d'arc) est le terme dominant, c'est pourquoi une
 étoile coïncide à l'arrondi près. Constantes et fonctions sont dans la
-[reference](../reference/).
+[reference](../../reference/#9-built-in-constants).
 
 
 ### 1.30 Finance
