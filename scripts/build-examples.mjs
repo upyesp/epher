@@ -61,6 +61,19 @@ join({upper(name), ext}, ".")` },
       { cap: "ex-a16", capText: "A transit light curve: a smooth 1.2 percent dip as an exoplanet crosses its star, modelled with a logistic ingress.", kind: "epher", code: `def flux(x) = 1 - 0.012 / (1 + exp((abs(x) - 0.04) * 200))\ngraph flux(x) from -0.2 to 0.2` },
       { cap: "ex-a20", capText: "Quaternions: the four-part literal, and a 90 degree turn about z applied to a vector.", kind: "epher", code: `q = qaxis({0, 0, 1}, 90 deg)\nqrot(q, {1, 0, 0})` },
       { cap: "ex-a21", capText: "The horizon as a rotation: `qeq2hor` turns the Sun's equatorial unit vector into altitude and azimuth at the observer.", kind: "epher", code: `const t = 2460000.5\nqrot(qeq2hor(t, 51.5, -0.12), {cos(decl(10, t) deg) * cos(ra(10, t) deg), cos(decl(10, t) deg) * sin(ra(10, t) deg), sin(decl(10, t) deg)})` },
+      { cap: "ex-a22", capText: "A slew to the pole star as one quaternion: from the parked mount to Polaris over Greenwich, with the check that the turn lands exactly on it.", kind: "epher", code: `jd = 2460000.5                                   # 2023-02-25 00:00 UTC
+qhor = qeq2hor(jd, 51.4779, -0.0015)             # Royal Observatory Greenwich: equatorial -> east, north, up
+polaris = {cos(89.2642 deg) * cos(37.9545 deg), cos(89.2642 deg) * sin(37.9545 deg), sin(89.2642 deg)}   # Polaris, J2000
+p = qrot(qhor, polaris)                          # where the pole star hangs from Greenwich
+def look(v) = qaxis({-v[2], v[1], 0}, acos(v[3]))  # attitude aiming the bore {0, 0, 1} at direction v
+q_cur = look({0, -sin(30 deg), cos(30 deg)})     # parked: on the meridian, 30 deg up, facing south
+q_tgt = look(p)                                  # bore on the pole star
+d = q_tgt * qinv(q_cur)                          # one quaternion: the whole slew
+qangle(d)                                        # how far to turn
+qaxis(d)                                         # about which axis
+qrot(d, qrot(q_cur, {0, 0, 1}))                  # error on top of the parked bore...
+p                                                # ...lands exactly on Polaris
+deg(asin(p[3]))                                  # altitude: within a moon-width of the latitude` },
     ],
   },
   {

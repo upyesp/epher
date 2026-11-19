@@ -154,6 +154,7 @@ window.EPHER_I18N["de"] = {
   "ex-a19": "Einen Text zerlegen, die Teile benennen und wieder zusammenfügen: die String-Bibliothek bei der Arbeit.",
   "ex-a20": "Quaternionen: das Literal mit vier Teilen und eine 90-Grad-Drehung um z, auf einen Vektor angewandt.",
   "ex-a21": "Der Horizont als Drehung: `qeq2hor` dreht den äquatorialen Einheitsvektor der Sonne in Höhe und Azimut beim Beobachter.",
+  "ex-a22": "Eine Schwenkung zum Polarstern als ein einziges Quaternion: vom geparkten Teleskop zum Polarstern über Greenwich, mit der Prüfung, dass die Drehung exakt auf ihm landet.",
   "ex-tap": "Tippe auf dem Handy ein Beispiel an, um die App damit zu öffnen, bereit zur Ausführung.",
   "ex-a1": "Ein mehrzeiliges Skript. Umschalt+Enter beginnt eine neue Zeile, Enter führt das ganze Skript als einen Verlaufseintrag aus.",
   "ex-a2": "Eine einfache 2D-Kurve.",

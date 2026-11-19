@@ -154,6 +154,7 @@ window.EPHER_I18N["pt"] = {
   "ex-a19": "Dividir um texto, nomear os pedaços e voltar a uni-los: a biblioteca de cadeias em acção.",
   "ex-a20": "Quatérnios: o literal de quatro partes e um giro de 90 graus em z aplicado a um vetor.",
   "ex-a21": "O horizonte como rotação: `qeq2hor` converte o vetor unitário equatorial do Sol em altura e azimute no observador.",
+  "ex-a22": "Um apontamento para a estrela polar como um único quaternion: do telescópio estacionado até Polaris sobre Greenwich, com a verificação de que o giro aterra exatamente nela.",
   "ex-tap": "Num telemóvel, toque num exemplo para abrir a app com ele pronto a executar.",
   "ex-a1": "Um script de várias linhas. Shift+Enter abre uma linha nova e Enter executa o script inteiro como um único item do histórico.",
   "ex-a2": "Uma curva 2D básica.",

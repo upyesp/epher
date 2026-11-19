@@ -154,6 +154,7 @@ window.EPHER_I18N["fr"] = {
   "ex-a19": "Découper un texte, nommer les morceaux, les recoller : la bibliothèque de chaînes au travail.",
   "ex-a20": "Quaternions : le littéral à quatre termes et une rotation de 90 degrés autour de z appliquée à un vecteur.",
   "ex-a21": "L'horizon comme rotation : `qeq2hor` transforme le vecteur unitaire équatorial du Soleil en hauteur et azimut chez l'observateur.",
+  "ex-a22": "Une visée vers l'étoile polaire en un seul quaternion : du télescope parqué à Polaris au-dessus de Greenwich, avec la vérification que la rotation tombe exactement dessus.",
   "ex-tap": "Sur un téléphone, touchez un exemple pour ouvrir l'app avec celui-ci prêt à être exécuté.",
   "ex-a1": "Un script multi-lignes : Maj+Entrée ouvre une nouvelle ligne, Entrée exécute tout le script comme un seul élément d'historique.",
   "ex-a2": "Une courbe 2D de base.",
