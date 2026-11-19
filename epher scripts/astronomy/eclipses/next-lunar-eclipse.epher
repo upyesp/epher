@@ -60,16 +60,16 @@ def is_eclipse(k) = abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + u
 def next_hit(k, n) = if n == 0 then -1 else if is_eclipse(k) then k else next_hit(k + 1, n - 1)
 
 const k0 = ceil(kb(jd(day[1], day[2], day[3])) - 0.5) + 0.5
-const k = next_hit(k0, maxscan)
+const kk = next_hit(k0, maxscan)
 
 // ---- results ------------------------------------------------------------------
 print("searching from", iso(jd(day[1], day[2], day[3])))
-print("next lunar eclipse (lunation k):", k)
-print("kind:", kind(k), ", gamma:", gamma(k))
-print("umbral magnitude:", ummag(k), ", penumbral magnitude:", penmag(k))
-const ttd = tmax(k)
+print("next lunar eclipse (lunation k):", kk)
+print("kind:", kind(kk), ", gamma:", gamma(kk))
+print("umbral magnitude:", ummag(kk), ", penumbral magnitude:", penmag(kk))
+const ttd = tmax(kk)
 print("greatest eclipse:", iso(ttd - delta_t(ttd) / 86400), "UT")
-print("partial phase lasts", 2 * semi(1.0128 - uval(k), k) in min, "; totality", 2 * semi(0.4678 - uval(k), k) in min)
+print("partial phase lasts", 2 * semi(1.0128 - uval(kk), kk) in min, "; totality", 2 * semi(0.4678 - uval(kk), kk) in min)
 
 /* Self-check, canon-style: NASA's Five Millennium Canon lists the
 2026 Mar 03 total eclipse at TD 11:34:52 (UT 11:33:37), gamma

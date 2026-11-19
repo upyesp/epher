@@ -8,19 +8,19 @@ Stewart, Redlin and Watson, "College Algebra", 7th ed., sec. 9.1). With
 a = 2, b = 32 and k = 5 the step is 5 and the means are 7, 12, 17, 22,
 27. A for loop collects them into one list. All values are exact.
 
-The knobs to edit are a, b and k below.
+The knobs to edit are a, b and kk below.
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 2                      // start of the interval
 const b = 32                     // end of the interval
-const k = 5                      // how many means to insert
+const kk = 5                      // how many means to insert
 
 // ---- results -----------------------------------------------------------------
-d = (b - a) / (k + 1)            // the common step (echoes 5)
-for m in 1 to k do a + m * d     // the k means, echoes {7, 12, 17, 22, 27}
-print("the step is the whole gap split k + 1 ways:", b - a == (k + 1) * d)
-print("last mean plus the step lands on b:", a + k * d + d == b)
+d = (b - a) / (kk + 1)            // the common step (echoes 5)
+for m in 1 to kk do a + m * d     // the kk means, echoes {7, 12, 17, 22, 27}
+print("the step is the whole gap split k + 1 ways:", b - a == (kk + 1) * d)
+print("last mean plus the step lands on b:", a + kk * d + d == b)
 /* ---- expected output ----
 = 5
 = {7, 12, 17, 22, 27}

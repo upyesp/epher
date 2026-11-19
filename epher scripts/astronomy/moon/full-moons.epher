@@ -72,7 +72,7 @@ def kfirst(jd0) = ceil((jd0 - 2451550.09766) / 29.530588861 - 0.5) + 0.5
 // The lunation number of the year's first full moon, computed once and
 // never changed: a `const` binds silently, so it stays out of the
 // transcript (the knob convention, below, is the same statement).
-const k = kfirst(jd(year, 1, 1))
+const kk = kfirst(jd(year, 1, 1))
 
 // ---- results ------------------------------------------------------------------
 /* The full moons of the year. A for loop (guide 1.10) stands in for
@@ -81,7 +81,7 @@ it shows and puts the readable instant first, the Julian Date second:
 a label and a value, the shape every result line in this folder takes
 (the README's output standard). Thirteen entries means the year holds
 a blue moon, because one month held two. */
-for n in 0 to 12 do print("full moon " + str(n + 1) + ":", iso(fullmoon(k + n)), "UT")
+for n in 0 to 12 do print("full moon " + str(n + 1) + ":", iso(fullmoon(kk + n)), "UT")
 
 // The first full moon in everyday terms: how far into the year it falls,
 // its clock time in UT, and the whole instant as an ISO 8601 date-time
@@ -89,22 +89,22 @@ for n in 0 to 12 do print("full moon " + str(n + 1) + ":", iso(fullmoon(k + n)),
 // 1.7) joins its arguments with spaces into one readable line, and a
 // unit conversion (`in hr`) keeps its unit label when a print argument
 // carries it.
-print("the first instant as a Julian Date (UT):", fullmoon(k))
-print("first full moon:", fullmoon(k) - jd(year, 1, 1), "days into", year)
-print("clock time in UT:", ((fullmoon(k) + 0.5) - floor(fullmoon(k) + 0.5)) * 24 in hr)  // the day's fraction past midnight
-print("the instant as a date-time:", iso(fullmoon(k)), "UT")
+print("the first instant as a Julian Date (UT):", fullmoon(kk))
+print("first full moon:", fullmoon(kk) - jd(year, 1, 1), "days into", year)
+print("clock time in UT:", ((fullmoon(kk) + 0.5) - floor(fullmoon(kk) + 0.5)) * 24 in hr)  // the day's fraction past midnight
+print("the instant as a date-time:", iso(fullmoon(kk)), "UT")
 
 /* How many full moons the year carries, which answers the blue-moon
 exercise: thirteen moons over twelve months means one month held two
 (a month can hold two only when the year has thirteen; the count is
 the safe half of that fact). if (guide 1.8) picks between two strings,
 which print then writes out. */
-if fullmoon(k + 12) < jd(year + 1, 1, 1) then "13 full moons this year: one month holds two (a blue moon)" else "12 full moons this year"
+if fullmoon(kk + 12) < jd(year + 1, 1, 1) then "13 full moons this year: one month holds two (a blue moon)" else "12 full moons this year"
 
 /* The Moon's distance at that first instant: the built-in ephemeris
 accessor dist (guide 1.18) gives AU, and the au and r_earth constants
 convert the count to Earth radii, the number the eye can hold. */
-print("Moon distance:", dist(11, fullmoon(k)) * au / r_earth, "Earth radii =", dist(11, fullmoon(k)), "AU")
+print("Moon distance:", dist(11, fullmoon(kk)) * au / r_earth, "Earth radii =", dist(11, fullmoon(kk)), "AU")
 
 /* Cross-check against the built-in ephemeris (the solar-ephemeris crate,
 JPL-validated; guide 1.18), which knows nothing of Meeus: the Moon's
@@ -114,10 +114,10 @@ so the instant of full illumination in longitude is not quite the
 instant of maximum light, and the phase angle (the Sun-Moon-Earth
 angle at the Moon) is 4.27 degrees, not 0. illum reports the fraction
 to four decimals. */
-print("lit fraction at the full-moon instant:", illum(11, fullmoon(k)))
-print("lit fraction half a day before:", illum(11, fullmoon(k) - 0.5))
-print("lit fraction half a day after:", illum(11, fullmoon(k) + 0.5))
-print("phase angle at the instant, degrees:", phase(11, fullmoon(k)))
+print("lit fraction at the full-moon instant:", illum(11, fullmoon(kk)))
+print("lit fraction half a day before:", illum(11, fullmoon(kk) - 0.5))
+print("lit fraction half a day after:", illum(11, fullmoon(kk) + 0.5))
+print("phase angle at the instant, degrees:", phase(11, fullmoon(kk)))
 /* ---- expected output ----
 = {full moon 1: 2026-01-03T10:04:05 UT, full moon 2: 2026-02-01T22:10:28 UT, full moon 3: 2026-03-03T11:39:07 UT, full moon 4: 2026-04-02T02:13:11 UT, full moon 5: 2026-05-01T17:24:25 UT, full moon 6: 2026-05-31T08:46:26 UT, full moon 7: 2026-06-29T23:57:53 UT, full moon 8: 2026-07-29T14:36:53 UT, full moon 9: 2026-08-28T04:19:41 UT, full moon 10: 2026-09-26T16:50:13 UT, full moon 11: 2026-10-26T04:12:59 UT, full moon 12: 2026-11-24T14:54:42 UT, full moon 13: 2026-12-24T01:29:24 UT}
 = the first instant as a Julian Date (UT): 2461043.91951

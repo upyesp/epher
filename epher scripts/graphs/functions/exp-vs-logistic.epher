@@ -15,8 +15,8 @@ the CLI transcript records them as "graph:" lines.
 ============================================================================ */
 
 // ---- the model -----------------------------------------------------------------
-const k = 1          // growth rate
-def L(x) = 1 / (1 + e^(0 - k * x))   // the logistic curve
+const kk = 1          // growth rate
+def L(x) = 1 / (1 + e^(0 - kk * x))   // the logistic curve
 
 // ---- results -------------------------------------------------------------------
 print("L(0), the inflection height:", L(0))

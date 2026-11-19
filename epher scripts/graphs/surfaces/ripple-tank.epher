@@ -15,12 +15,12 @@ the CLI transcript records them as "graph3d:" lines.
 ============================================================================ */
 
 // ---- the model -----------------------------------------------------------------
-const k = 3    // wavenumber: crests every 2*pi/k of radius
+const kk = 3    // wavenumber: crests every 2*pi/kk of radius
 
 // ---- results -------------------------------------------------------------------
 print("the source stays calm in this model, sin(0) = 0:", sin(0) == 0)
-print("first crest on the x-axis at r = pi/(2*k):", pi / (2 * k))
-print("ring spacing, 2*pi/k:", 2 * pi / k)
+print("first crest on the x-axis at r = pi/(2*k):", pi / (2 * kk))
+print("ring spacing, 2*pi/k:", 2 * pi / kk)
 print("decay from r = 1 to r = 4:", (1 / (1 + 1)) / (1 / (1 + 4)))
 
 // ---- the picture ---------------------------------------------------------------
