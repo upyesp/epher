@@ -313,6 +313,8 @@ graph-png-failed = PNG सहेजा नहीं जा सका
 autocomplete-label = सुझाव
 help-no-description = कोई विवरण नहीं, उपयोगकर्ता गाइड देखें
 key-hint-i = काल्पनिक इकाई, sqrt(-1) = i
+key-hint-j = क्वाटरनियन इकाई j, 3j का अर्थ 3 गुणा j
+key-hint-k = क्वाटरनियन इकाई k, 3k का अर्थ 3 गुणा k
 key-hint-re = सम्मिश्र संख्या का वास्तविक भाग
 key-hint-im = सम्मिश्र संख्या का काल्पनिक भाग
 key-hint-arg = सम्मिश्र संख्या का कोण (arg)

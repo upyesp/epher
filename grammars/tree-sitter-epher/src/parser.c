@@ -1295,11 +1295,11 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
     case 4:
       if (lookahead == '+' ||
           lookahead == '-') ADVANCE(9);
-      if (('0' <= lookahead && lookahead <= '9')) ADVANCE(41);
+      if (('0' <= lookahead && lookahead <= '9')) ADVANCE(42);
       END_STATE();
     case 5:
       if (lookahead == '0' ||
-          lookahead == '1') ADVANCE(42);
+          lookahead == '1') ADVANCE(41);
       END_STATE();
     case 6:
       if (lookahead == '"' ||
@@ -1315,7 +1315,7 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
       if (('0' <= lookahead && lookahead <= '9')) ADVANCE(40);
       END_STATE();
     case 9:
-      if (('0' <= lookahead && lookahead <= '9')) ADVANCE(41);
+      if (('0' <= lookahead && lookahead <= '9')) ADVANCE(42);
       END_STATE();
     case 10:
       if (('0' <= lookahead && lookahead <= '9') ||
@@ -1414,7 +1414,6 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
       ACCEPT_TOKEN(sym_number);
       ADVANCE_MAP(
         '.', 40,
-        'i', 37,
         'B', 5,
         'b', 5,
         'E', 4,
@@ -1424,32 +1423,33 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
         'X', 10,
         'x', 10,
       );
+      if (('i' <= lookahead && lookahead <= 'k')) ADVANCE(37);
       if (('0' <= lookahead && lookahead <= '9')) ADVANCE(39);
       END_STATE();
     case 39:
       ACCEPT_TOKEN(sym_number);
       if (lookahead == '.') ADVANCE(40);
-      if (lookahead == 'i') ADVANCE(37);
       if (lookahead == 'E' ||
           lookahead == 'e') ADVANCE(4);
+      if (('i' <= lookahead && lookahead <= 'k')) ADVANCE(37);
       if (('0' <= lookahead && lookahead <= '9')) ADVANCE(39);
       END_STATE();
     case 40:
       ACCEPT_TOKEN(sym_number);
-      if (lookahead == 'i') ADVANCE(37);
       if (lookahead == 'E' ||
           lookahead == 'e') ADVANCE(4);
+      if (('i' <= lookahead && lookahead <= 'k')) ADVANCE(37);
       if (('0' <= lookahead && lookahead <= '9')) ADVANCE(40);
       END_STATE();
     case 41:
       ACCEPT_TOKEN(sym_number);
-      if (lookahead == 'i') ADVANCE(37);
-      if (('0' <= lookahead && lookahead <= '9')) ADVANCE(41);
+      if (lookahead == '0' ||
+          lookahead == '1') ADVANCE(41);
       END_STATE();
     case 42:
       ACCEPT_TOKEN(sym_number);
-      if (lookahead == '0' ||
-          lookahead == '1') ADVANCE(42);
+      if (('i' <= lookahead && lookahead <= 'k')) ADVANCE(37);
+      if (('0' <= lookahead && lookahead <= '9')) ADVANCE(42);
       END_STATE();
     case 43:
       ACCEPT_TOKEN(sym_number);

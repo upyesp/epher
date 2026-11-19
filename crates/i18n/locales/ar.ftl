@@ -313,6 +313,8 @@ graph-png-failed = تعذر حفظ PNG
 autocomplete-label = اقتراحات
 help-no-description = لا يوجد وصف، راجع دليل المستخدم
 key-hint-i = الوحدة التخيلية، sqrt(-1) = i
+key-hint-j = وحدة الكواترنيون j، ‏3j تساوي 3 في j
+key-hint-k = وحدة الكواترنيون k، ‏3k تساوي 3 في k
 key-hint-re = الجزء الحقيقي لعدد مركب
 key-hint-im = الجزء التخيلي لعدد مركب
 key-hint-arg = سعة (زاوية) عدد مركب

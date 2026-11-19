@@ -86,11 +86,11 @@ fn definitions_reach_the_session() {
 #[test]
 fn defined_names_surface_for_completion() {
     let mut session = Session::default();
-    evaluation_trace(&mut session, "alpha = 1\nbeta = 2\ndef gem(a) = a\nconst k = 9");
+    evaluation_trace(&mut session, "alpha = 1\nbeta = 2\ndef gem(a) = a\nconst kk = 9");
     // `ans` rides along: every value-producing statement records it,
     // and the keypad carries an `ans` key.
     assert_eq!(session.env().binding_names(), vec!["alpha", "ans", "beta"]);
-    assert_eq!(session.env().constant_names(), vec!["k"]);
+    assert_eq!(session.env().constant_names(), vec!["kk"]);
     assert_eq!(session.env().function_names(), vec!["gem"]);
 }
 

@@ -5,7 +5,7 @@
 ;; SPDX-License-Identifier: MIT
 ;; This file is distributed under the MIT License. The full text is in
 ;; the LICENSE file at the root of this repository.
-;; Version: 0.9.11
+;; Version: 0.9.12
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: languages
 ;; URL: https://github.com/upyesp/epher
@@ -129,8 +129,8 @@ entry (Emacs 30 added the missing declaration)."
     ("^[ \\t]*\\_<\\(graph3d\\|solar3d\\|graph\\|save\\|table\\)\\_>"
      1 font-lock-keyword-face)
     ;; Numbers: decimal, scientific, the 0b/0o/0x bases, and the
-    ;; imaginary `i' suffix.
-    ("\\_<\\(?:0[bB][01]+\\|0[oO][0-7]+\\|0[xX][0-9a-fA-F]+\\|[0-9]+\\(?:\\.[0-9]+\\)?\\(?:[eE][-+]?[0-9]+\\)?i?\\)\\_>"
+    ;; imaginary `i', `j', `k' suffix.
+    ("\\_<\\(?:0[bB][01]+\\|0[oO][0-7]+\\|0[xX][0-9a-fA-F]+\\|[0-9]+\\(?:\\.[0-9]+\\)?\\(?:[eE][-+]?[0-9]+\\)?[ijk]?\\)\\_>"
      . font-lock-constant-face)
     ;; Units: an identifier immediately after a number (whitespace
     ;; between is the parser's adjacency rule). Conservative on

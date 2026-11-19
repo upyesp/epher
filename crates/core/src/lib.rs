@@ -8,6 +8,7 @@ pub mod astro;
 pub mod graph;
 pub mod graph_svg;
 pub mod pane;
+pub mod quat;
 pub mod satellites;
 
 use std::cell::Cell;
@@ -19,6 +20,7 @@ use num_bigint::BigInt;
 use num_complex::Complex;
 use num_rational::BigRational;
 use num_traits::{ToPrimitive, Zero};
+use quat::Quaternion;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
@@ -37,6 +39,16 @@ pub enum Value {
     Decimal(Decimal),
     Big(BigDecimal),
     Complex(Complex<f64>),
+    /// A quaternion (ADR-0085): `w + xi + yj + zk`, Hamilton scalar
+    /// first, from `quaternion(1, 2, 3, 4)` or the literal
+    /// `1 + 2i + 3j + 4k`. Floats and complex values promote into
+    /// quaternion arithmetic; a unit quaternion carries a rotation.
+    Quaternion {
+        w: f64,
+        x: f64,
+        y: f64,
+        z: f64,
+    },
     Bool(bool),
     /// A list of numbers, a data column (ADR-0044): `{1, 2, 3}`.
     /// Elements are floats; complex values are rejected with a type
@@ -88,6 +100,9 @@ impl std::fmt::Display for Value {
             Value::Decimal(d) => write!(f, "{d}"),
             Value::Big(b) => write!(f, "{b}"),
             Value::Complex(c) => write!(f, "{}", complex_display(*c)),
+            Value::Quaternion { w, x, y, z } => {
+                write!(f, "{}", quaternion_display(Quaternion::new(*w, *x, *y, *z)))
+            }
             Value::Bool(b) => write!(f, "{b}"),
             Value::List(items) => write!(
                 f,
@@ -150,6 +165,43 @@ fn complex_display(c: Complex<f64>) -> String {
         let sign = if im < 0.0 { "-" } else { "+" };
         format!("{}{sign}{im_part}", auto_float(re))
     }
+}
+
+/// The shortest clean `a + bi + cj + dk` spelling (ADR-0085): zero
+/// parts are dropped, the unit coefficients lose their `1`, the signs
+/// separate the terms with spaces (the MATLAB/Octave house style), and
+/// a pure real renders as a plain number (the ADR-0043 complex rule).
+fn quaternion_display(q: Quaternion) -> String {
+    let [w, x, y, z] = q.parts();
+    if q.is_real() {
+        return auto_float(w);
+    }
+    let mut out = if w == 0.0 {
+        String::new()
+    } else {
+        auto_float(w)
+    };
+    for (part, unit) in [(x, "i"), (y, "j"), (z, "k")] {
+        if part == 0.0 {
+            continue;
+        }
+        let magnitude = part.abs();
+        let term = if magnitude == 1.0 {
+            unit.to_string()
+        } else {
+            format!("{}{unit}", auto_float(magnitude))
+        };
+        if out.is_empty() {
+            if part < 0.0 {
+                out.push('-');
+            }
+            out.push_str(&term);
+        } else {
+            out.push_str(if part < 0.0 { " - " } else { " + " });
+            out.push_str(&term);
+        }
+    }
+    out
 }
 
 /// Variable bindings available while evaluating an [`Expression`].
@@ -516,6 +568,8 @@ pub enum EpherError {
     AssignToFunction(String),
     #[error("cannot assign to i: that name is the imaginary unit")]
     ImaginaryReserved,
+    #[error("cannot assign to {0}: that name is the quaternion unit")]
+    QuaternionUnitReserved(String),
     #[error("constant already defined: {0}")]
     ConstantAlreadyDefined(String),
     #[error(
@@ -619,7 +673,7 @@ pub fn token_classes(text: &str) -> Result<Vec<SpannedToken>, SpannedError> {
         .into_iter()
         .map(|(token, span)| {
             let (class, text, separator) = match token {
-                Token::Number(_) | Token::Imaginary(_) => {
+                Token::Number(_) | Token::ImaginaryUnit(..) => {
                     (TokenClass::Number, String::new(), false)
                 }
                 Token::Str(_) => (TokenClass::String, String::new(), false),
@@ -858,10 +912,11 @@ enum Token {
     /// Postfix index brackets (ADR-0044): `d[2]`.
     LBracket,
     RBracket,
-    /// A number with an imaginary suffix (ADR-0043): `4i`, `2.5i`,
-    /// `0xFFi`. The tokenizer folds the suffix in so `3 + 4i` parses as
-    /// one literal; the parser spells it `4 * i`.
-    Imaginary(f64),
+    /// A number with one of the imaginary units attached (ADR-0043,
+    /// extended by ADR-0085): `4i`, `2.5i`, `0xFFi`, `3j`, `3k`. The
+    /// tokenizer folds the suffix in so `3 + 4i` parses as one literal;
+    /// the parser spells it `4 * i`, `3 * j`, `3 * k`.
+    ImaginaryUnit(f64, char),
     /// A string literal (ADR-0054): `"hello"`. The tokenizer reads to
     /// the closing quote; there are no escape sequences, so a string
     /// cannot contain a double quote.
@@ -1352,7 +1407,7 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                         ))
                     }
                 };
-                let token = imaginary_or_number(n, &mut chars, &mut offset);
+                let token = imaginary_unit_or_number(n, &mut chars, &mut offset);
                 tokens.push((
                     token,
                     Span {
@@ -1410,7 +1465,7 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                         ))
                     }
                 };
-                let token = imaginary_or_number(n, &mut chars, &mut offset);
+                let token = imaginary_unit_or_number(n, &mut chars, &mut offset);
                 tokens.push((
                     token,
                     Span {
@@ -1453,22 +1508,23 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
     Ok(tokens)
 }
 
-/// A number directly followed by an `i` that is not part of a longer
-/// identifier becomes an imaginary literal (ADR-0043): `4i` is a token,
-/// `4it` stays a number and a name. Based literals share the suffix, so
+/// A number directly followed by an `i`, `j`, or `k` that is not part of
+/// a longer identifier becomes an imaginary literal (ADR-0043, extended
+/// by ADR-0085): `4i` is a token, `4it` stays a number and a name; `3j`
+/// and `3k` fold the same way. Based literals share the suffix, so
 /// `0xFFi` works too. The consumed suffix keeps the offset current.
-fn imaginary_or_number(
+fn imaginary_unit_or_number(
     n: f64,
     chars: &mut std::iter::Peekable<std::str::Chars>,
     offset: &mut usize,
 ) -> Token {
-    if matches!(chars.peek(), Some('i')) {
+    if let Some(unit @ ('i' | 'j' | 'k')) = chars.peek().copied() {
         let mut rest = chars.clone();
         rest.next();
         if !matches!(rest.peek(), Some(c) if c.is_alphanumeric() || *c == '_') {
             chars.next();
-            *offset += 1; // 'i' is one byte
-            return Token::Imaginary(n);
+            *offset += 1; // the suffix letter is one byte
+            return Token::ImaginaryUnit(n, unit);
         }
     }
     Token::Number(n)
@@ -2232,12 +2288,12 @@ impl Parser {
                 }
                 Ok(Expression::Literal(n))
             }
-            Some(Token::Imaginary(n)) => {
-                // `4i` is the literal spelling of `4 * i` (ADR-0043); i
-                // resolves as the builtin imaginary unit constant.
+            Some(Token::ImaginaryUnit(n, unit)) => {
+                // `4i` is the literal spelling of `4 * i` (ADR-0043); i,
+                // j, and k resolve as the builtin unit constants.
                 Ok(Expression::Mul(
                     Box::new(Expression::Literal(n)),
-                    Box::new(Expression::Var("i".into())),
+                    Box::new(Expression::Var(unit.to_string())),
                 ))
             }
             Some(Token::Str(s)) => Ok(Expression::StrLit(s)),
@@ -2406,6 +2462,12 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
         Expression::Neg(inner) => match eval(inner, env)? {
             Value::Float(n) => Ok(Value::Float(-n)),
             Value::Complex(c) => Ok(Value::Complex(-c)),
+            Value::Quaternion { w, x, y, z } => Ok(Value::Quaternion {
+                w: -w,
+                x: -x,
+                y: -y,
+                z: -z,
+            }),
             Value::Quantity { value, dims, unit } => Ok(Value::Quantity {
                 value: -value,
                 dims,
@@ -2636,6 +2698,27 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                         a != b
                     }))
                 }
+                // Quaternions (ADR-0085): component equality of the same
+                // kind, no order. `q == 3` is a type error, the same rule
+                // the complex plane follows.
+                (Value::Quaternion { .. }, _) | (_, Value::Quaternion { .. }) => match (&l, &r) {
+                    (Value::Quaternion { .. }, Value::Quaternion { .. }) => match op {
+                        CmpOp::Eq => Ok(Value::Bool(l == r)),
+                        CmpOp::Ne => Ok(Value::Bool(l != r)),
+                        _ => Err(EpherError::Type(
+                            "quaternions have no order; compare them with == or !=".to_string(),
+                        )),
+                    },
+                    _ => Err(EpherError::Type(format!(
+                        "cannot compare a quaternion with {other}: \
+                         quaternions only compare with quaternions",
+                        other = if matches!(&l, Value::Quaternion { .. }) {
+                            &r
+                        } else {
+                            &l
+                        }
+                    ))),
+                },
                 // Quantity comparisons (ADR-0046): values compare when
                 // the dimensions match (a plain number is dimensionless);
                 // a mismatch is a dimension error, not a false answer.
@@ -3658,6 +3741,21 @@ fn builtin_const(name: &str) -> Option<Value> {
         // and `4i` is its literal spelling. The one reserved name
         // (ADR-0065): assignment refuses it, so no store can shadow it.
         "i" => Some(Value::Complex(Complex::new(0.0, 1.0))),
+        // The quaternion units (ADR-0085): `j` and `k` complete the
+        // literal `1 + 2i + 3j + 4k`. Reserved like `i` (ADR-0065's
+        // mechanics), so `3j` always means the unit.
+        "j" => Some(Value::Quaternion {
+            w: 0.0,
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        }),
+        "k" => Some(Value::Quaternion {
+            w: 0.0,
+            x: 0.0,
+            y: 0.0,
+            z: 1.0,
+        }),
         // Astronomy constants (ADR-0037): SI values throughout - metres,
         // seconds, kilograms, watts. Shadowable like `pi` (resolution
         // order: user variable, user constant, builtin).
@@ -3760,6 +3858,8 @@ pub fn builtin_constant_groups() -> &'static [(&'static str, ConstGroup)] {
         ("h", ConstGroup::Astronomy),
         ("h_bar", ConstGroup::Astronomy),
         ("i", ConstGroup::Math),
+        ("j", ConstGroup::Math),
+        ("k", ConstGroup::Math),
         ("k_b", ConstGroup::Astronomy),
         ("l_P", ConstGroup::Physics),
         ("l_sun", ConstGroup::Astronomy),
@@ -4976,7 +5076,7 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         name: "i",
         kind: CatalogKind::Constant,
         signature: "i",
-        description: "the imaginary unit: the one reserved name (assignment refuses it)",
+        description: "the imaginary unit (reserved: assignment refuses it)",
     },
     CatalogEntry {
         name: "im",
@@ -5033,6 +5133,12 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         description: "whether `n` is prime (deterministic Miller–Rabin)",
     },
     CatalogEntry {
+        name: "j",
+        kind: CatalogKind::Constant,
+        signature: "j",
+        description: "the quaternion unit j: reserved (assignment refuses it)",
+    },
+    CatalogEntry {
         name: "jd",
         kind: CatalogKind::Function,
         signature: "jd(y, m, d[, hr])",
@@ -5043,6 +5149,12 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
         signature: "join(L, sep)",
         description: "elements spelled as `print` would, joined",
+    },
+    CatalogEntry {
+        name: "k",
+        kind: CatalogKind::Constant,
+        signature: "k",
+        description: "the quaternion unit k: reserved (assignment refuses it)",
     },
     CatalogEntry {
         name: "k_b",
@@ -5133,6 +5245,12 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Constant,
         signature: "ly",
         description: "light year (m)",
+    },
+    CatalogEntry {
+        name: "m2q",
+        kind: CatalogKind::Function,
+        signature: "m2q(M)",
+        description: "quaternion of a 3x3 rotation matrix (scalar part >= 0)",
     },
     CatalogEntry {
         name: "m_P",
@@ -5351,16 +5469,106 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         description: "total and product (lists or bare numbers)",
     },
     CatalogEntry {
+        name: "q2m",
+        kind: CatalogKind::Function,
+        signature: "q2m(q)",
+        description: "3x3 rotation matrix of the quaternion",
+    },
+    CatalogEntry {
         name: "q_e",
         kind: CatalogKind::Constant,
         signature: "q_e",
         description: "elementary charge (C)",
     },
     CatalogEntry {
+        name: "qangle",
+        kind: CatalogKind::Function,
+        signature: "qangle(q)",
+        description: "rotation angle in radians",
+    },
+    CatalogEntry {
+        name: "qaxis",
+        kind: CatalogKind::Function,
+        signature: "qaxis(axis, angle) / qaxis(q)",
+        description: "unit quaternion for a turn, or the axis of a rotation",
+    },
+    CatalogEntry {
+        name: "qconj",
+        kind: CatalogKind::Function,
+        signature: "qconj(q)",
+        description: "quaternion conjugate",
+    },
+    CatalogEntry {
+        name: "qeq2hor",
+        kind: CatalogKind::Function,
+        signature: "qeq2hor(jd, lat, lon)",
+        description: "equatorial to horizon rotation (east, north, up)",
+    },
+    CatalogEntry {
+        name: "qinv",
+        kind: CatalogKind::Function,
+        signature: "qinv(q)",
+        description: "multiplicative inverse",
+    },
+    CatalogEntry {
+        name: "qnorm",
+        kind: CatalogKind::Function,
+        signature: "qnorm(q)",
+        description: "magnitude",
+    },
+    CatalogEntry {
+        name: "qrot",
+        kind: CatalogKind::Function,
+        signature: "qrot(q, v)",
+        description: "rotate a 3-element vector by `q`",
+    },
+    CatalogEntry {
+        name: "qslerp",
+        kind: CatalogKind::Function,
+        signature: "qslerp(q1, q2, t)",
+        description: "spherical interpolation along the shortest path",
+    },
+    CatalogEntry {
         name: "quartile",
         kind: CatalogKind::Function,
         signature: "quartile(L, k)",
         description: "quartile `k` in `1..3`",
+    },
+    CatalogEntry {
+        name: "quaternion",
+        kind: CatalogKind::Function,
+        signature: "quaternion(w, x, y, z)",
+        description: "a quaternion, scalar first; also written `1 + 2i + 3j + 4k`",
+    },
+    CatalogEntry {
+        name: "qunit",
+        kind: CatalogKind::Function,
+        signature: "qunit(q)",
+        description: "unit quaternion in the same direction",
+    },
+    CatalogEntry {
+        name: "qw",
+        kind: CatalogKind::Function,
+        signature: "qw(q)",
+        description: "scalar part",
+    },
+    CatalogEntry {
+        name: "qx",
+        kind: CatalogKind::Function,
+        signature: "qx(q)",
+        description: "coefficient of i",
+    },
+    CatalogEntry {
+        name: "qy",
+        kind: CatalogKind::Function,
+        signature: "qy(q)",
+        description: "coefficient of j",
+    },
+    CatalogEntry {
+        name: "qz",
+        kind: CatalogKind::Function,
+        signature: "qz(q)",
+        description: "coefficient of k",
     },
     CatalogEntry {
         name: "r_e",
@@ -5972,6 +6180,68 @@ fn one_arg<'a>(name: &str, args: &'a [Value]) -> Result<&'a Value, EpherError> {
             args.len()
         ))),
     }
+}
+
+/// The one quaternion argument of a builtin, promoted from a plain
+/// number or a complex value (the ADR-0085 tower).
+fn one_quaternion(name: &str, args: &[Value]) -> Result<Quaternion, EpherError> {
+    let v = one_arg(name, args)?;
+    as_quaternion(v)
+        .ok_or_else(|| EpherError::Type(format!("{name} expects a quaternion, got {v}")))
+}
+
+/// One component of the `quaternion(w, x, y, z)` constructor: a real
+/// number, named in the error so a complex argument says which part and
+/// what a quaternion cannot hold (ADR-0085 refuses biquaternions).
+fn real_component(part: &str, v: &Value) -> Result<f64, EpherError> {
+    match v {
+        Value::Float(x) => Ok(*x),
+        other => Err(EpherError::Type(format!(
+            "quaternion's {part} part must be a real number, got {other}"
+        ))),
+    }
+}
+
+fn quaternion_value(q: Quaternion) -> Value {
+    Value::Quaternion {
+        w: q.w,
+        x: q.x,
+        y: q.y,
+        z: q.z,
+    }
+}
+
+/// The three floats of a vector argument (a 3-list), for the rotation
+/// family (ADR-0085): quaternions are never list elements, so every
+/// element here is a plain number.
+fn vector_of(name: &str, v: &Value) -> Result<[f64; 3], EpherError> {
+    let Value::List(items) = v else {
+        return Err(EpherError::Type(format!(
+            "{name} expects a vector as a 3-element list, got {v}"
+        )));
+    };
+    let bad = || EpherError::Type(format!("{name} expects a vector of 3 numbers, got {v}"));
+    match items.as_slice() {
+        [Value::Float(x), Value::Float(y), Value::Float(z)] => Ok([*x, *y, *z]),
+        _ => Err(bad()),
+    }
+}
+
+/// The extended transcendentals (ADR-0085): `exp`, `ln`, `log`, and
+/// `sqrt` accept a quaternion through this gate, while the rest of the
+/// family keeps refusing it (the `real_or_complex` path never sees a
+/// quaternion).
+fn quaternion_or_real_complex(
+    name: &str,
+    args: &[Value],
+    quaternion: impl Fn(Quaternion) -> Result<Quaternion, EpherError>,
+    real_complex: impl FnOnce() -> Result<Value, EpherError>,
+) -> Result<Value, EpherError> {
+    if let Value::Quaternion { w, x, y, z } = one_arg(name, args)? {
+        let q = Quaternion::new(*w, *x, *y, *z);
+        return Ok(quaternion_value(quaternion(q)?));
+    }
+    real_complex()
 }
 
 /// The one-argument transcendental bridge (ADR-0043): a complex
@@ -7378,6 +7648,141 @@ fn gauss_jordan(
 /// calculator's function keys).
 fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
     match name {
+        // The quaternion family (ADR-0085). `quaternion(w, x, y, z)` is
+        // the constructor, scalar first (the MATLAB/Octave spelling);
+        // the q-prefixed helpers are the rotation tooling the ADR
+        // settles: parts, axis/angle, rotation, matrix bridge, slerp,
+        // and the algebra helpers. Rotation happens by name only:
+        // `q * list` stays a type error.
+        "quaternion" => {
+            let [w, x, y, z] = args.as_slice() else {
+                return Err(EpherError::Type(format!(
+                    "quaternion expects 4 real numbers (w, x, y, z), got {}",
+                    args.len()
+                )));
+            };
+            Ok(Value::Quaternion {
+                w: real_component("w", w)?,
+                x: real_component("x", x)?,
+                y: real_component("y", y)?,
+                z: real_component("z", z)?,
+            })
+        }
+        "qw" | "qx" | "qy" | "qz" => {
+            let q = one_quaternion(name, &args)?;
+            Ok(Value::Float(match name {
+                "qw" => q.w,
+                "qx" => q.x,
+                "qy" => q.y,
+                _ => q.z,
+            }))
+        }
+        "qaxis" => match args.as_slice() {
+            // Two arguments build: a unit quaternion for `angle` radians
+            // about `axis` (the axis normalizes). One argument extracts.
+            [axis, angle] => {
+                let v = vector_of(name, axis)?;
+                let angle = one_float(name, std::slice::from_ref(angle))?;
+                let q = Quaternion::axis_angle(v, angle)
+                    .ok_or_else(|| domain_error(format!("{name} needs a nonzero axis")))?;
+                Ok(quaternion_value(q))
+            }
+            _ => {
+                let q = one_quaternion(name, &args)?;
+                let axis = q
+                    .axis()
+                    .ok_or_else(|| domain_error("qaxis of a real quaternion: it names no axis"))?;
+                Ok(Value::List(axis.iter().map(|c| Value::Float(*c)).collect()))
+            }
+        },
+        "qangle" => {
+            let q = one_quaternion(name, &args)?;
+            let angle = q
+                .angle()
+                .ok_or_else(|| domain_error("qangle of the zero quaternion is undefined"))?;
+            Ok(Value::Float(angle))
+        }
+        "qrot" => {
+            let [q, v] = args.as_slice() else {
+                return Err(EpherError::Type(format!(
+                    "qrot expects (q, v), got {} argument(s)",
+                    args.len()
+                )));
+            };
+            let q = as_quaternion(q)
+                .ok_or_else(|| EpherError::Type(format!("qrot expects a quaternion, got {q}")))?;
+            let v = vector_of(name, v)?;
+            let turned = q
+                .rotate(v)
+                .ok_or_else(|| domain_error("qrot by the zero quaternion is undefined"))?;
+            Ok(Value::List(
+                turned.iter().map(|c| Value::Float(*c)).collect(),
+            ))
+        }
+        "q2m" => {
+            let q = one_quaternion(name, &args)?;
+            let m = q
+                .to_matrix()
+                .ok_or_else(|| domain_error("q2m of the zero quaternion is undefined"))?;
+            Ok(Value::Matrix {
+                rows: 3,
+                cols: 3,
+                data: m.iter().flat_map(|row| row.iter().copied()).collect(),
+            })
+        }
+        "m2q" => {
+            let [value] = args.as_slice() else {
+                return Err(EpherError::Type(format!(
+                    "m2q expects 1 matrix, got {} argument(s)",
+                    args.len()
+                )));
+            };
+            let Value::Matrix { rows, cols, data } = value else {
+                return Err(EpherError::Type(format!(
+                    "m2q expects a matrix, got {value}"
+                )));
+            };
+            if (*rows, *cols) != (3, 3) {
+                return Err(EpherError::Type(format!(
+                    "m2q expects a 3x3 rotation matrix, got {rows}x{cols}"
+                )));
+            }
+            Ok(quaternion_value(Quaternion::from_matrix([
+                [data[0], data[1], data[2]],
+                [data[3], data[4], data[5]],
+                [data[6], data[7], data[8]],
+            ])))
+        }
+        "qslerp" => {
+            let [a, b, t] = args.as_slice() else {
+                return Err(EpherError::Type(format!(
+                    "qslerp expects (q1, q2, t), got {} argument(s)",
+                    args.len()
+                )));
+            };
+            let a = as_quaternion(a)
+                .ok_or_else(|| EpherError::Type(format!("qslerp expects quaternions, got {a}")))?;
+            let b = as_quaternion(b)
+                .ok_or_else(|| EpherError::Type(format!("qslerp expects quaternions, got {b}")))?;
+            let t = one_float(name, std::slice::from_ref(t))?;
+            let q = a
+                .slerp(b, t)
+                .ok_or_else(|| domain_error("qslerp needs two nonzero quaternions"))?;
+            Ok(quaternion_value(q))
+        }
+        "qconj" => Ok(quaternion_value(one_quaternion(name, &args)?.conj())),
+        "qnorm" => Ok(Value::Float(one_quaternion(name, &args)?.norm())),
+        "qunit" => {
+            let q = one_quaternion(name, &args)?;
+            let unit = q
+                .unit()
+                .ok_or_else(|| domain_error("qunit of the zero quaternion is undefined"))?;
+            Ok(quaternion_value(unit))
+        }
+        "qinv" => {
+            let q = one_quaternion(name, &args)?;
+            Ok(quaternion_value(q.inv().ok_or(EpherError::ZeroDivision)?))
+        }
         // The transcendental family extends to the complex plane
         // (ADR-0043): a complex argument computes in complex, and a real
         // argument outside the real domain falls back to the principal
@@ -7470,31 +7875,58 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             let (y, x) = two_floats(name, &args)?;
             Ok(Value::Float(y.atan2(x)))
         }
-        "exp" => real_or_complex(name, &args, |x| Ok(x.exp()), |z| z.exp()),
-        "ln" => real_or_complex(
+        "exp" => quaternion_or_real_complex(
             name,
             &args,
-            |x| {
-                if x <= 0.0 {
-                    Err(domain_error(format!("ln of non-positive number {x}")))
-                } else {
-                    Ok(x.ln())
-                }
+            |q| Ok(q.exp()),
+            || real_or_complex(name, &args, |x| Ok(x.exp()), |z| z.exp()),
+        ),
+        "ln" => quaternion_or_real_complex(
+            name,
+            &args,
+            |q| {
+                q.ln()
+                    .ok_or_else(|| domain_error("ln of the zero quaternion"))
             },
-            |z| z.ln(),
+            || {
+                real_or_complex(
+                    name,
+                    &args,
+                    |x| {
+                        if x <= 0.0 {
+                            Err(domain_error(format!("ln of non-positive number {x}")))
+                        } else {
+                            Ok(x.ln())
+                        }
+                    },
+                    |z| z.ln(),
+                )
+            },
         ),
         // calculator convention: log is base 10 (the LOG key), ln is natural
-        "log" => real_or_complex(
+        "log" => quaternion_or_real_complex(
             name,
             &args,
-            |x| {
-                if x <= 0.0 {
-                    Err(domain_error(format!("log of non-positive number {x}")))
-                } else {
-                    Ok(x.log10())
-                }
+            |q| {
+                let ln = q
+                    .ln()
+                    .ok_or_else(|| domain_error("log of the zero quaternion"))?;
+                Ok(ln.scale(1.0 / std::f64::consts::LN_10))
             },
-            |z| z.ln() / std::f64::consts::LN_10,
+            || {
+                real_or_complex(
+                    name,
+                    &args,
+                    |x| {
+                        if x <= 0.0 {
+                            Err(domain_error(format!("log of non-positive number {x}")))
+                        } else {
+                            Ok(x.log10())
+                        }
+                    },
+                    |z| z.ln() / std::f64::consts::LN_10,
+                )
+            },
         ),
         "log2" => real_or_complex(
             name,
@@ -7549,12 +7981,16 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             Ok(Value::Float(a.hypot(b)))
         }
         // abs is the magnitude: a complex's distance from the origin
-        // (ADR-0043), so it always returns a plain number.
+        // (ADR-0043) and a quaternion's norm (ADR-0085), so it always
+        // returns a plain number.
         "abs" => {
             let v = one_arg(name, &args)?;
             match v {
                 Value::Float(x) => Ok(Value::Float(x.abs())),
                 Value::Complex(c) => Ok(Value::Float(c.norm())),
+                Value::Quaternion { w, x, y, z } => {
+                    Ok(Value::Float(Quaternion::new(*w, *x, *y, *z).norm()))
+                }
                 _ => Err(EpherError::Type(format!(
                     "{name} expects a number, got {v}"
                 ))),
@@ -7565,6 +8001,20 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
         // plain number re/arg/conj pass it through and im is 0.
         "re" | "im" | "arg" => {
             let v = one_arg(name, &args)?;
+            // A quaternion's parts (ADR-0085): the scalar is `re`, the
+            // vector part is `im` as a 3-list. `arg` has no quaternion
+            // reading; the axis/angle pair is the named spelling.
+            if let Value::Quaternion { w, x, y, z } = v {
+                return match name {
+                    "re" => Ok(Value::Float(*w)),
+                    "im" => Ok(Value::List(vec![
+                        Value::Float(*x),
+                        Value::Float(*y),
+                        Value::Float(*z),
+                    ])),
+                    _ => Err(EpherError::Type(format!("{name} expects a number, got {v}"))),
+                };
+            }
             let c = match v {
                 Value::Float(x) => Complex::new(*x, 0.0),
                 Value::Complex(c) => *c,
@@ -7585,6 +8035,9 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             match v {
                 Value::Float(x) => Ok(Value::Float(*x)),
                 Value::Complex(c) => Ok(Value::Complex(c.conj())),
+                Value::Quaternion { w, x, y, z } => {
+                    Ok(quaternion_value(Quaternion::new(*w, *x, *y, *z).conj()))
+                }
                 _ => Err(EpherError::Type(format!(
                     "{name} expects a number, got {v}"
                 ))),
@@ -7651,6 +8104,19 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 }
                 let half = dims.map(|e| e / 2);
                 Ok(finish_quantity(value.sqrt(), half, None))
+            }
+            // The quaternion root (ADR-0085): exp(ln q / 2), so the root
+            // of a negative real is a quaternion (`sqrt(-4)` as a
+            // quaternion is `2i`). The value stays a quaternion; a
+            // plain `sqrt(-4)` keeps answering the complex 2i.
+            Value::Quaternion { w, x, y, z } => {
+                let q = Quaternion::new(*w, *x, *y, *z);
+                let root = if q.norm_sqr() == 0.0 {
+                    Quaternion::real(0.0)
+                } else {
+                    q.sqrt().expect("nonzero")
+                };
+                Ok(quaternion_value(root))
             }
             _ => real_or_complex(
                 name,
@@ -8875,8 +9341,8 @@ fn stmt_flow(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<Flow, E
                 if name == "_" {
                     continue;
                 }
-                if name == "i" {
-                    return Err(EpherError::ImaginaryReserved);
+                if let Some(e) = reserved_name(name) {
+                    return Err(e);
                 }
                 if env.constant(name).is_some() {
                     return Err(EpherError::AssignToConstant(name.clone()));
@@ -8924,6 +9390,17 @@ fn run_inner(
     Ok(result)
 }
 
+/// The reserved unit names (ADR-0065, extended by ADR-0085): `i` is the
+/// imaginary unit, `j` and `k` are the quaternion units, so no binding
+/// form may take them. `None` for every other name.
+fn reserved_name(name: &str) -> Option<EpherError> {
+    match name {
+        "i" => Some(EpherError::ImaginaryReserved),
+        "j" | "k" => Some(EpherError::QuaternionUnitReserved(name.to_string())),
+        _ => None,
+    }
+}
+
 /// Assign to a variable, refusing to rebind a constant (ADR-0012).
 fn assign(env: &mut Env, name: &str, expr: &Expression) -> Result<Value, EpherError> {
     if env.constant(name).is_some() {
@@ -8935,11 +9412,12 @@ fn assign(env: &mut Env, name: &str, expr: &Expression) -> Result<Value, EpherEr
     if env.function(name).is_some() {
         return Err(EpherError::AssignToFunction(name.to_string()));
     }
-    // The imaginary unit is the one reserved name (ADR-0065): a bare
-    // `i = 5` once persisted through the shared store and turned
-    // `3+4i` into `23` on every frontend.
-    if name == "i" {
-        return Err(EpherError::ImaginaryReserved);
+    // The imaginary and quaternion units are the reserved names
+    // (ADR-0065, extended by ADR-0085): a bare `i = 5` once persisted
+    // through the shared store and turned `3+4i` into `23` on every
+    // frontend, and a stored `k` would turn `3k` into a product.
+    if let Some(e) = reserved_name(name) {
+        return Err(e);
     }
     let value = eval(expr, env)?;
     env.set(name.to_string(), value.clone());
@@ -8976,8 +9454,8 @@ fn define_constant(env: &mut Env, name: &str, expr: &Expression) -> Result<Value
     if env.function(name).is_some() {
         return Err(EpherError::ConstantNameTaken(name.to_string(), "function"));
     }
-    if name == "i" {
-        return Err(EpherError::ImaginaryReserved);
+    if let Some(e) = reserved_name(name) {
+        return Err(e);
     }
     let value = eval(expr, env)?;
     env.set_constant(name.to_string(), value.clone());
@@ -9560,11 +10038,12 @@ impl Session {
     /// Restore bindings saved by another frontend of the same installation
     /// (ADR-0010 amendment): each name is bound into the environment, so
     /// `ans` and every user assignment survive across CLI/REPL/TUI/GUI.
-    /// A stored `i` is dropped: the imaginary unit is reserved
-    /// (ADR-0065), and old stores may still carry one from before.
+    /// A stored `i`, `j`, or `k` is dropped: the units are reserved
+    /// (ADR-0065, extended by ADR-0085), and old stores may still carry
+    /// one from before.
     pub fn restore_bindings(&mut self, bindings: &ValueBindings) {
         for (name, value) in bindings {
-            if name == "i" {
+            if reserved_name(name).is_some() {
                 continue;
             }
             self.env.set(name.clone(), value.clone());
@@ -9650,6 +10129,14 @@ enum BinOp {
 /// Apply a binary op to two [`Value`]s, promoting to a common number layer
 /// (Float → Rational → Decimal → Big) when operands differ (ADR-0005).
 fn binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
+    // Quaternion arithmetic (ADR-0085): floats and complex values
+    // promote into the four-part algebra; every other numeric layer is a
+    // type error, ADR-0043's precedent line. The branch leads so a
+    // refused mix reports both sides in their own spelling, not as a
+    // Debug dump from whichever family's message came first.
+    if matches!(&lhs, Value::Quaternion { .. }) || matches!(&rhs, Value::Quaternion { .. }) {
+        return quaternion_binop(lhs, rhs, op);
+    }
     // Quantity arithmetic (ADR-0046): dimensions compose for `*` and
     // `/`, must match for `+` and `-`, and a plain number pairs with a
     // quantity as a dimensionless value.
@@ -10189,6 +10676,65 @@ fn complex_binop(op: BinOp, a: Complex<f64>, b: Complex<f64>) -> Result<Complex<
             }
         }
     }
+}
+
+/// One operand of a quaternion operation: a quaternion as itself, a
+/// plain number as its real embedding, a complex value as `w + xi`
+/// (ADR-0085's promotion tower: floats and complex values promote, the
+/// exact layers and quantities do not).
+fn as_quaternion(v: &Value) -> Option<Quaternion> {
+    match v {
+        Value::Quaternion { w, x, y, z } => Some(Quaternion::new(*w, *x, *y, *z)),
+        Value::Float(x) => Some(Quaternion::real(*x)),
+        Value::Complex(c) => Some(Quaternion::new(c.re, c.im, 0.0, 0.0)),
+        _ => None,
+    }
+}
+
+fn quaternion_binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
+    let (Some(a), Some(b)) = (as_quaternion(&lhs), as_quaternion(&rhs)) else {
+        return Err(EpherError::Type(format!(
+            "cannot combine {lhs} and {rhs}: quaternions pair with numbers, \
+             complex values, and other quaternions"
+        )));
+    };
+    let value = match op {
+        BinOp::Add => a + b,
+        BinOp::Sub => a - b,
+        BinOp::Mul => a * b,
+        BinOp::Div => a * b.inv().ok_or(EpherError::ZeroDivision)?,
+        BinOp::Pow => {
+            // A whole real exponent multiplies out exactly, like the
+            // complex rule (ADR-0043): k^2 is exactly -1. Anything else
+            // goes through exp/log.
+            if b.is_real() && b.w.is_finite() && b.w.fract() == 0.0 && b.w.abs() < 1e9 {
+                let mut base = a;
+                let mut n = b.w as i64;
+                if n < 0 {
+                    base = base.inv().ok_or(EpherError::ZeroDivision)?;
+                    n = -n;
+                }
+                let mut acc = Quaternion::real(1.0);
+                while n > 0 {
+                    if n & 1 == 1 {
+                        acc = acc * base;
+                    }
+                    base = base * base;
+                    n >>= 1;
+                }
+                acc
+            } else {
+                a.pow(b)
+                    .ok_or_else(|| domain_error("cannot raise the zero quaternion to a power"))?
+            }
+        }
+    };
+    Ok(Value::Quaternion {
+        w: value.w,
+        x: value.x,
+        y: value.y,
+        z: value.z,
+    })
 }
 
 fn float_binop(op: BinOp, a: f64, b: f64) -> Result<f64, EpherError> {

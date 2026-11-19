@@ -408,6 +408,59 @@ solar3d t</code></pre>
 </div>
 </div>
 </figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a20">Quaternions: the four-part literal, and a 90 degree turn about z applied to a vector.</figcaption>
+<div class="example" tabindex="0">
+<pre tabindex="0"><code class="language-epher">q = <span class="tok-fn">qaxis</span>({<span class="tok-num">0</span>, <span class="tok-num">0</span>, <span class="tok-num">1</span>}, <span class="tok-num">90</span> deg)
+<span class="tok-fn">qrot</span>(q, {<span class="tok-num">1</span>, <span class="tok-num">0</span>, <span class="tok-num">0</span>})</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a21">The horizon as a rotation: `qeq2hor` turns the Sun's equatorial unit vector into altitude and azimuth at the observer.</figcaption>
+<div class="example" tabindex="0">
+<pre tabindex="0"><code class="language-epher"><span class="tok-kw">const</span> t = <span class="tok-num">2460000.5</span>
+<span class="tok-fn">qrot</span>(<span class="tok-fn">qeq2hor</span>(t, <span class="tok-num">51.5</span>, -<span class="tok-num">0.12</span>), {<span class="tok-fn">cos</span>(<span class="tok-fn">decl</span>(<span class="tok-num">10</span>, t) deg) * <span class="tok-fn">cos</span>(<span class="tok-fn">ra</span>(<span class="tok-num">10</span>, t) deg), <span class="tok-fn">cos</span>(<span class="tok-fn">decl</span>(<span class="tok-num">10</span>, t) deg) * <span class="tok-fn">sin</span>(<span class="tok-fn">ra</span>(<span class="tok-num">10</span>, t) deg), <span class="tok-fn">sin</span>(<span class="tok-fn">decl</span>(<span class="tok-num">10</span>, t) deg)})</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a22">A slew to the pole star as one quaternion: from the parked mount to Polaris over Greenwich, with the check that the turn lands exactly on it.</figcaption>
+<div class="example" tabindex="0">
+<pre tabindex="0"><code class="language-epher">jd = <span class="tok-num">2460000.5</span>                                   # <span class="tok-num">2023</span>-<span class="tok-num">02</span>-<span class="tok-num">25</span> <span class="tok-num">00</span>:<span class="tok-num">00</span> UTC
+qhor = <span class="tok-fn">qeq2hor</span>(jd, <span class="tok-num">51.4779</span>, -<span class="tok-num">0.0015</span>)             # Royal Observatory Greenwich: equatorial -&gt; east, north, up
+polaris = {<span class="tok-fn">cos</span>(<span class="tok-num">89.2642</span> deg) * <span class="tok-fn">cos</span>(<span class="tok-num">37.9545</span> deg), <span class="tok-fn">cos</span>(<span class="tok-num">89.2642</span> deg) * <span class="tok-fn">sin</span>(<span class="tok-num">37.9545</span> deg), <span class="tok-fn">sin</span>(<span class="tok-num">89.2642</span> deg)}   # Polaris, J2000
+p = <span class="tok-fn">qrot</span>(qhor, polaris)                          # where the pole star hangs from Greenwich
+<span class="tok-kw">def</span> <span class="tok-fn">look</span>(v) = <span class="tok-fn">qaxis</span>({-v[<span class="tok-num">2</span>], v[<span class="tok-num">1</span>], <span class="tok-num">0</span>}, <span class="tok-fn">acos</span>(v[<span class="tok-num">3</span>]))  # attitude aiming the bore {<span class="tok-num">0</span>, <span class="tok-num">0</span>, <span class="tok-num">1</span>} at direction v
+q_cur = <span class="tok-fn">look</span>({<span class="tok-num">0</span>, -<span class="tok-fn">sin</span>(<span class="tok-num">30</span> deg), <span class="tok-fn">cos</span>(<span class="tok-num">30</span> deg)})     # parked: on the meridian, <span class="tok-num">30</span> deg up, facing south
+q_tgt = <span class="tok-fn">look</span>(p)                                  # bore on the pole star
+d = q_tgt * <span class="tok-fn">qinv</span>(q_cur)                          # one quaternion: the whole slew
+<span class="tok-fn">qangle</span>(d)                                        # how far to turn
+<span class="tok-fn">qaxis</span>(d)                                         # about which axis
+<span class="tok-fn">qrot</span>(d, <span class="tok-fn">qrot</span>(q_cur, {<span class="tok-num">0</span>, <span class="tok-num">0</span>, <span class="tok-num">1</span>}))                  # error on top of the parked bore...
+p                                                # ...lands exactly on Polaris
+<span class="tok-fn">deg</span>(<span class="tok-fn">asin</span>(p[<span class="tok-num">3</span>]))                                  # altitude: within a moon-width of the latitude</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
 </section>
 <section class="ex-section">
 <h2 data-i18n="ex-h-cli">The command line</h2>

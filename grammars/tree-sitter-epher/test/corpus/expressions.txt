@@ -94,6 +94,7 @@ Numbers in every spelling
 dec = 2.5
 sci = 1e9
 imag = 3 + 4i
+ham = 1 + 2i + 3j + 4k
 bin = 0b101
 oct = 0o17
 hex = 0xFF + 0b1
@@ -112,6 +113,15 @@ half = .5
     (identifier)
     (additive_expression
       (number)
+      (number)))
+  (assignment
+    (identifier)
+    (additive_expression
+      (additive_expression
+        (additive_expression
+          (number)
+          (number))
+        (number))
       (number)))
   (assignment
     (identifier)

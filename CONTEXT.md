@@ -85,6 +85,14 @@ family extends to the complex plane (ADR-0043). The principal complex
 result replaces the old domain error: `sqrt(-1)` is `i`.
 _Avoid_: imaginary number only, complex mode
 
+**Quaternion**:
+A Value with four parts, spelled `quaternion(w, x, y, z)` or the literal
+`1 + 2i + 3j + 4k`; `j` and `k` join `i` as reserved names, floats and
+complex values promote into quaternion arithmetic, and a unit quaternion
+carries a rotation, composed by multiplication and applied with `qrot`
+(ADR-0085).
+_Avoid_: versor, Euler symmetric parameters, attitude quaternion
+
 **Solving**:
 The `solve lhs == rhs` statement: every root of a polynomial equation
 (Durand-Kerner plus deflation), or numeric sign-change bracketing over

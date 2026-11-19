@@ -785,7 +785,7 @@ fn const_in_a_fresh_child_env_only_shadows_via_params() {
     // new_child copies constants: a direct env probe of the same guarantee
     let mut env = Env::default();
     run(
-        &parse_script("const k = 7; def f() = k").expect("parse"),
+        &parse_script("const kk = 7; def f() = kk").expect("parse"),
         &mut env,
     )
     .unwrap();
@@ -2110,7 +2110,7 @@ fn solve_polynomials_get_every_root() {
 fn solve_uses_constants_and_bound_parameters() {
     // a user constant resolves as a parameter
     assert_eq!(
-        run_script_text("const k = 3\nsolve k*x == 12")
+        run_script_text("const kk = 3\nsolve kk*x == 12")
             .last()
             .unwrap()
             .to_string(),
@@ -2707,7 +2707,9 @@ fn constant_groups_cover_every_builtin_and_resolve() {
     for &(name, _) in groups {
         assert!(seen.insert(name), "duplicate {name} in groups");
         match eval_str(name) {
-            epher_core::Value::Float(_) | epher_core::Value::Complex(_) => {}
+            epher_core::Value::Float(_)
+            | epher_core::Value::Complex(_)
+            | epher_core::Value::Quaternion { .. } => {}
             other => panic!("group constant {name} does not evaluate: {other:?}"),
         }
     }
@@ -3508,8 +3510,8 @@ fn for_loops_iterate_ranges_and_lists() {
     // defect: a stored `i = 5` once made `3+4i` answer 23).
     assert_eq!(eval_display_script("for i in 1 to 3 do i\ni"), "i");
     // A binding from before the loop is restored, not clobbered
-    // (`k`, since `i` no longer assigns).
-    assert_eq!(eval_display_script("k = 7\nfor k in 1 to 3 do k\nk"), "7");
+    // (`n`, since `i` no longer assigns and `k` is the quaternion unit).
+    assert_eq!(eval_display_script("n = 7\nfor n in 1 to 3 do n\nn"), "7");
     // The complex literal is intact after a loop over `i`.
     assert_eq!(eval_display_script("for i in 1 to 3 do i\n3 + 4i"), "3+4i");
     // Nested loops over the same name unwind in order: the inner loop
@@ -3551,8 +3553,8 @@ fn session_for_loop_leaves_nothing_in_the_store() {
     session.submit("for i in 1 to 3 do i");
     assert!(!session.env().bindings().contains_key("i"));
     // an ordinary assignment persists exactly as before
-    session.submit("k = 9");
-    assert_eq!(session.env().bindings().get("k"), Some(&Value::float(9.0)));
+    session.submit("n = 9");
+    assert_eq!(session.env().bindings().get("n"), Some(&Value::float(9.0)));
 }
 
 #[test]
@@ -3689,7 +3691,7 @@ fn destructuring_binds_several_names() {
     assert!(script_err("{a, b} = {1, 2, 3}").contains("name(s) but the list holds 3"));
     assert!(script_err("{q} = 5").contains("needs a list"));
     // constants keep their guard
-    assert!(script_err("const k = 3; {a, k} = {1, 2}").contains("constant"));
+    assert!(script_err("const c = 3; {a, c} = {1, 2}").contains("constant"));
     // a list literal at the start of a statement is still a list
     assert_eq!(eval_display_script("{1, 2}"), "{1, 2}");
 }

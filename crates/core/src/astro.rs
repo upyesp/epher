@@ -11,6 +11,7 @@
 //! - Everything here is shadowable like `pi`: resolution order is user
 //!   variable, user constant, builtin.
 
+use crate::quat::Quaternion;
 use crate::{domain_error, one_float, three_floats, two_floats, EpherError, Value};
 
 /// Dispatch an astronomy builtin. Returns `None` when the name is not an
@@ -68,6 +69,7 @@ pub(crate) fn call(name: &str, args: Vec<Value>) -> Option<Result<Value, EpherEr
         "dist" => dist_fn(name, &args),
         "alt" => alt_fn(name, &args),
         "az" => az_fn(name, &args),
+        "qeq2hor" => qeq2hor_fn(name, &args),
         "rise" => event_fn(name, &args, "rise_jd"),
         "set" => event_fn(name, &args, "set_jd"),
         "transit" => event_fn(name, &args, "transit_jd"),
@@ -890,6 +892,63 @@ fn az_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
     }
     let place = sky_place(body, jd, lat, lon)?;
     Ok(Value::Float(place.az))
+}
+
+/// The horizon rotation as a quaternion (ADR-0085): the rotation from
+/// the equatorial frame of date to the observer's horizon frame, whose
+/// axes are east, north, up (the frame `alt`/`az` report in: altitude
+/// is the up component, azimuth runs from north through east, so
+/// `az = atan2(east, north)`). The local apparent sidereal time and the
+/// geographic latitude are the same ones the place accessors use, so a
+/// star's `ra`/`decl` rotate to the altitude and azimuth those
+/// functions would give it.
+pub(crate) fn horizon_quaternion(jd: f64, lat_deg: f64, lon_deg: f64) -> Quaternion {
+    let astro = solar_ephemeris::timescales::AstroTime::from_jd_utc(jd);
+    let t = solar_ephemeris::time::centuries(astro.jd_tt);
+    let (dpsi, deps) = solar_ephemeris::time::nutation_deg(t);
+    let eps_true = solar_ephemeris::time::mean_obliquity_deg(t) + deps;
+    let gast = solar_ephemeris::time::gast_deg(astro.jd_ut1, dpsi, eps_true);
+    let lst = (gast + lon_deg).rem_euclid(360.0).to_radians();
+    let phi = lat_deg.to_radians();
+    let (sp, cp) = (phi.sin(), phi.cos());
+    let (st, ct) = (lst.sin(), lst.cos());
+    // The rows are the horizon frame's axes in equatorial coordinates.
+    // East, north, up is right-handed (det = +1), so this is a rotation
+    // and `m2q` recovers it exactly.
+    let m = [
+        [-st, ct, 0.0],
+        [-sp * ct, -sp * st, cp],
+        [cp * ct, cp * st, sp],
+    ];
+    Quaternion::from_matrix(m)
+}
+
+/// `qeq2hor(jd, lat, lon)`: the quaternion that rotates a
+/// geocentric-equatorial unit vector (of date) into the observer's
+/// horizon frame (ADR-0085). Geometric: no refraction, and no
+/// parallax, so it agrees with `alt`/`az` for a distant object and
+/// differs by up to about a degree for the Moon, whose parallax needs a
+/// distance the rotation does not have (`alt`/`az` remain the spelling
+/// for it).
+fn qeq2hor_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let [Value::Float(jd), Value::Float(lat), Value::Float(lon)] = args else {
+        return Err(EpherError::Type(format!(
+            "{name} expects (jd, lat, lon), got {} argument(s)",
+            args.len()
+        )));
+    };
+    if !(-90.0..=90.0).contains(lat) {
+        return Err(domain_error(format!(
+            "{name} needs a latitude in -90..90 degrees, got {lat}"
+        )));
+    }
+    let q = horizon_quaternion(*jd, *lat, *lon);
+    Ok(Value::Quaternion {
+        w: q.w,
+        x: q.x,
+        y: q.y,
+        z: q.z,
+    })
 }
 
 /// `(lat, lon), body, jd` for the horizontal-accessor signatures
