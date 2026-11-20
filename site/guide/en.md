@@ -250,7 +250,7 @@ x = x + 1
 > Names can contain letters and underscores, like `radius` or `my_total`.
 > They cannot contain spaces or start with a number.
 
-Three names are reserved: `i`, `j` and `k`, the imaginary and quaternion units (sections 1.18 and 1.29).
+Three names are reserved: `i`, `j` and `k`, the imaginary and quaternion units (sections 1.18 and 1.30).
 
 The special variable `ans` always holds the previous answer, like the
 `Ans` key on a pocket calculator, handy for chained calculations:
@@ -1112,7 +1112,7 @@ sqrt(-1)
 i
 ```
 
-Unlike every other built-in name, `i` cannot be reused: `i = 5` is refused, so the imaginary unit can never be shadowed - not by an assignment, not by an old saved session. `j` and `k`, the other two quaternion units (section 1.29), follow the same rule.
+Unlike every other built-in name, `i` cannot be reused: `i = 5` is refused, so the imaginary unit can never be shadowed - not by an assignment, not by an old saved session. `j` and `k`, the other two quaternion units (section 1.30), follow the same rule.
 
 Write a complex number with the `i` suffix, no multiplication sign
 needed: `3 + 4i` is one literal, `2.5i` works, and so do the based
@@ -2068,67 +2068,13 @@ The ephemeris is computed by the solar-ephemeris crate
 its author. Accuracy is arcsecond-class for the Sun, Moon and planets over
 roughly 5000 years around the present.
 
-**Rotations: quaternions.** A quaternion has four parts, written
-`w + xi + yj + zk`, scalar first. `j` and `k` are the other two units
-like `i`, so the four-term sum is one literal:
-
-```epher
-1 + 2i + 3j + 4k
-```
-
-```text
-1 + 2i + 3j + 4k
-```
-
-`quaternion(1, 2, 3, 4)` spells the same value. Multiplication is
-Hamilton's: the units anticommute and each squares to -1:
-
-```epher
-i * j
-j * i
-k * k
-```
-
-```text
-k
--k
--1
-```
-
-A unit quaternion carries a turn. `qaxis(axis, angle)` builds the turn
-(angles are radians, so `90 deg` converts), `qrot` turns a 3-element
-vector, and `qangle`/`qaxis` read the turn back:
-
-```epher
-q = qaxis({0, 0, 1}, 90 deg)
-qrot(q, {1, 0, 0})
-deg(qangle(q))
-qaxis(q)
-```
-
-```text
-0.707106781187 + 0.707106781187k
-{0.000000000000000222044604925, 1, 0}
-90
-{0, 0, 1}
-```
-
-The 2e-16 is float rounding, not a wrong answer: `cos(45 deg)` is not an
-exact binary fraction. `q2m` and `m2q` bridge to the 3x3 rotation matrix
-(`m2q` always returns a scalar part of at least zero), and `qslerp`
-interpolates along the shortest path:
-
-```epher
-q = qaxis({0, 0, 1}, 90 deg)
-m2q(q2m(q))
-qslerp(quaternion(1, 0, 0, 0), q, 0.5)
-```
-
-```text
-0.707106781187 + 0.707106781187k
-0.707106781187 + 0.707106781187k
-0.923879532511 + 0.382683432365k
-```
+**Rotations: quaternions.** A quaternion is a four-part number that carries
+a turn. epher gives quaternions their complete treatment in section 1.30:
+the algebra, the exponential map, rotation matrices, slerp, and the
+reserved names `j` and `k`. The astronomy part of the story is the
+horizon: `qeq2hor` below turns an equatorial unit vector into the
+observer's frame, so one quaternion carries a star from right ascension
+and declination to altitude and azimuth.
 
 **The horizon as a rotation.** `qeq2hor(jd, lat, lon)` answers the
 quaternion that turns an equatorial unit vector into the observer's
@@ -2158,7 +2104,302 @@ arcseconds) is the larger term, which is why a star agrees to rounding.
 Constants and functions in this section are in the [reference](../../reference/#9-built-in-constants).
 
 
-### 1.30 Finance
+### 1.30 Quaternions
+
+A quaternion is a four-part number, written `w + xi + yj + zk` with the
+scalar part first. It extends the complex numbers (section 1.18): where
+a complex value has the one unit `i`, a quaternion has three, `i`, `j`
+and `k`, so the four-term sum is one literal:
+
+```epher
+1 + 2i + 3j + 4k
+```
+
+```text
+1 + 2i + 3j + 4k
+```
+
+`quaternion(w, x, y, z)` spells the same value, parts in order:
+
+```epher
+quaternion(1, 2, 3, 4)
+```
+
+```text
+1 + 2i + 3j + 4k
+```
+
+The parts come back out with `re`, `im`, `qw`, `qx`, `qy` and `qz`:
+
+```epher
+re(1 + 2i + 3j + 4k)
+im(1 + 2i + 3j + 4k)
+qx(1 + 2i + 3j + 4k)
+```
+
+```text
+1
+{2, 3, 4}
+2
+```
+
+The display stays short where it can: a quaternion with no vector part
+prints as a plain number, and one with no scalar part prints without it.
+
+```epher
+qw(1 + 2i + 3j + 4k)
+ln(qaxis({0, 0, 1}, 90 deg))
+```
+
+```text
+1
+0.785398163397k
+```
+
+(The logarithm is explained below.)
+
+**The algebra.** Multiplication is Hamilton's: each unit squares to -1,
+and different units anticommute, `i * j = k` while `j * i = -k`:
+
+```epher
+i * j
+j * i
+k * k
+```
+
+```text
+k
+-k
+-1
+```
+
+Real numbers and complex values take part directly; the answer is a
+quaternion. Quantities, lists, matrices and the exact number types do
+not promote into quaternion arithmetic.
+
+```epher
+2 * (1 + 2i + 3j + 4k)
+(1 + 2i) * quaternion(0, 0, 0, 1)
+```
+
+```text
+2 + 4i + 6j + 8k
+-2j + k
+```
+
+One habit to learn: the units bind to their number like algebra, so in
+the literal `4k * q` the multiplication happens before the `+` chain.
+Only the `4k` part meets `q`:
+
+```epher
+1 + 2i + 3j + 4k * quaternion(2, 0, 0, 1)
+(1 + 2i + 3j + 4k) * quaternion(2, 0, 0, 1)
+```
+
+```text
+-3 + 2i + 3j + 8k
+-2 + 7i + 4j + 9k
+```
+
+Parenthesize the whole literal when you mean the whole product. This is
+the same rule Python uses for its complex literals.
+
+The rest of the toolkit is the conjugate, the magnitude, the unit
+quaternion, the inverse, and division (which multiplies by the inverse):
+
+```epher
+conj(1 + 2i + 3j + 4k)
+abs(1 + 2i + 3j + 4k)
+qunit(quaternion(1, 2, 3, 4))
+quaternion(1, 2, 3, 4) * qinv(quaternion(1, 2, 3, 4))
+(1 + 2i + 3j + 4k) / quaternion(1, 2, 3, 4)
+```
+
+```text
+1 - 2i - 3j - 4k
+5.47722557505
+0.182574185835 + 0.36514837167i + 0.547722557505j + 0.73029674334k
+1 - 0.0000000000000000277555756156k
+1 - 0.0000000000000000277555756156k
+```
+
+`q * qinv(q)` is 1 up to float rounding, because the inverse divides by
+the squared magnitude. Equality compares part by part; there is no
+ordering on quaternions, and `q == 3` is a type error, not false.
+
+```epher
+qz = qaxis({0, 0, 1}, 90 deg)
+qz == qaxis({0, 0, 1}, 90 deg)
+qz == qaxis({0, 0, 1}, 91 deg)
+```
+
+```text
+0.707106781187 + 0.707106781187k
+true
+false
+```
+
+**Quaternions carry turns.** A unit quaternion encodes a rotation by an
+angle about an axis. `qaxis(axis, angle)` builds the turn: the axis is a
+3-element list, the angle is in radians, and `90 deg` converts degrees.
+`qrot(q, v)` turns the 3-element vector `v` by `q`; `q * {1, 0, 0}` is
+refused, because rotation happens by name:
+
+```epher
+qz = qaxis({0, 0, 1}, 90 deg)
+qrot(qz, {1, 0, 0})
+deg(qangle(qz))
+qaxis(qz)
+```
+
+```text
+0.707106781187 + 0.707106781187k
+{0.000000000000000222044604925, 1, 0}
+90
+{0, 0, 1}
+```
+
+The tiny first coordinate is float rounding, not a wrong answer:
+`cos(45 deg)` is not an exact binary fraction.
+
+Multiplying quaternions composes turns, rightmost first: in
+`qrot(p * q, v)`, `q` turns `v`, then `p` turns the result:
+
+```epher
+qz = qaxis({0, 0, 1}, 90 deg)
+qx = qaxis({1, 0, 0}, 90 deg)
+qrot(qz * qx, {1, 0, 0})
+qrot(qz * qx, {0, 0, 1})
+```
+
+```text
+0.707106781187 + 0.707106781187k
+0.707106781187 + 0.707106781187i
+{0.000000000000000222044604925, 1, 0}
+{1, -0.000000000000000222044604925, 0.000000000000000222044604925}
+```
+
+`{1, 0, 0}` is untouched by the turn about `x` and lands on `y`;
+`{0, 0, 1}` is turned to `-y` by the `x` turn and then to `x` by the
+`z` turn.
+
+Every rotation has two names: `q` and `-q` are the same turn. `qangle`
+answers an angle in `0..2pi`, so the two names read as `t` and
+`2pi - t`:
+
+```epher
+qz = qaxis({0, 0, 1}, 90 deg)
+deg(qangle(qz))
+deg(qangle(-qz))
+```
+
+```text
+0.707106781187 + 0.707106781187k
+90
+270
+```
+
+`q2m` and `m2q` bridge to the 3x3 rotation matrix. The bridge follows
+SPICE's convention, and `m2q` always answers the representative whose
+scalar part is not negative:
+
+```epher
+q3 = qaxis({1, 1, 1}, 120 deg)
+q2m(q3)
+m2q(q2m(q3))
+```
+
+```text
+0.5 + 0.5i + 0.5j + 0.5k
+[[0, -0.000000000000000111022302463, 1], [1, 0, -0.000000000000000111022302463], [-0.000000000000000111022302463, 1, 0]]
+0.5 + 0.5i + 0.5j + 0.5k
+```
+
+A 120-degree turn about the diagonal carries `x` to `y` to `z`, which is
+why the matrix is a permutation of the identity (up to rounding).
+
+**Exponentials, logarithms and powers.** For a unit quaternion, `exp`
+and `ln` are the rotation map: `exp(u * a)` is the quaternion
+`cos(a) + u * sin(a)`, and `ln` goes the other way, answering the axis
+`u` times the encoded angle. `exp(quaternion(0, 0, 0, pi / 2))` is a
+quarter-turn encoding, `k`, and `ln` of a 90-degree turn answers the
+axis times 45 degrees:
+
+```epher
+exp(quaternion(0, 0, 0, pi / 2))
+ln(qaxis({0, 0, 1}, 90 deg))
+exp(ln(qaxis({0, 0, 1}, 90 deg)))
+```
+
+```text
+0.0000000000000000612323399574 + k
+0.785398163397k
+0.707106781187 + 0.707106781187k
+```
+
+`sqrt` halves the turn, `^` with a whole number repeats it, and `exp(ln(q))`
+round-trips exactly:
+
+```epher
+sqrt(qaxis({0, 0, 1}, 90 deg))
+q30 = qaxis({0, 0, 1}, 30 deg)
+q30 ^ 3
+```
+
+```text
+0.923879532511 + 0.382683432365k
+0.965925826289 + 0.258819045103k
+0.707106781187 + 0.707106781187k
+```
+
+The square root of the 90-degree turn is the 45-degree turn, and cubing
+the 30-degree turn gives the 90-degree turn.
+
+`log` stays base-10, even on quaternions: it is `ln(q)` divided by
+`ln(10)`, part by part. Use `ln` for the rotation map and `log` when you
+want the decimal logarithm:
+
+```epher
+log(qaxis({0, 0, 1}, 90 deg))
+```
+
+```text
+0.34109408846k
+```
+
+The trigonometric family (`sin`, `cos`, and friends) refuses quaternions.
+
+**Interpolation: qslerp.** `qslerp(q1, q2, t)` walks the shortest path
+between two turns on the sphere of unit quaternions: `t = 0` answers
+`q1`, `t = 1` answers `q2`, and values outside `[0, 1]` keep walking
+along the same great circle:
+
+```epher
+qslerp(quaternion(1, 0, 0, 0), qaxis({0, 0, 1}, 90 deg), 0.5)
+qslerp(qaxis({0, 0, 1}, 30 deg), qaxis({0, 0, 1}, 90 deg), 0.5)
+qslerp(qaxis({0, 0, 1}, 30 deg), qaxis({0, 0, 1}, 90 deg), 1.2)
+```
+
+```text
+0.923879532511 + 0.382683432365k
+0.866025403784 + 0.5k
+0.62932039105 + 0.777145961457k
+```
+
+The first is the half-way turn, 45 degrees about `z`; the second is the
+60-degree turn between 30 and 90; the third walks 20 percent past the
+90-degree endpoint, to 108 degrees.
+
+The names `i`, `j` and `k` are reserved and can never be reassigned
+(section 1.5). A function parameter named `k` is still yours: the
+reservation protects the units, not your vocabulary.
+
+Quaternions earn their keep in the astronomy section: `qeq2hor`
+(section 1.29) builds the equatorial-to-horizon turn, so a single
+rotation carries a star from right ascension and declination to
+altitude and azimuth.
+
+### 1.31 Finance
 
 epher speaks money as well as it speaks astronomy: a time-value-of-money
 solver, loan amortization, interest, and cash-flow analysis, all working
@@ -2990,6 +3231,12 @@ epher> x = 5
 epher> x ^ 2
 = 25
 ```
+
+The prompt edits like a shell: the left and right arrows move inside the
+line, up and down walk through earlier lines (the sessions share one
+history, so lines from yesterday are one up-press away), Ctrl-C
+abandons the current line for a fresh prompt, and Ctrl-D ends the
+session.
 
 The `table` command (section 2.4.2) prints a table of values here too:
 
