@@ -151,17 +151,63 @@ jobs:
         env:
           PAT: ${{ secrets.VS_MARKETPLACE_PAT }}
         run: |
+          # Runner images move under this job: windows-latest moved from
+          # VS 17 to VS 18 mid-train, and the new image's VsixPublisher
+          # failed to load its own MSAL (VsixPub0031, Microsoft.Identity
+          # .Client binding mismatch). So: try every installed VS
+          # instance's VsixPublisher; beside the exe, lay the exact
+          # MSAL the binary asks for (fetched from nuget.org); on a
+          # binding failure purge stale GAC copies of MSAL (they shadow
+          # the app-dir copy for strong-named assemblies) and retry
+          # once. The first instance that logs in does the publish.
           $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
-          $vsroot = & $vswhere -latest -products * -property installationPath
-          if (-not $vsroot) { Write-Error "no Visual Studio installation found by vswhere"; exit 1 }
-          $publisher = Join-Path $vsroot "VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe"
-          if (-not (Test-Path $publisher)) {
-            $publisher = (Get-ChildItem $vsroot -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+          $instances = & $vswhere -products * -format json | ConvertFrom-Json |
+            Sort-Object { [version]$_.installationVersion }
+          if (-not $instances) { Write-Error "no Visual Studio installation found by vswhere"; exit 1 }
+
+          function Ensure-Msal([string]$binDir) {
+            $msal = Join-Path $binDir "Microsoft.Identity.Client.dll"
+            if (Test-Path $msal) { return }
+            $zip = Join-Path $env:RUNNER_TEMP "msal.zip"
+            foreach ($v in @("4.85.2.0", "4.85.2")) {
+              try {
+                Invoke-WebRequest "https://www.nuget.org/api/v2/package/Microsoft.Identity.Client/$v" -OutFile $zip
+                Expand-Archive $zip (Join-Path $env:RUNNER_TEMP "msal") -Force
+                $dll = Get-ChildItem (Join-Path $env:RUNNER_TEMP "msal") -Recurse -Filter Microsoft.Identity.Client.dll |
+                  Where-Object { $_.FullName -match "net4[578]" } | Select-Object -First 1
+                if ($dll) { Copy-Item $dll.FullName $binDir; Write-Host "placed MSAL $v beside the publisher"; return }
+              } catch { Write-Host "msal $v fetch failed: $_" }
+            }
+            Write-Host "no MSAL placed; proceeding with the installation's own"
           }
-          if (-not $publisher) { Write-Error "VsixPublisher.exe not found under $vsroot"; exit 1 }
-          Write-Host "using $publisher"
-          & $publisher login -personalAccessToken $env:PAT -publisherName upyesp
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & $publisher publish -payload $env:VSIX -publishManifest vs-publish.json -personalAccessToken $env:PAT
+
+          function Clear-GacMsal {
+            Get-ChildItem "C:\Windows\Microsoft.NET\assembly" -Recurse -Directory -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -eq "microsoft.identity.client" } |
+              ForEach-Object { Write-Host "purging GAC copy $($_.FullName)"; Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue }
+          }
+
+          $chosen = $null
+          foreach ($instance in $instances) {
+            $vsroot = $instance.installationPath
+            $publisher = Join-Path $vsroot "VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe"
+            if (-not (Test-Path $publisher)) {
+              $publisher = (Get-ChildItem $vsroot -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+            }
+            if (-not $publisher) { continue }
+            Write-Host "trying $publisher (VS $($instance.installationVersion))"
+            Ensure-Msal (Split-Path $publisher)
+            & $publisher login -personalAccessToken $env:PAT -publisherName upyesp
+            if ($LASTEXITCODE -eq 0) { $chosen = $publisher; break }
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "login failed (exit $LASTEXITCODE); purging GAC MSAL copies and retrying once"
+              Clear-GacMsal
+              & $publisher login -personalAccessToken $env:PAT -publisherName upyesp
+              if ($LASTEXITCODE -eq 0) { $chosen = $publisher; break }
+            }
+          }
+          if (-not $chosen) { Write-Error "no Visual Studio instance could log in to the marketplace"; exit 1 }
+          Write-Host "using $chosen"
+          & $chosen publish -payload $env:VSIX -publishManifest vs-publish.json -personalAccessToken $env:PAT
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Write-Host "::notice::published upyesp.Epher.VisualStudio $VERSION to marketplace.visualstudio.com"
