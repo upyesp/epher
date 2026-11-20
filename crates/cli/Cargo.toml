@@ -17,6 +17,7 @@ clap = { version = "4", features = ["derive"] }
 sys-locale = "0.3"
 anstream = "1"
 anstyle = "1.0"
+rustyline = "16"
 
 [dev-dependencies]
 clap_mangen = "0.3.3"
