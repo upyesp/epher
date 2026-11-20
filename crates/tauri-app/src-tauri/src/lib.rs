@@ -442,6 +442,33 @@ fn run_desktop(pending_script: Option<PathBuf>) {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.set_title(&format!("epher {}", env!("CARGO_PKG_VERSION")));
             }
+            // The webview's profile must never outlive the binary that
+            // shipped it (ADR-0087): a service worker installed by an
+            // older build keeps serving the old shell on Windows, where
+            // its own network fetches bypass the asset handler and fall
+            // back to its cache, so an updated app could show the new
+            // title over the old functionality. Once per version
+            // change, clear the webview's browsing data (the only thing
+            // a previous build can leave behind) and reload into the
+            // fresh shell. The native store owns the user's data
+            // (ADR-0010), so at most webview-local conveniences reset:
+            // the graph pane's localStorage toggles (ADR-0020).
+            if let Some(window) = app.get_webview_window("main") {
+                let dir = app.path().app_local_data_dir()?;
+                let marker = dir.join("shell-version");
+                let version = env!("CARGO_PKG_VERSION");
+                let stale = match std::fs::read_to_string(&marker) {
+                    Ok(v) => v != version,
+                    // First run: a fresh profile, nothing to clear yet.
+                    Err(_) => false,
+                };
+                if stale {
+                    let _ = window.clear_all_browsing_data();
+                    let _ = window.eval("location.reload()");
+                }
+                let _ = std::fs::create_dir_all(&dir);
+                let _ = std::fs::write(&marker, version);
+            }
             // Windows: the window is created hidden and shown when the
             // page has loaded (ADR-0032). Tao ignores the window
             // background color on Windows and the WebView2 default is
