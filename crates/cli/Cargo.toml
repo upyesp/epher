@@ -1,6 +1,6 @@
 [package]
 name = "epher-cli"
-version = "0.9.13"
+version = "0.9.14"
 edition = "2021"
 license = "MIT"
 description = "Native command-line frontend, one-shot evaluation + REPL."
@@ -17,6 +17,7 @@ clap = { version = "4", features = ["derive"] }
 sys-locale = "0.3"
 anstream = "1"
 anstyle = "1.0"
+rustyline = "16"
 
 [dev-dependencies]
 clap_mangen = "0.3.3"

@@ -252,7 +252,7 @@ x = x + 1
 > Los nombres pueden contener letras y guiones bajos, como `radius` o
 > `my_total`. No pueden contener espacios ni empezar por un número.
 
-Tres nombres están reservados: `i`, `j` y `k`, la unidad imaginaria y las dos unidades cuaterniónicas (secciones 1.18 y 1.29).
+Tres nombres están reservados: `i`, `j` y `k`, la unidad imaginaria y las dos unidades cuaterniónicas (secciones 1.18 y 1.30).
 
 La variable especial `ans` contiene siempre la respuesta anterior,
 como la tecla `Ans` de una calculadora de bolsillo, útil para encadenar
@@ -833,7 +833,6 @@ bin(10)
 
 ```text
 0xff
-```
 0b1010
 ```
 
@@ -1116,7 +1115,7 @@ sqrt(-1)
 i
 ```
 
-A diferencia de cualquier otro nombre integrado, `i` no puede reutilizarse: `i = 5` se rechaza, así que la unidad imaginaria nunca puede quedar oculta - ni por una asignación, ni por una sesión antigua guardada. `j` y `k`, las otras dos unidades cuaterniónicas (sección 1.29), siguen la misma regla.
+A diferencia de cualquier otro nombre integrado, `i` no puede reutilizarse: `i = 5` se rechaza, así que la unidad imaginaria nunca puede quedar oculta - ni por una asignación, ni por una sesión antigua guardada. `j` y `k`, las otras dos unidades cuaterniónicas (sección 1.30), siguen la misma regla.
 
 Escribe un número complejo con el sufijo `i`, sin signo de multiplicación: `3 + 4i` es un literal, `2.5i` funciona, y también los literales con base (`0xFFi`). La aritmética habitual se extiende: sumar, restar, multiplicar, dividir y potencias funcionan, e `i` sigue la precedencia normal (`i ^ 2` se agrupa como cualquier potencia).
 
@@ -2016,67 +2015,7 @@ La efeméride la calcula el crate solar-ephemeris
 (github.com/Protonmatter/sol), validado contra JPL Horizons; gracias a su
 autor. La precisión es de clase arcsecond para el Sol, la Luna y los
 planetas a lo largo de unos 5000 años alrededor del presente.
-**Rotaciones: cuaterniones.** Un cuaternión tiene cuatro partes, escrito
-`w + xi + yj + zk`, la escalar primero. `j` y `k` son las otras dos
-unidades como `i`, así que la suma de cuatro términos es un literal:
-
-```epher
-1 + 2i + 3j + 4k
-```
-
-```text
-1 + 2i + 3j + 4k
-```
-
-`quaternion(1, 2, 3, 4)` escribe el mismo valor. La multiplicación es la
-de Hamilton: las unidades anticonmutan y cada una al cuadrado da -1:
-
-```epher
-i * j
-j * i
-k * k
-```
-
-```text
-k
--k
--1
-```
-
-Un cuaternión unitario lleva un giro. `qaxis(axis, angle)` lo construye
-(los ángulos van en radianes, `90 deg` convierte), `qrot` gira un vector
-de tres elementos, y `qangle`/`qaxis` leen el giro:
-
-```epher
-q = qaxis({0, 0, 1}, 90 deg)
-qrot(q, {1, 0, 0})
-deg(qangle(q))
-qaxis(q)
-```
-
-```text
-0.707106781187 + 0.707106781187k
-{0.000000000000000222044604925, 1, 0}
-90
-{0, 0, 1}
-```
-
-El 2e-16 es redondeo de coma flotante, no una respuesta errónea:
-`cos(45 deg)` no es una fracción binaria exacta. `q2m` y `m2q` tienden un
-puente a la matriz de giro 3x3 (`m2q` siempre devuelve una parte escalar
-de al menos cero), y `qslerp` interpola por el camino más corto:
-
-```epher
-q = qaxis({0, 0, 1}, 90 deg)
-m2q(q2m(q))
-qslerp(quaternion(1, 0, 0, 0), q, 0.5)
-```
-
-```text
-0.707106781187 + 0.707106781187k
-0.707106781187 + 0.707106781187k
-0.923879532511 + 0.382683432365k
-```
+**Rotaciones: cuaterniones.** Un cuaternión es un número de cuatro partes que porta un giro. epher da a los cuaterniones su tratamiento completo en la sección 1.30: el álgebra, el mapa de rotación, las matrices de rotación, slerp y los nombres reservados `j` y `k`. La parte astronómica de la historia es el horizonte: `qeq2hor` más abajo gira un vector unitario ecuatorial al sistema del observador, así que una sola rotación lleva una estrella de ascensión recta y declinación a altura y acimut.
 
 **El horizonte como rotación.** `qeq2hor(jd, lat, lon)` da el cuaternión
 que gira un vector unitario ecuatorial al sistema horizontal del
@@ -2107,7 +2046,306 @@ coincide hasta el redondeo. Las constantes y funciones están en la
 [referencia](../../reference/#9-built-in-constants).
 
 
-### 1.30 Finanzas
+### 1.30 Cuaterniones
+
+Un cuaternión es un número de cuatro partes, escrito `w + xi + yj + zk` con
+la parte escalar primero. Extiende los números complejos (sección 1.18):
+donde un valor complejo tiene una sola unidad, `i`, un cuaternión tiene
+tres, `i`, `j` y `k`, así que la suma de cuatro términos es un solo literal:
+
+```epher
+1 + 2i + 3j + 4k
+```
+
+```text
+1 + 2i + 3j + 4k
+```
+
+`quaternion(w, x, y, z)` escribe el mismo valor, con las partes en orden:
+
+```epher
+quaternion(1, 2, 3, 4)
+```
+
+```text
+1 + 2i + 3j + 4k
+```
+
+Las partes salen de nuevo con `re`, `im`, `qw`, `qx`, `qy` y `qz`:
+
+```epher
+re(1 + 2i + 3j + 4k)
+im(1 + 2i + 3j + 4k)
+qx(1 + 2i + 3j + 4k)
+```
+
+```text
+1
+{2, 3, 4}
+2
+```
+
+La pantalla se queda corta donde puede: un cuaternión sin parte vectorial
+se muestra como un número simple, y uno sin parte escalar se muestra sin
+ella.
+
+```epher
+qw(1 + 2i + 3j + 4k)
+ln(qaxis({0, 0, 1}, 90 deg))
+```
+
+```text
+1
+0.785398163397k
+```
+
+(El logaritmo se explica más abajo.)
+
+**El álgebra.** La multiplicación es la de Hamilton: cada unidad elevada al
+cuadrado da -1, y unidades distintas anticonmutan, `i * j = k` mientras
+`j * i = -k`:
+
+```epher
+i * j
+j * i
+k * k
+```
+
+```text
+k
+-k
+-1
+```
+
+Los números reales y los valores complejos participan directamente; la
+respuesta es un cuaternión. Las cantidades, las listas, las matrices y los
+tipos numéricos exactos no se convierten en cuaterniones.
+
+```epher
+2 * (1 + 2i + 3j + 4k)
+(1 + 2i) * quaternion(0, 0, 0, 1)
+```
+
+```text
+2 + 4i + 6j + 8k
+-2j + k
+```
+
+Una costumbre que aprender: las unidades se atan a su número como en el
+álgebra, así que en `4k * q` la multiplicación ocurre antes de que termine
+la cadena de `+`. Solo la parte `4k` encuentra a `q`:
+
+```epher
+1 + 2i + 3j + 4k * quaternion(2, 0, 0, 1)
+(1 + 2i + 3j + 4k) * quaternion(2, 0, 0, 1)
+```
+
+```text
+-3 + 2i + 3j + 8k
+-2 + 7i + 4j + 9k
+```
+
+Pon paréntesis al literal completo cuando quieres el producto completo. Es
+la misma regla que usa Python para sus literales complejos.
+
+El resto del repertorio es el conjugado, el módulo, el cuaternión unitario,
+el inverso y la división (que multiplica por el inverso):
+
+```epher
+conj(1 + 2i + 3j + 4k)
+abs(1 + 2i + 3j + 4k)
+qunit(quaternion(1, 2, 3, 4))
+quaternion(1, 2, 3, 4) * qinv(quaternion(1, 2, 3, 4))
+(1 + 2i + 3j + 4k) / quaternion(1, 2, 3, 4)
+```
+
+```text
+1 - 2i - 3j - 4k
+5.47722557505
+0.182574185835 + 0.36514837167i + 0.547722557505j + 0.73029674334k
+1 - 0.0000000000000000277555756156k
+1 - 0.0000000000000000277555756156k
+```
+
+`q * qinv(q)` da 1 salvo el redondeo de coma flotante, porque el inverso
+divide por el módulo al cuadrado. La igualdad compara parte por parte; no
+hay orden entre cuaterniones, y `q == 3` es un error de tipos, no falso.
+
+```epher
+qz = qaxis({0, 0, 1}, 90 deg)
+qz == qaxis({0, 0, 1}, 90 deg)
+qz == qaxis({0, 0, 1}, 91 deg)
+```
+
+```text
+0.707106781187 + 0.707106781187k
+true
+false
+```
+
+**Los cuaterniones portan giros.** Un cuaternión unitario codifica una
+rotación de un ángulo alrededor de un eje. `qaxis(axis, angle)` construye
+el giro: el eje es una lista de 3 elementos, el ángulo va en radianes y
+`90 deg` convierte grados. `qrot(q, v)` gira el vector de 3 elementos `v`
+mediante `q`; `q * {1, 0, 0}` se rechaza, porque la rotación va por
+nombre:
+
+```epher
+qz = qaxis({0, 0, 1}, 90 deg)
+qrot(qz, {1, 0, 0})
+deg(qangle(qz))
+qaxis(qz)
+```
+
+```text
+0.707106781187 + 0.707106781187k
+{0.000000000000000222044604925, 1, 0}
+90
+{0, 0, 1}
+```
+
+La primera coordenada minúscula es redondeo de coma flotante, no una
+respuesta equivocada: `cos(45 deg)` no es una fracción binaria exacta.
+
+Multiplicar cuaterniones compone giros, el de la derecha primero: en
+`qrot(p * q, v)`, `q` gira `v`, y después `p` gira el resultado:
+
+```epher
+qz = qaxis({0, 0, 1}, 90 deg)
+qx = qaxis({1, 0, 0}, 90 deg)
+qrot(qz * qx, {1, 0, 0})
+qrot(qz * qx, {0, 0, 1})
+```
+
+```text
+0.707106781187 + 0.707106781187k
+0.707106781187 + 0.707106781187i
+{0.000000000000000222044604925, 1, 0}
+{1, -0.000000000000000222044604925, 0.000000000000000222044604925}
+```
+
+A `{1, 0, 0}` el giro alrededor de `x` no lo mueve y aterriza en `y`;
+`{0, 0, 1}` el giro en `x` lo lleva a `-y` y luego el giro en `z` lo lleva
+a `x`.
+
+Toda rotación tiene dos nombres: `q` y `-q` son la misma rotación.
+`qangle` responde un ángulo en `0..2pi`, así que los dos nombres se leen
+como `t` y `2pi - t`:
+
+```epher
+qz = qaxis({0, 0, 1}, 90 deg)
+deg(qangle(qz))
+deg(qangle(-qz))
+```
+
+```text
+0.707106781187 + 0.707106781187k
+90
+270
+```
+
+`q2m` y `m2q` hacen el puente a la matriz de rotación de 3x3. El puente
+sigue la convención de SPICE, y `m2q` responde siempre el representante
+cuya parte escalar no es negativa:
+
+```epher
+q3 = qaxis({1, 1, 1}, 120 deg)
+q2m(q3)
+m2q(q2m(q3))
+```
+
+```text
+0.5 + 0.5i + 0.5j + 0.5k
+[[0, -0.000000000000000111022302463, 1], [1, 0, -0.000000000000000111022302463], [-0.000000000000000111022302463, 1, 0]]
+0.5 + 0.5i + 0.5j + 0.5k
+```
+
+Una rotación de 120 grados alrededor de la diagonal lleva `x` a `y` a `z`,
+por eso la matriz es una permutación de la identidad (salvo redondeo).
+
+**Exponencial, logaritmo y potencias.** Para un cuaternión unitario, `exp`
+y `ln` son el mapa de rotación: `exp(u * a)` es el cuaternión
+`cos(a) + u * sin(a)`, y `ln` va en el otro sentido y responde el eje `u`
+por el ángulo codificado. `exp(quaternion(0, 0, 0, pi / 2))` es la
+codificación de un cuarto de giro, `k`, y `ln` de un giro de 90 grados
+responde el eje por 45 grados:
+
+```epher
+exp(quaternion(0, 0, 0, pi / 2))
+ln(qaxis({0, 0, 1}, 90 deg))
+exp(ln(qaxis({0, 0, 1}, 90 deg)))
+```
+
+```text
+0.0000000000000000612323399574 + k
+0.785398163397k
+0.707106781187 + 0.707106781187k
+```
+
+`sqrt` divide el giro a la mitad, `^` con un número entero lo repite, y
+`exp(ln(q))` regresa exactamente:
+
+```epher
+sqrt(qaxis({0, 0, 1}, 90 deg))
+q30 = qaxis({0, 0, 1}, 30 deg)
+q30 ^ 3
+```
+
+```text
+0.923879532511 + 0.382683432365k
+0.965925826289 + 0.258819045103k
+0.707106781187 + 0.707106781187k
+```
+
+La raíz del giro de 90 grados es el giro de 45 grados, y el cubo del giro
+de 30 grados da el giro de 90 grados.
+
+`log` sigue en base 10, también con cuaterniones: es `ln(q)` dividido
+entre `ln(10)`, parte por parte. Usa `ln` para el mapa de rotación y `log`
+cuando quieras el logaritmo decimal:
+
+```epher
+log(qaxis({0, 0, 1}, 90 deg))
+```
+
+```text
+0.34109408846k
+```
+
+La familia trigonométrica (`sin`, `cos` y compañía) rechaza los
+cuaterniones.
+
+**Interpolación: qslerp.** `qslerp(q1, q2, t)` recorre el camino más corto
+entre dos giros sobre la esfera de los cuaterniones unitarios: `t = 0`
+responde `q1`, `t = 1` responde `q2`, y los valores fuera de `[0, 1]`
+siguen caminando por el mismo círculo máximo:
+
+```epher
+qslerp(quaternion(1, 0, 0, 0), qaxis({0, 0, 1}, 90 deg), 0.5)
+qslerp(qaxis({0, 0, 1}, 30 deg), qaxis({0, 0, 1}, 90 deg), 0.5)
+qslerp(qaxis({0, 0, 1}, 30 deg), qaxis({0, 0, 1}, 90 deg), 1.2)
+```
+
+```text
+0.923879532511 + 0.382683432365k
+0.866025403784 + 0.5k
+0.62932039105 + 0.777145961457k
+```
+
+El primero es el giro intermedio, 45 grados alrededor de `z`; el segundo es
+el giro de 60 grados entre 30 y 90; el tercero sigue caminando un 20 por
+ciento más allá del extremo de 90 grados, hasta 108 grados.
+
+Los nombres `i`, `j` y `k` están reservados y nunca pueden reasignarse
+(sección 1.5). Un parámetro de función llamado `k` sigue siendo tuyo: la
+reserva protege a las unidades, no a tu vocabulario.
+
+Los cuaterniones ganan su sitio en la sección de astronomía: `qeq2hor`
+(sección 1.29) construye la rotación de ecuatorial a horizontal, así que
+una sola rotación lleva una estrella de ascensión recta y declinación a
+altura y acimut.
+
+### 1.31 Finanzas
 
 epher habla de dinero tan bien como de astronomía: un solucionador de
 valor del dinero en el tiempo, amortización de préstamos, interés y
@@ -2932,6 +3170,12 @@ epher> x = 5
 epher> x ^ 2
 = 25
 ```
+
+El prompt se edita como una shell: las flechas izquierda y derecha se
+mueven dentro de la línea, arriba y abajo recorren las líneas
+anteriores (las sesiones comparten un historial: las líneas de ayer
+están a un pulso de flecha arriba), Ctrl-C abandona la línea actual
+para un prompt nuevo, y Ctrl-D termina la sesión.
 
 El comando `table` (sección 2.4.2) también imprime aquí una tabla de
 valores:

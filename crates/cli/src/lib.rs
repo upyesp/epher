@@ -22,7 +22,9 @@ pub mod dispatch;
 pub mod help;
 pub mod term;
 
-use std::io::{self, BufRead, Write};
+use std::io::{self, BufRead, IsTerminal, Write};
+
+use rustyline::error::ReadlineError;
 
 use epher_core::{EpherError, Session};
 use epher_i18n::Localizer;
@@ -207,76 +209,146 @@ pub fn run_repl() -> Result<(), EpherError> {
     // The run's plot state (ADR-0020): `graph` lines accumulate here and
     // `graph save <file>` writes the SVG the desktop and PWA produce.
     let mut plots = epher_shell::plots::Plots::new();
+    if io::stdin().is_terminal() {
+        run_repl_interactive(&store, &mut session, &mut localizer, &mut plots)
+    } else {
+        run_repl_piped(&store, &mut session, &mut localizer, &mut plots)
+    }
+}
+
+/// One REPL line, shared by both readers: trims, treats `quit`/`exit`
+/// as the end of the session, dispatches `load`, `graph`, tables, and
+/// plain statements. Returns `true` when the session ends. The
+/// best-effort per-line persistence (history + session snapshot) lives
+/// here, so both readers save identically.
+fn repl_line(
+    line: &str,
+    store: &DocStore<FsStore>,
+    session: &mut Session,
+    localizer: &mut Localizer,
+    plots: &mut epher_shell::plots::Plots,
+) -> Result<bool, EpherError> {
+    let line = line.trim();
+    if line.is_empty() {
+        return Ok(false);
+    }
+    if line == "quit" || line == "exit" {
+        return Ok(true);
+    }
+    // `load <file-or-name>` (ADR-0040): run a script file, or a
+    // script saved with `save script name`, as a whole program,
+    // statements split where the tokenizer sees separators, so a
+    // block comment may span lines, exactly like running the file
+    // from a terminal. The `load` line itself joins the history;
+    // the loaded statements print as they run.
+    if let Some(arg) = line.strip_prefix("load ") {
+        let arg = arg.trim();
+        if arg.is_empty() {
+            term::error("usage: load <file-or-name>");
+            return Ok(false);
+        }
+        match load_script_text(store, arg) {
+            Ok(text) => {
+                session.record(line);
+                let failed = eval_whole_text(&text, session, store, localizer, plots)?;
+                if failed {
+                    term::error(&localizer.lookup("load-failed"));
+                }
+            }
+            Err(message) => term::error(&message),
+        }
+        return Ok(false);
+    }
+    let out = match graph_line(line, plots, session.env(), localizer) {
+        Some(out) => {
+            // the command joins the history like every other line
+            session.record(line);
+            out
+        }
+        None => {
+            // A table is a computation: the line joins the history
+            // like every other line (the graph precedent). The other
+            // shell commands persist their effect and leave no
+            // entry, and a `load`ed script's lines record nothing,
+            // the `load` line itself recorded (ADR-0040), so the
+            // recording stays here in the REPL loop, out of `step`.
+            if matches!(classify(line), Some(epher_shell::Command::Table { .. })) {
+                session.record(line);
+            }
+            step(session, store, localizer, line)
+        }
+    };
+    print_step(&out);
+    if let Some(code) = out.language {
+        *localizer = Localizer::resolve(Some(&code), &[]);
+    }
+    // best-effort persistence of history and the session snapshot
+    // (atomic, last-write-wins)
+    let _ = save_history(store, session.history());
+    let _ = save_session(store, session.bindings());
+    Ok(false)
+}
+
+/// The terminal reader (ADR-0086): rustyline owns line editing and the
+/// in-session history. Arrow keys move in the line, up and down walk
+/// the history; the shared store seeds it at startup and receives every
+/// line, so recall reaches previous sessions without a history file
+/// (ADR-0027 amendment). Ctrl-C abandons the current line for a fresh
+/// prompt; Ctrl-D (EOF) ends the session.
+fn run_repl_interactive(
+    store: &DocStore<FsStore>,
+    session: &mut Session,
+    localizer: &mut Localizer,
+    plots: &mut epher_shell::plots::Plots,
+) -> Result<(), EpherError> {
+    let mut rl =
+        rustyline::DefaultEditor::new().map_err(|e| EpherError::Io(e.to_string()))?;
+    // Previous sessions are one up-press away: seed the editor from the
+    // persisted history (in-memory only; the store is the archive).
+    for entry in session.history() {
+        let _ = rl.add_history_entry(entry);
+    }
+    loop {
+        let prompt = format!("{} ", localizer.lookup("prompt"));
+        match rl.readline(&prompt) {
+            Ok(line) => {
+                let _ = rl.add_history_entry(line.trim());
+                if repl_line(&line, store, session, localizer, plots)? {
+                    break;
+                }
+            }
+            Err(ReadlineError::Interrupted) => continue, // Ctrl-C: fresh prompt
+            Err(ReadlineError::Eof) => break,            // Ctrl-D: quit
+            Err(e) => return Err(EpherError::Io(e.to_string())),
+        }
+    }
+    Ok(())
+}
+
+/// The piped reader, the old loop exactly: `printf '...' | epher repl`,
+/// the CLI tests, and every scripted invocation read plain lines with no
+/// raw-mode editing, so behavior off a terminal is byte-identical.
+/// Ctrl-C on a pipe still terminates the process (SIGINT), as before.
+fn run_repl_piped(
+    store: &DocStore<FsStore>,
+    session: &mut Session,
+    localizer: &mut Localizer,
+    plots: &mut epher_shell::plots::Plots,
+) -> Result<(), EpherError> {
     let stdin = io::stdin();
     let mut lines = stdin.lock().lines();
     loop {
+        // The prompt stays part of piped output: the CLI tests and every
+        // scripted REPL transcript assert on it byte-for-byte.
         print!("{} ", localizer.lookup("prompt"));
         io::stdout()
             .flush()
             .map_err(|e| EpherError::Io(e.to_string()))?;
         let Some(line) = lines.next() else { break }; // EOF
-        let line = line
-            .map_err(|e| EpherError::Io(e.to_string()))?
-            .trim()
-            .to_string();
-        if line.is_empty() {
-            continue;
-        }
-        if line == "quit" || line == "exit" {
+        let line = line.map_err(|e| EpherError::Io(e.to_string()))?;
+        if repl_line(&line, store, session, localizer, plots)? {
             break;
         }
-        // `load <file-or-name>` (ADR-0040): run a script file, or a
-        // script saved with `save script name`, as a whole program,
-        // statements split where the tokenizer sees separators, so a
-        // block comment may span lines, exactly like running the file
-        // from a terminal. The `load` line itself joins the history;
-        // the loaded statements print as they run.
-        if let Some(arg) = line.strip_prefix("load ") {
-            let arg = arg.trim();
-            if arg.is_empty() {
-                term::error("usage: load <file-or-name>");
-                continue;
-            }
-            match load_script_text(&store, arg) {
-                Ok(text) => {
-                    session.record(&line);
-                    let failed =
-                        eval_whole_text(&text, &mut session, &store, &localizer, &mut plots)?;
-                    if failed {
-                        term::error(&localizer.lookup("load-failed"));
-                    }
-                }
-                Err(message) => term::error(&message),
-            }
-            continue;
-        }
-        let out = match graph_line(&line, &mut plots, session.env(), &localizer) {
-            Some(out) => {
-                // the command joins the history like every other line
-                session.record(&line);
-                out
-            }
-            None => {
-                // A table is a computation: the line joins the history
-                // like every other line (the graph precedent). The other
-                // shell commands persist their effect and leave no
-                // entry, and a `load`ed script's lines record nothing,
-                // the `load` line itself recorded (ADR-0040), so the
-                // recording stays here in the REPL loop, out of `step`.
-                if matches!(classify(&line), Some(epher_shell::Command::Table { .. })) {
-                    session.record(&line);
-                }
-                step(&mut session, &store, &localizer, &line)
-            }
-        };
-        print_step(&out);
-        if let Some(code) = out.language {
-            localizer = Localizer::resolve(Some(&code), &[]);
-        }
-        // best-effort persistence of history and the session snapshot
-        // (atomic, last-write-wins)
-        let _ = save_history(&store, session.history());
-        let _ = save_session(&store, session.bindings());
     }
     Ok(())
 }
@@ -304,7 +376,6 @@ pub const STDIN_IS_TERMINAL_MSG: &str =
 /// write to) the shared store; interactive history is not written,
 /// scripts are not interactive pasts.
 pub fn run_stdin_and_exit() -> ! {
-    use std::io::IsTerminal;
     if io::stdin().is_terminal() {
         term::error(STDIN_IS_TERMINAL_MSG);
         eprintln!("Pipe a script in, or run `epher repl` for an interactive session.");

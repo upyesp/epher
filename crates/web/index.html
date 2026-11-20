@@ -1953,7 +1953,10 @@
         setTimeout(function () { clearInterval(iv); }, 30000);
       }, 6000);
     })();
-    if ("serviceWorker" in navigator) {
+    // The desktop webview never registers the service worker (ADR-0087):
+    // its assets ship inside the desktop binary, so the worker can only
+    // ever serve stale content. The PWA keeps it for offline use.
+    if ("serviceWorker" in navigator && !window.__TAURI_INTERNALS__) {
       navigator.serviceWorker.register("./sw.js").catch(function () {});
     }
   </script>
