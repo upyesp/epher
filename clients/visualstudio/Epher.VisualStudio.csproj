@@ -65,6 +65,7 @@
     <Compile Include="EpherKeyProcessor.cs" />
     <Compile Include="EpherLanguageClient.cs" />
     <Compile Include="EpherLog.cs" />
+    <Compile Include="EpherMarkdown.cs" />
     <Compile Include="EpherPackage.cs" />
     <Compile Include="EpherRun.cs" />
     <Compile Include="EpherViewFilter.cs" />

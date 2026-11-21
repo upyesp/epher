@@ -35,6 +35,20 @@
             id="io.github.upyesp.epher.server"
             contentType="io.github.upyesp.epher"
             languageId="epher"/>
+      <!-- Markdown (ADR-0088): epher fences inside markdown files get
+           the server too: live diagnostics, inline answers, hover,
+           completion. The content type is the in-box markdown one the
+           TM4E language pack defines (the same mapping Wild Web
+           Developer's own markdown language server uses), so no
+           content type of ours rides .md. LSP4E activates per content
+           type with no fence gate: a markdown file without an epher
+           fence projects to the empty script, so the server answers
+           nothing for prose; the run command (see the README) applies
+           its own fence gate in Java. -->
+      <contentTypeMapping
+            id="io.github.upyesp.epher.server"
+            contentType="org.eclipse.tm4e.language_pack.markdown"
+            languageId="markdown"/>
    </extension>
 
    <extension point="org.eclipse.tm4e.registry.grammars">

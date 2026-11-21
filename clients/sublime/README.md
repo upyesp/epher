@@ -140,6 +140,35 @@ Everything runs on your machine after that one download.
 
 ## Settings
 
+The settings file (`LSP-epher.sublime-settings`) carries the client
+configuration; the interesting keys:
+
+- `command`: the server binary, managed by default (see above) or a
+  path you own.
+- `selector`: the views the client attaches to, `source.epher` by
+  default.
+- `schemes`: `file` and `buffer`, so unsaved tabs work too.
+
+### Markdown opt-in (ADR-0088)
+
+Epher code fences inside markdown files can be a script too. Change
+the selector to:
+
+```
+"selector": "source.epher, text.html.markdown"
+```
+
+and markdown views join the session: live diagnostics, inline
+answers, hover, completion, and **LSP-epher: Run Script** through the
+document's epher fences. The run command itself stays fence-gated: a
+markdown view runs only when it carries an epher fence with content,
+so prose-only markdown (any README) stays untouched even opted in.
+The server receives the view's syntax-derived language id, which is
+"markdown" for markdown views, exactly the kind the server projects
+on. The selector matches the default Markdown syntax's root scope
+(`text.html.markdown`); other markdown packages work when they keep
+that scope as an ancestor.
+
 The LSP package ships inlay hints off, so the inline answers need one
 setting in `Packages/User/LSP.sublime-settings`:
 

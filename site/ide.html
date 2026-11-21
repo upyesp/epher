@@ -139,7 +139,17 @@
           <span data-i18n="ide-f4-desc">Catalog names, your own definitions, keywords, and snippets for the common statement shapes.</span></li>
         <li><strong data-i18n="ide-f5-title">Unit-aware coloring</strong>:
           <span data-i18n="ide-f5-desc">Semantic tokens color unit suffixes by meaning: the `m` in `2 m` is a unit, not a variable.</span></li>
+        <li><strong data-i18n="ide-f6-title">Markdown</strong>:
+          <span data-i18n="ide-f6-desc">Epher code fences inside markdown files are a script: the same answers, diagnostics, hover, completion, and run, with line numbers pointing into the markdown file. Prose-only markdown stays untouched.</span></li>
       </ul>
+
+      <p data-i18n="ide-markdown-note">
+        Markdown support is server-side: every client above gains it from the
+        same language server, and a markdown file without an epher fence never
+        starts one. Fence coloring inside markdown follows each editor's own
+        machinery, so it arrives where the editor can inject a grammar and
+        stays plain where it cannot.
+      </p>
 
       <h2><img class="ide-logo" src="ide-logos/vscode.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vscode-title">VS Code</span></h2>
       <p data-i18n="ide-vscode-p1">

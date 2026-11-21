@@ -112,6 +112,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0085 | Quaternions are a first-class value with reserved `j` and `k` | 2026-11-18 | accepted (amends 0043, 0065) |
 | 0086 | The REPL edits its line like a shell | 2026-11-20 | accepted |
 | 0087 | The desktop webview never keeps a stale shell | 2026-11-20 | accepted |
+| 0088 | The language server reads epher code blocks inside markdown | 2026-11-21 | accepted |
 
 ## Decision chains
 

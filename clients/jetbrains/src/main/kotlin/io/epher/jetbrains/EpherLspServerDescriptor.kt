@@ -21,14 +21,19 @@ import java.util.concurrent.TimeoutException
  * createCommandLine are open. (The getFilePaths() seen in newer docs
  * does not exist at 242.) The epher-lsp binary speaks LSP over stdio
  * with no arguments, so the command line is just the binary path.
+ *
+ * One server instance serves both kinds ADR-0088 brings: .epher
+ * scripts and markdown documents carrying an epher fence. The gates
+ * below mirror the provider's, and the didOpen language id keys the
+ * server's markdown projection.
  */
 class EpherLspServerDescriptor(project: Project, private val server: Future<Path>) :
     LspServerDescriptor(project, "epher") {
 
-    override fun isSupportedFile(file: VirtualFile): Boolean = file.name.endsWith(".epher")
+    override fun isSupportedFile(file: VirtualFile): Boolean = EpherMarkdown.isRunnable(file)
 
     /** The LSP language id, matching what the VS Code pilot reports. */
-    override fun getLanguageId(file: VirtualFile): String = "epher"
+    override fun getLanguageId(file: VirtualFile): String = EpherMarkdown.languageId(file)
 
     override fun startServerProcess(): OSProcessHandler = KillableColoredProcessHandler(createCommandLine())
 

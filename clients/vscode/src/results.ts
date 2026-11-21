@@ -68,6 +68,25 @@ export interface RunClient {
   sendRequest(method: string, params: unknown): Thenable<RunReport>;
 }
 
+/** What the run surfaces treat as epher (ADR-0088): a .epher
+ *  document, or a markdown document that carries at least one epher
+ *  fence. The fence check keeps the extension invisible in
+ *  prose-only markdown: no lens, no F5 offer, no Ctrl+Enter hijack
+ *  where there is nothing to run. The pattern mirrors the fence
+ *  grammar the server projects: three or more backticks or tildes,
+ *  info string starting with epher, case-insensitive; `ephemeral`
+ *  does not match because the name must end at whitespace or end of
+ *  line. */
+export function runnableDocument(document: vscode.TextDocument): boolean {
+  if (document.languageId === "epher") {
+    return true;
+  }
+  if (document.languageId !== "markdown") {
+    return false;
+  }
+  return /^[ \t]*(?:`{3,}|~{3,})[ \t]*epher(?:\s|$)/im.test(document.getText());
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -311,18 +330,26 @@ export function registerRun(
         program: target.toString(true),
       });
     }),
-    vscode.languages.registerCodeLensProvider({ language: "epher" }, {
-      provideCodeLenses(document) {
-        const top = new vscode.Range(0, 0, 0, 0);
-        return [
-          new vscode.CodeLens(top, {
-            title: "$(play) Run script",
-            command: "epher.runScript",
-            arguments: [document.uri],
-          }),
-        ];
+    vscode.languages.registerCodeLensProvider(
+      [{ language: "epher" }, { language: "markdown" }],
+      {
+        provideCodeLenses(document) {
+          // Markdown gains the lens only where epher lives (ADR-0088):
+          // prose-only files get no run affordance at all.
+          if (!runnableDocument(document)) {
+            return [];
+          }
+          const top = new vscode.Range(0, 0, 0, 0);
+          return [
+            new vscode.CodeLens(top, {
+              title: "$(play) Run script",
+              command: "epher.runScript",
+              arguments: [document.uri],
+            }),
+          ];
+        },
       },
-    }),
+    ),
   );
   return pane;
 }

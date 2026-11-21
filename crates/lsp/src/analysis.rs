@@ -10,6 +10,7 @@
 
 use std::collections::HashMap;
 
+use crate::markdown::{offset_at, position_at, utf16_len, Projection};
 use epher_core::{
     catalog, evaluation_trace, format_value, supplementary_catalog, token_classes, CatalogKind,
     DisplayPrefs, Session, Span, SpannedToken, StatementOutcome, TokenClass, Value,
@@ -18,9 +19,16 @@ use epher_shell::ScriptLine;
 
 /// One open document, current as of `version`.
 pub struct Document {
+    /// The text exactly as the client sent it: the wire truth every
+    /// position and range answers in (ADR-0088).
     pub text: String,
     pub version: i32,
-    /// Byte offset where each line starts (line 0 starts at 0).
+    /// The epher text the analysis runs on: `text` itself, or the
+    /// markdown fences' content concatenated (ADR-0088).
+    script: String,
+    /// The markdown projection, present only for markdown documents.
+    projection: Option<Projection>,
+    /// Byte offset where each script line starts (line 0 starts at 0).
     line_starts: Vec<usize>,
     /// The latest analysis pass. A parse failure is its first error
     /// outcome, spanning the offending token.
@@ -34,25 +42,44 @@ impl Document {
     /// the outcomes, tokens, and session state are cached for the
     /// editor's requests until the next change.
     pub fn new(text: String, version: i32) -> Self {
-        let line_starts = line_starts(&text);
+        Self::open(text, version, false)
+    }
+
+    /// Open with markdown-ness decided by the caller: the didOpen
+    /// language id, or the URI suffix when the client sends none
+    /// (ADR-0088). A markdown document analyzes its fences' content
+    /// as one virtual script; every position the wire sees travels
+    /// through the projection, in and out.
+    pub fn open(text: String, version: i32, markdown: bool) -> Self {
+        let projection = if markdown {
+            Some(Projection::extract(&text))
+        } else {
+            None
+        };
+        let script = projection
+            .as_ref()
+            .map_or_else(|| text.clone(), |p| p.script().to_string());
+        let line_starts = line_starts(&script);
         let mut session = Session::default();
         // The shells dispatch the plot prefixes and the store commands
         // before the evaluator ever sees them - the parser has no
         // statement for `graph3d sin(x)*cos(y)`, so analyzing the raw
-        // text squiggled every plot line with "expected ';' or a
+        // script squiggled every plot line with "expected ';' or a
         // newline" on the parameters after the keyword. Mask the
         // dispatched pieces out (equal length, so every span stays
         // aligned) and analyze the rest; epher_shell owns the list.
-        let mut masked = text.clone();
-        for range in epher_shell::dispatched_piece_ranges(&text) {
+        let mut masked = script.clone();
+        for range in epher_shell::dispatched_piece_ranges(&script) {
             let blank = " ".repeat(range.len());
             masked.replace_range(range, &blank);
         }
         let outcomes = evaluation_trace(&mut session, &masked);
-        let tokens = token_classes(&text).unwrap_or_default();
+        let tokens = token_classes(&script).unwrap_or_default();
         Document {
             text,
             version,
+            script,
+            projection,
             line_starts,
             outcomes,
             tokens,
@@ -60,39 +87,40 @@ impl Document {
         }
     }
 
-    /// Byte offset <- LSP position (0-based line, UTF-16 column).
-    pub fn offset_of(&self, position: lsp_types::Position) -> Option<usize> {
-        let line = position.line as usize;
-        let start = *self.line_starts.get(line)?;
-        let rest = &self.text[start..];
-        let mut offset = start;
-        let mut units = 0u32;
-        for c in rest.chars() {
-            if units >= position.character || c == '\n' {
-                break;
-            }
-            units += c.len_utf16() as u32;
-            offset += c.len_utf8();
-        }
-        Some(offset)
+    /// Whether this document is a markdown projection (ADR-0088).
+    pub fn is_markdown(&self) -> bool {
+        self.projection.is_some()
     }
 
-    /// LSP position <- byte offset.
+    /// The virtual script the analysis runs on: `text` itself for a
+    /// plain document, the fences' content for markdown.
+    pub fn script(&self) -> &str {
+        &self.script
+    }
+
+    /// The markdown projection, when this document is markdown.
+    pub fn projection(&self) -> Option<&Projection> {
+        self.projection.as_ref()
+    }
+
+    /// Byte offset <- LSP position (0-based line, UTF-16 column).
+    /// Markdown positions map into the fences; a position outside
+    /// them maps to nothing (ADR-0088).
+    pub fn offset_of(&self, position: lsp_types::Position) -> Option<usize> {
+        if let Some(projection) = &self.projection {
+            return projection.offset_in(position);
+        }
+        offset_at(&self.text, &self.line_starts, position)
+    }
+
+    /// LSP position <- byte offset, in the wire text's coordinates:
+    /// script offsets map out through the markdown projection when
+    /// there is one (ADR-0088).
     pub fn position_of(&self, offset: usize) -> lsp_types::Position {
-        let offset = offset.min(self.text.len());
-        let line = match self.line_starts.binary_search(&offset) {
-            Ok(i) => i,
-            Err(i) => i.saturating_sub(1),
-        };
-        let start = self.line_starts[line];
-        let mut units = 0u32;
-        for c in self.text[start..offset].chars() {
-            units += c.len_utf16() as u32;
+        if let Some(projection) = &self.projection {
+            return projection.position_out(offset);
         }
-        lsp_types::Position {
-            line: line as u32,
-            character: units,
-        }
+        position_at(&self.text, &self.line_starts, offset)
     }
 
     /// The span as an LSP range.
@@ -117,19 +145,21 @@ impl Document {
 
     /// Inline results (ADR-0066): one hint per value-producing
     /// statement, at the statement's end, labeled with the
-    /// calculator's own rendering. Hints inside `range` only.
+    /// calculator's own rendering. Hints whose statements land in
+    /// `range` only; a markdown range covers the fences it touches
+    /// (ADR-0088).
     pub fn inlay_hints(&self, range: lsp_types::Range) -> Vec<lsp_types::InlayHint> {
+        let (lo, hi) = self.script_span(range);
         let mut hints = Vec::new();
         for outcome in &self.outcomes {
             let Some(display) = &outcome.display else {
                 continue;
             };
-            let position = self.position_of(outcome.span.end);
-            if position < range.start || position > range.end {
+            if outcome.span.end < lo || outcome.span.end > hi {
                 continue;
             }
             hints.push(lsp_types::InlayHint {
-                position,
+                position: self.position_of(outcome.span.end),
                 label: lsp_types::InlayHintLabel::String(format!("= {display}")),
                 kind: None,
                 text_edits: None,
@@ -140,6 +170,19 @@ impl Document {
             });
         }
         hints
+    }
+
+    /// A wire range in script coordinates: identity over a plain
+    /// document, the union of the fences a range touches over
+    /// markdown (ADR-0088).
+    fn script_span(&self, range: lsp_types::Range) -> (usize, usize) {
+        match &self.projection {
+            Some(projection) => projection.span_in(range),
+            None => (
+                offset_at(&self.text, &self.line_starts, range.start).unwrap_or(0),
+                offset_at(&self.text, &self.line_starts, range.end).unwrap_or(self.text.len()),
+            ),
+        }
     }
 
     /// Hover: what the name under the cursor means. Keywords and
@@ -293,7 +336,7 @@ impl Document {
                 TokenClass::Unit => TOKEN_UNIT,
                 TokenClass::Name => {
                     // a name directly followed by `(` is a call
-                    if self.text[token.span.end..].starts_with('(') {
+                    if self.script[token.span.end..].starts_with('(') {
                         TOKEN_FUNCTION
                     } else {
                         TOKEN_VARIABLE
@@ -312,7 +355,11 @@ impl Document {
             data.push(lsp_types::SemanticToken {
                 delta_line,
                 delta_start,
-                length: (token.span.end - token.span.start) as u32,
+                // Token lengths are UTF-16 code units, the unit the
+                // LSP wire counts (ADR-0088; the byte count this
+                // replaces mis-sized every token with non-ASCII
+                // text).
+                length: utf16_len(&self.script[token.span.start..token.span.end]),
                 token_type: kind,
                 token_modifiers_bitset: 0,
             });
@@ -534,8 +581,7 @@ pub fn statements_json(lines: &[ScriptLine]) -> (Vec<serde_json::Value>, Option<
         }
     }
     let present = epher_core::pane::present_transcript(&transcript);
-    let answer = epher_core::pane::answer_index(&judged)
-        .map(|local| judged_index[local]);
+    let answer = epher_core::pane::answer_index(&judged).map(|local| judged_index[local]);
     let mut out = Vec::with_capacity(lines.len());
     let mut cursor = 0usize;
     let mut answer_line = None;
@@ -558,8 +604,7 @@ pub fn statements_json(lines: &[ScriptLine]) -> (Vec<serde_json::Value>, Option<
             let pane_lines: Vec<serde_json::Value> = slice
                 .iter()
                 .map(|pane| {
-                    let mut value =
-                        serde_json::to_value(pane).expect("presentation serializes");
+                    let mut value = serde_json::to_value(pane).expect("presentation serializes");
                     if line.error {
                         value["kind"] = serde_json::json!("error");
                     }
@@ -577,6 +622,24 @@ pub fn statements_json(lines: &[ScriptLine]) -> (Vec<serde_json::Value>, Option<
     (out, answer_line)
 }
 
+/// Translate the run payload's script line anchors into the
+/// document's markdown lines (ADR-0088). Plain documents have no
+/// projection and pass through untouched.
+pub fn map_run_lines(
+    statements: &mut [serde_json::Value],
+    answer_line: &mut Option<u32>,
+    projection: &Projection,
+) {
+    for statement in statements {
+        if let Some(line) = statement.get("line").and_then(|v| v.as_u64()) {
+            statement["line"] = serde_json::json!(projection.line_out(line as u32));
+        }
+    }
+    if let Some(line) = answer_line {
+        *line = projection.line_out(*line);
+    }
+}
+
 /// The live value of a builtin constant, for hover (functions are not
 /// values).
 fn builtin_value(name: &str, kind: CatalogKind) -> Option<Value> {
@@ -586,7 +649,9 @@ fn builtin_value(name: &str, kind: CatalogKind) -> Option<Value> {
     None
 }
 
-fn line_starts(text: &str) -> Vec<usize> {
+/// Byte offset where each line starts, line 0 at offset 0. Shared
+/// with the markdown projection (ADR-0088).
+pub(crate) fn line_starts(text: &str) -> Vec<usize> {
     let mut starts = vec![0usize];
     for (i, c) in text.char_indices() {
         if c == '\n' {

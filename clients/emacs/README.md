@@ -33,6 +33,14 @@ side panel, no print statements: the editor *is* the calculator.
 - **Hover signatures**: hover any name for its canonical signature in
   eldoc; your own functions show their definitions, catalog functions
   show their docs.
+- **Markdown**: epher code fences inside markdown files are a script
+  too (ADR-0088). `M-x epher-eglot-ensure-in-markdown` attaches the
+  server to the current markdown buffer, but only when it carries an
+  epher fence with content, so prose-only markdown never starts a
+  server. After it answers, the buffer has everything an `epher-mode`
+  buffer has: live diagnostics, inline answers, hover, completion,
+  and `M-x epher-run` through the document's fences. Requires
+  `markdown-mode`.
 
 ![Hovering a defined name shows its signature and current value](https://github.com/upyesp/epher/raw/HEAD/clients/emacs/images/hover.png)
 

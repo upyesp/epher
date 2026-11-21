@@ -38,7 +38,16 @@ using StreamJsonRpc;
 
 namespace Epher.VisualStudio
 {
+    // "epher" for scripts. "markdown" (ADR-0088) rides along so a
+    // markdown document that carries an epher fence gets the server
+    // too: the content-type name is the in-box markdown editor's, and
+    // an export bound to a content type that does not exist in a given
+    // shell simply never matches a view: prose-only markdown and
+    // shells without the markdown content type stay untouched. The
+    // run road (EpherPackage.ActiveRunnableBuffer) does not depend on
+    // this at all: it gates on the buffer's own text.
     [ContentType("epher")]
+    [ContentType("markdown")]
     [Export(typeof(ILanguageClient))]
     public class EpherLanguageClient : ILanguageClient, ILanguageClientCustomMessage2
     {

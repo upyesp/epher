@@ -180,6 +180,122 @@ answers as inlay hints, hover, and completion."
              `(epher-mode . ,(lambda (&optional _interactive)
                                epher-server-program)))
 
+;; The markdown half (ADR-0088): epher code fences inside a markdown
+;; document are a script. The language server owns the understanding
+;; it scans the client's text for epher-tagged fences, projects
+;; them to one virtual script, and serves every feature in markdown
+;; coordinates (crates/lsp/src/markdown.rs). What stays local is the
+;; activation gate: eglot attaches to markdown buffers only when the
+;; user asks, and only when an epher fence with content is in the
+;; buffer, so prose-only markdown stays untouched.
+
+(defun epher--fence-run (line char)
+  "The leading run of CHAR in LINE at least three long, or nil."
+  ;; A backtick or tilde needs no escape in an elisp regexp; the
+  ;; interval needs both backslashes.
+  (and (string-match (format "%c\\{3,\\}" char) line)
+       (match-string 0 line)))
+
+(defun epher--fence-open (line)
+  "The fence LINE opens, as a plist, or nil.
+The server's opening rule (a deliberate copy,
+`epher--markdown-has-epher-fence-p' documents the whole grammar):
+up to three leading spaces, three or more of one fence character,
+and a backtick info string may not contain a backtick."
+  (let ((indent (if (string-match "\\` *" line) (match-string 0 line) "")))
+    (when (<= (length indent) 3)
+      (let* ((rest (substring line (length indent)))
+             (marker (or (epher--fence-run rest ?`)
+                         (epher--fence-run rest ?~))))
+        (when marker
+          (let ((ch (aref marker 0))
+                (info (substring rest (length marker))))
+            (when (or (eq ch ?~)
+                      (not (string-match-p "`" info)))
+              (list :char ch :length (length marker) :info info))))))))
+
+(defun epher--fence-close-p (line char length)
+  "Whether LINE closes a fence of CHAR at least LENGTH long:
+same character, at least as long, and nothing else on the line."
+  (let* ((indent (if (string-match "\\` *" line) (match-string 0 line) ""))
+         (rest (substring line (length indent)))
+         (marker (and (string-match (format "%c\\{%d,\\}" char length) rest)
+                      (match-string 0 rest))))
+    (and marker
+         (eq (aref marker 0) char)
+         (string-match-p "\\`[ \t]*\\'" (substring rest (length marker))))))
+
+(defun epher--fence-first-word (info)
+  "The info string's first word: the language name."
+  (if (string-match "\\`[ \t\r\n]*\\([^ \t\r\n]+\\)" info)
+      (match-string 1 info)
+    ""))
+
+(defun epher--markdown-has-epher-fence-p ()
+  "Whether the buffer carries one epher fence with content.
+Mirrors the server's fence grammar exactly (a deliberate copy,
+crates/lsp/src/markdown.rs): up to three leading spaces, three or
+more of one fence character, the info string's first word equal to
+`epher' case-insensitively, a closing fence the same character at
+least as long with nothing else on the line, and an unclosed fence
+runs to end of file. Fence lines inside another (non-epher) fence
+are content, not fence lines, so the walk tracks the enclosing
+fence."
+  (let ((fence nil) (in-epher nil) (content nil))
+    (save-excursion
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
+        (catch 'epher-found
+          (while (not (eobp))
+            (let ((line (buffer-substring-no-properties
+                         (line-beginning-position)
+                         (line-end-position))))
+              (cond
+               ((null fence)
+                (let ((open (epher--fence-open line)))
+                  (when open
+                    (setq fence (cons (plist-get open :char)
+                                      (plist-get open :length))
+                          in-epher (equal (downcase
+                                           (epher--fence-first-word
+                                            (plist-get open :info)))
+                                          "epher")
+                          content nil))))
+               ((epher--fence-close-p line (car fence) (cdr fence))
+                (when (and in-epher content)
+                  (throw 'epher-found t))
+                (setq fence nil in-epher nil))
+               (t
+                (when in-epher
+                  (setq content t)))))
+            (forward-line 1))
+          ;; An unclosed epher fence runs its content to end of file.
+          (and in-epher content))))))
+
+;;;###autoload
+(defun epher-eglot-ensure-in-markdown ()
+  "Attach the epher language server to the current markdown buffer.
+An explicit opt-in (ADR-0088): only this buffer is affected. The
+command refuses buffers without an epher fence with content, so
+prose-only markdown never starts a server. After it answers, the
+buffer has everything an epher-mode buffer has: live diagnostics,
+inline answers as inlay hints, hover, completion, and `epher-run'
+through the document's fences. Requires `markdown-mode' (the
+language id eglot sends (the buffer's mode name minus -mode) is
+then exactly the \"markdown\" the server projects on)."
+  (interactive)
+  (unless (derived-mode-p 'markdown-mode)
+    (user-error "This command attaches to a markdown-mode buffer"))
+  (unless (epher--markdown-has-epher-fence-p)
+    (user-error "No epher fence with content in this buffer"))
+  (setq-local eglot-server-programs
+              (cons (cons '(markdown-mode gfm-mode)
+                          (lambda (&optional _interactive)
+                            epher-server-program))
+                    (default-value 'eglot-server-programs)))
+  (eglot-ensure))
+
 ;; The run (ADR-0069, decision 3: the text-first editors send the same
 ;; `epher/run' request the graphical clients use): the per-statement
 ;; transcript lands in the `*epher run*' buffer with the run's pane
@@ -466,7 +582,13 @@ name only as an obsolete alias, so this calls whichever exists."
 Puts the per-statement transcript in the `*epher run*' buffer
 and opens each plot the script produced with the system viewer."
   (interactive)
-  (unless (derived-mode-p 'epher-mode)
+  ;; ADR-0088: a markdown buffer runs too, once the user attached the
+  ;; server with `epher-eglot-ensure-in-markdown' and the buffer
+  ;; carries an epher fence with content, the same gate the attach
+  ;; used.
+  (unless (or (derived-mode-p 'epher-mode)
+              (and (derived-mode-p 'markdown-mode)
+                   (epher--markdown-has-epher-fence-p)))
     (user-error "This command runs in an epher-mode buffer"))
   (let ((server (eglot-current-server)))
     (unless server

@@ -42,6 +42,11 @@ side panel, no print statements: the editor *is* the calculator.
 
 - **Unit-aware coloring**: semantic tokens color unit suffixes by
   meaning: the `m` in `2 m` is a unit, not a variable.
+- **epher inside markdown**: fenced code blocks tagged `epher` in
+  `.md` files get the treatment in place: the fence colors like
+  epher, and diagnostics, inline answers, hover, and completion
+  work inside the block. One **Run script** runs the whole file,
+  fences in order, with every answer anchored to its markdown line.
 
 ## Quick start
 
@@ -79,6 +84,13 @@ produced as inline SVG. The pane renders the calculator's
 presentation (ADR-0078): setup echo dim, the answer emphasized,
 ✓/✗ on checks, matrices as grids, long lists behind a "+n more"
 button; copy always sends the line verbatim.
+
+Markdown files join the same road (ADR-0088): a `.md` file that
+contains `epher` code fences gets the **Run script** CodeLens,
+Ctrl+Enter, and F5, and the run executes every fence as one script,
+in document order (later fences see earlier fences' names), with
+each statement's result linked back to its markdown line. A
+markdown file without epher fences stays untouched.
 
 epher has nothing to pause or step through: statements evaluate in
 order and the answers are the whole transcript, so the run rides a

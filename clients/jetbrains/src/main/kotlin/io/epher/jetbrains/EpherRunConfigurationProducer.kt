@@ -6,12 +6,15 @@ import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 
 /**
- * Teaches the platform that a .epher file in the editor is runnable
- * (ADR-0069): this is what turns the play icon on, offers "Run" in the
- * Run menu, and makes Ctrl+Shift+F10 create and run a configuration
- * named after the script. Contexts are matched on the virtual file
- * alone — TextMate files carry thin PSI, so nothing here may depend on
- * a PSI type. At 242 the file arrives through the context's location
+ * Teaches the platform that a runnable epher file in the editor is
+ * runnable (ADR-0069): this is what turns the play icon on, offers
+ * "Run" in the Run menu, and makes Ctrl+Shift+F10 create and run a
+ * configuration named after the script. Since ADR-0088 the file can
+ * also be a markdown document carrying an epher fence (the run then
+ * goes through the document's fences; prose-only markdown stays
+ * untouched). Contexts are matched on the virtual file alone:
+ * TextMate files carry thin PSI, so nothing here may depend on a PSI
+ * type. At 242 the file arrives through the context's location
  * (ConfigurationContext has no getVirtualFile member anymore).
  */
 class EpherRunConfigurationProducer :
@@ -23,7 +26,7 @@ class EpherRunConfigurationProducer :
         sourceElement: Ref<PsiElement>,
     ): Boolean {
         val file = context.location?.virtualFile ?: return false
-        if (!file.name.endsWith(".epher")) return false
+        if (!EpherMarkdown.isRunnable(file)) return false
         configuration.scriptPath = file.path
         configuration.name = file.nameWithoutExtension
         return true

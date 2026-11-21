@@ -1,6 +1,9 @@
 import * as vscode from "vscode";
 
-// The run-only debug adapter: what F5 and Ctrl+F5 do on a .epher file.
+// The run-only debug adapter: what F5 and Ctrl+F5 do on a .epher
+// file, and on a markdown file that carries epher code blocks
+// (ADR-0088: the whole file runs, fences in order, statements
+// anchored to their markdown lines).
 //
 // epher has nothing to debug: statements evaluate eagerly, in order,
 // and the answers are the whole transcript. A debug start is answered
@@ -23,7 +26,7 @@ import * as vscode from "vscode";
 
 // The one client surface the adapter needs, same as the results pane
 // (results.ts owns the `epher/run` request and exports the type).
-import type { RunClient, RunPane } from "./results";
+import { runnableDocument, type RunClient, type RunPane } from "./results";
 
 /** A DAP message, typed loosely: the inline transport passes plain
  *  objects, and the run-only adapter touches a small, stable subset. */
@@ -301,7 +304,9 @@ export function registerDebug(
           return config;
         }
         const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== "epher") {
+        // Markdown joins the F5-just-works path where epher lives
+        // (ADR-0088); prose-only markdown stays out of the way.
+        if (!editor || !runnableDocument(editor.document)) {
           return config;
         }
         return {
@@ -315,7 +320,7 @@ export function registerDebug(
     vscode.debug.registerDebugConfigurationProvider("epher", {
       provideDebugConfigurations() {
         const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== "epher") {
+        if (!editor || !runnableDocument(editor.document)) {
           return [];
         }
         return [{

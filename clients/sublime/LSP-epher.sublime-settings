@@ -6,6 +6,17 @@
 	"command": ["epher-lsp"],
 	// The view selector that attaches the client to epher views.
 	"selector": "source.epher",
+	// Markdown opt-in (ADR-0088): change the selector to
+	//   "source.epher, text.html.markdown"
+	// and epher fences inside markdown files get the server too:
+	// live diagnostics, inline answers, hover, completion, and
+	// **LSP-epher: Run Script** through the document's fences. The
+	// run command itself stays fence-gated: a markdown view runs
+	// only when it carries an epher fence with content, so
+	// prose-only markdown (any README) stays untouched even opted
+	// in. The server receives the view's syntax-derived language id,
+	// which is "markdown" for markdown views, exactly the kind the
+	// server projects on.
 	// "buffer" lets the server serve unsaved tabs of epher syntax;
 	// epher-lsp keys its documents by URI and never reads the file
 	// path, so buffers are fully supported.

@@ -12,13 +12,16 @@ import com.intellij.platform.lsp.api.LspServerSupportProvider.LspServerStarter
  * (verified in the 2024.2 platform sources; there is no
  * com.intellij.modules.lsp module to depend on at 242). The platform
  * calls [fileOpened] for every file that opens, and this provider
- * answers only for the epher extension: it kicks off the first-use
- * download of the shared server and hands the platform a descriptor.
+ * answers for the epher extension and, since ADR-0088, for markdown
+ * documents that carry an epher fence (the server projects the
+ * document's fences to one virtual script; prose-only markdown stays
+ * untouched). It kicks off the first-use download of the shared
+ * server and hands the platform a descriptor.
  */
 class EpherLspServerSupportProvider : LspServerSupportProvider {
 
     override fun fileOpened(project: Project, file: VirtualFile, starter: LspServerStarter) {
-        if (!file.name.endsWith(".epher")) return
+        if (!EpherMarkdown.isRunnable(file)) return
         // The download itself runs off the EDT (see the downloader); the
         // descriptor only joins the result when the platform starts the
         // process, which happens on a background coroutine.

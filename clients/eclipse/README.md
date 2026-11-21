@@ -13,6 +13,19 @@ stops it when the last one closes. Like the emacs/vim/neovim
 clients, it never downloads anything: you install the server binary
 once, the plugin finds it on `PATH`.
 
+## epher inside markdown
+
+Epher code fences inside markdown files get the server too (ADR-0088):
+the plugin binds the in-box markdown content type the TM4E language
+pack defines (the same mapping Wild Web Developer's own markdown
+language server uses), so no content type of ours rides `.md`. The
+server projects the document's epher fences into one virtual script
+and answers with markdown-file line numbers. LSP4E activates per
+content type with no fence gate: a markdown file without an epher
+fence projects to the empty script, so the server answers nothing for
+prose. Fence coloring inside markdown follows the platform's markdown
+editor, not this extension.
+
 ## Install
 
 Two pieces, both one-time:

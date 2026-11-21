@@ -12,12 +12,13 @@
 //! answers at once.
 
 pub mod analysis;
+pub mod markdown;
 
 use std::collections::HashMap;
 use std::error::Error;
 use std::time::{Duration, Instant};
 
-use analysis::{server_capabilities, Document, Documents};
+use analysis::{map_run_lines, server_capabilities, Document, Documents};
 use crossbeam_channel::{RecvTimeoutError, SendTimeoutError};
 use lsp_server::{
     Connection, Message, Notification as ServerNotification, Request as ServerRequest, Response,
@@ -26,6 +27,7 @@ use lsp_types::notification::{Notification, PublishDiagnostics};
 use lsp_types::request::{
     Completion, HoverRequest, InlayHintRequest, Request as LspRequest, SemanticTokensFullRequest,
 };
+use markdown::Projection;
 
 /// How long typing must pause before the pass runs (ADR-0066: "a short
 /// debounce").
@@ -47,6 +49,10 @@ struct HeldEdit {
     text: String,
     version: i32,
     seen: Instant,
+    /// Whether the document is a markdown projection. `didChange`
+    /// carries no language id, so the open document's kind rides the
+    /// held edit through the debounce (ADR-0088).
+    markdown: bool,
 }
 
 /// Serve until shutdown. `Connection::memory()` pairs with this for
@@ -70,7 +76,7 @@ pub fn run(connection: Connection) -> Result<(), Box<dyn Error + Send + Sync>> {
             .collect();
         for key in ready {
             if let Some(held) = pending.remove(&key) {
-                let document = Document::new(held.text, held.version);
+                let document = Document::open(held.text, held.version, held.markdown);
                 let uri: lsp_types::Uri = key.parse().map_err(|e| format!("{e}"))?;
                 publish(&connection, &uri, &document)?;
                 documents.insert(key, document);
@@ -126,7 +132,8 @@ fn run_request(
     }
     // The held edit is the newest text: it wins over the analyzed
     // document, which only reflects the last quiet gap.
-    let text = pending.get(&uri).map(|held| held.text.clone()).or_else(|| {
+    let held = pending.get(&uri);
+    let text = held.map(|held| held.text.clone()).or_else(|| {
         documents
             .iter()
             .find(|(key, _)| key.as_str() == uri)
@@ -135,6 +142,16 @@ fn run_request(
     let Some(text) = text else {
         return Response::new_err(req.id.clone(), -32602, "document not open".to_string());
     };
+    // The virtual script: the markdown fences' content when the
+    // document is markdown, the text itself otherwise (ADR-0088).
+    let is_markdown = held.map(|held| held.markdown).unwrap_or_else(|| {
+        documents
+            .iter()
+            .find(|(key, _)| key.as_str() == uri)
+            .map(|(_, document)| document.is_markdown())
+            .unwrap_or(false)
+    });
+    let projection = is_markdown.then(|| Projection::extract(&text));
     // The analyzed document already evaluated this text once: rebuild
     // the run from its trace instead of running the statements again.
     // Text inside the debounce (or anything the reconstruction cannot
@@ -146,8 +163,11 @@ fn run_request(
         .map(|(_, document)| document)
     {
         if document.text == text {
-            if let Some(lines) = analysis::reconstruct_run(&text, &document.outcomes) {
-                let (statements, answer_line) = analysis::statements_json(&lines);
+            if let Some(lines) = analysis::reconstruct_run(document.script(), &document.outcomes) {
+                let (mut statements, mut answer_line) = analysis::statements_json(&lines);
+                if let Some(p) = document.projection() {
+                    map_run_lines(&mut statements, &mut answer_line, p);
+                }
                 let result = serde_json::json!({
                     "statements": statements,
                     "svgs": serde_json::Value::Array(Vec::new()),
@@ -157,9 +177,15 @@ fn run_request(
             }
         }
     }
+    let script = projection
+        .as_ref()
+        .map_or_else(|| text.clone(), |p| p.script().to_string());
     let localizer = epher_i18n::Localizer::resolve(None, &[]);
-    let run = epher_shell::run_script(&text, &localizer);
-    let (statements, answer_line) = analysis::statements_json(&run.lines);
+    let run = epher_shell::run_script(&script, &localizer);
+    let (mut statements, mut answer_line) = analysis::statements_json(&run.lines);
+    if let Some(p) = &projection {
+        map_run_lines(&mut statements, &mut answer_line, p);
+    }
     let result = serde_json::json!({
         "statements": statements,
         "svgs": run.svgs,
@@ -184,7 +210,17 @@ fn hold_or_apply(
             let uri = params.text_document.uri;
             let key = uri.to_string();
             pending.remove(&key);
-            let document = Document::new(params.text_document.text, params.text_document.version);
+            // Markdown-ness (ADR-0088): the didOpen language id says
+            // so, or the URI suffix when the client sends none.
+            // Everything else is a plain script, exactly as before.
+            let language = params.text_document.language_id;
+            let markdown = language.eq_ignore_ascii_case("markdown")
+                || (language.is_empty() && (key.ends_with(".md") || key.ends_with(".markdown")));
+            let document = Document::open(
+                params.text_document.text,
+                params.text_document.version,
+                markdown,
+            );
             publish(connection, &uri, &document)?;
             documents.insert(key, document);
         }
@@ -194,12 +230,19 @@ fn hold_or_apply(
             let uri = params.text_document.uri;
             if let Some(change) = params.content_changes.last() {
                 let key = uri.to_string();
+                // didChange carries no language id: the open
+                // document's kind rides the held edit (ADR-0088).
+                let markdown = documents
+                    .get(&key)
+                    .map(|document| document.is_markdown())
+                    .unwrap_or(false);
                 pending.insert(
                     key,
                     HeldEdit {
                         text: change.text.clone(),
                         version: params.text_document.version,
                         seen: Instant::now(),
+                        markdown,
                     },
                 );
             }

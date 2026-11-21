@@ -66,6 +66,26 @@ restarting the IDE) retries.
 - **Snippets**: the shared snippets ship as native live templates
   (type `def`, `for`, `solve`, and friends, then Tab).
 
+### epher inside markdown
+
+A markdown document that carries epher code fences is a script too
+(ADR-0088): the server projects the document's epher fences into one
+virtual script, and the inline answers, diagnostics, completion, and
+hover work in the document's own coordinates. Prose-only markdown
+stays untouched.
+
+The run road widens with it: the Tools action, the gutter play icon,
+and the run configurations all appear over a markdown file that
+carries at least one epher fence with content, and the transcript
+lands in the same results pane.
+
+One platform fact to know about fence coloring: the IDE's markdown
+plugin colors code fences through TextMate bundles only from 2026.2
+onward (the fence resolver there matches our bundle's `.epher`
+extension and `source.epher` scope, so no configuration is needed).
+On 2024.2 through 2025.3 the fences keep the markdown editor's plain
+look while every other feature works.
+
 ## Run a script and the results pane
 
 Tools ▸ Run Epher Script (also in the editor's context menu, enabled

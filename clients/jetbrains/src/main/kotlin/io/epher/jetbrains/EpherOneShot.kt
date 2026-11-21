@@ -127,9 +127,17 @@ object EpherOneShot {
     /**
      * Runs the script to completion on the calling thread; call from a
      * background thread only. Every failure comes back as an IOException
-     * with a message meant for the user.
+     * with a message meant for the user. The [languageId] tells the
+     * server what kind the document is: "epher" or, since ADR-0088,
+     * "markdown" for a document whose epher fences are the script.
      */
-    fun run(binary: Path, documentUri: String, rootUri: String, text: String): RunReport {
+    fun run(
+        binary: Path,
+        documentUri: String,
+        rootUri: String,
+        text: String,
+        languageId: String = "epher",
+    ): RunReport {
         if (!Files.isRegularFile(binary)) {
             throw IOException(
                 "the epher-lsp binary is missing at $binary; " +
@@ -210,7 +218,7 @@ object EpherOneShot {
                 send(process.outputStream, notification("textDocument/didOpen", JsonObject().apply {
                     add("textDocument", JsonObject().apply {
                         addProperty("uri", documentUri)
-                        addProperty("languageId", "epher")
+                        addProperty("languageId", languageId)
                         addProperty("version", 1)
                         addProperty("text", text)
                     })

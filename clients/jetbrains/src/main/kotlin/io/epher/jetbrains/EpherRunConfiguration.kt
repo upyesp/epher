@@ -49,7 +49,9 @@ import javax.swing.JPanel
 class EpherRunConfiguration(project: Project, factory: ConfigurationFactory, name: String? = null) :
     RunConfigurationBase<Void>(project, factory, name), LocatableConfiguration {
 
-    /** The .epher file to run, as an absolute path on disk. */
+    /** The file to run: a .epher script or, since ADR-0088, a
+     *  markdown document carrying an epher fence, as an absolute
+     *  path on disk. */
     var scriptPath: String = ""
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState =
@@ -98,7 +100,7 @@ private class EpherSettingsEditor : SettingsEditor<EpherRunConfiguration>() {
     init {
         path.addBrowseFolderListener(
             "epher script",
-            "choose the .epher file to run",
+            "choose the .epher file or a markdown document with an epher fence to run",
             null,
             FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor(),
         )
@@ -173,8 +175,16 @@ private class EpherRunProfileState(
         }
         // EpherUris, not file.url: the IDE's url shape carries raw
         // Windows paths (and the drive glued after file://), which the
-        // server's strict URI reader rejects — see EpherUris.
-        val report = EpherOneShot.run(binary, EpherUris.documentUri(file), EpherUris.rootUri(file), text)
+        // server's strict URI reader rejects, see EpherUris. The
+        // language id follows the file kind: a markdown document runs
+        // through its epher fences (ADR-0088).
+        val report = EpherOneShot.run(
+            binary,
+            EpherUris.documentUri(file),
+            EpherUris.rootUri(file),
+            text,
+            EpherMarkdown.languageId(file),
+        )
         for (statement in report.statements) {
             val display = statement.display ?: continue
             val kind = if (statement.error) "error" else "answer"

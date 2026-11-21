@@ -5,6 +5,17 @@ language changes independently; the extension bundles the shared
 grammar, snippets, and the WebAssembly language server of whatever
 epher release built it.
 
+## 0.9.16 - 2026-11-21
+
+epher code blocks inside markdown (ADR-0088). Fences tagged `epher`
+in `.md` files color by the shared epher grammar (a markdown
+injection), get the same live diagnostics, inline answers, hover,
+completion, and unit-aware coloring as `.epher` files, and one Run
+script runs every fence as one script with results linked to their
+markdown lines. Adds an `epher-block` snippet for markdown and a
+markdown-scoped Ctrl+Enter keybinding; prose-only markdown files
+stay untouched (no lens, no F5 offer, no keybinding effect).
+
 ## 0.5.55 - 2026-09-27
 
 The same extension now installs in VSCodium straight from Open VSX.

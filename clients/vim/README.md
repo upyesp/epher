@@ -52,6 +52,31 @@ if executable('epher-lsp')
 endif
 ```
 
+### Markdown opt-in (ADR-0088)
+
+Epher code fences inside markdown files can be a script too. Set
+`g:epher_markdown` and widen the allowlist in the same registration:
+
+```vim
+let g:epher_markdown = 1
+
+if executable('epher-lsp')
+  au User lsp_setup call lsp#register_server({
+        \ 'name': 'epher',
+        \ 'cmd': {server_info -> ['epher-lsp']},
+        \ 'allowlist': ['epher'] + (get(g:, 'epher_markdown', 0) ? ['markdown'] : []),
+        \ })
+endif
+```
+
+`vim-lsp` activates by filetype with no content gate of its own, so
+once opted in the server attaches to every markdown buffer; for
+prose-only markdown it answers nothing, because the document projects
+to an empty script. `:EpherRun` applies the fence gate itself: a
+markdown buffer runs only when it carries an epher fence with content
+(the same grammar the language server scans with), so the command
+stays silent over plain prose even when the server is attached.
+
 Required prerequisite: the `epher-lsp` language server. Without it,
 .epher files get highlighting only. The inline answers, diagnostics,
 hover, and `:EpherRun` all come from the server. Download the build
@@ -77,6 +102,11 @@ statement, `<CR>` on a graph row reopens its SVG (written under
 the row's verbatim output, waiting on a row shows the verbatim text
 the shaped text hides, and `r` re-runs. Without `vim-lsp` the command
 says exactly what is missing; the syntax layer above works either way.
+
+A markdown buffer that carries an epher fence with content runs the
+same way once `g:epher_markdown` is set (ADR-0088, above); the run
+goes through the document's fences and the transcript's line numbers
+point into the markdown file.
 
 ## What it looks like
 
