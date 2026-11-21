@@ -38,3 +38,6 @@ __pycache__/
 
 # Assembled package trees (listing/assemble-repo.sh output)
 build/
+
+# pi web session scratch (never ship)
+.pi-web/
