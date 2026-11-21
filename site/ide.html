@@ -140,21 +140,13 @@
         <li><strong data-i18n="ide-f5-title">Unit-aware coloring</strong>:
           <span data-i18n="ide-f5-desc">Semantic tokens color unit suffixes by meaning: the `m` in `2 m` is a unit, not a variable.</span></li>
         <li><strong data-i18n="ide-f6-title">Markdown</strong>:
-          <span data-i18n="ide-f6-desc">Epher code fences inside markdown files are a script: the same answers, diagnostics, hover, completion, and run, with line numbers pointing into the markdown file. Prose-only markdown stays untouched.</span></li>
+          <span data-i18n="ide-f6-desc">Epher code fences inside markdown files are a script: the same answers, diagnostics, hover, completion, and run, with line numbers pointing into the markdown file.</span></li>
       </ul>
-
-      <p data-i18n="ide-markdown-note">
-        Markdown support is server-side: every client above gains it from the
-        same language server, and a markdown file without an epher fence never
-        starts one. Fence coloring inside markdown follows each editor's own
-        machinery, so it arrives where the editor can inject a grammar and
-        stays plain where it cannot.
-      </p>
 
       <h2><img class="ide-logo" src="ide-logos/vscode.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vscode-title">VS Code</span></h2>
       <p data-i18n="ide-vscode-p1">
         Install it from the marketplace: the Extensions view, search for
-        Epher, Install. The server ships inside the extension, no download,
+        epher, Install. The server ships inside the extension, no download,
         no prerequisites, and it works offline on desktop and in the browser.
         Open a `.epher` file and the answers appear.
       </p>
@@ -172,6 +164,22 @@
         instead, which adds the run's graphs and links each row to its
         line.
       </p>
+      <p data-i18n="ide-vscode-markdown">
+        epher also lives inside markdown. A fenced block tagged `epher` in
+        any `.md` file colors like epher, answers its statements inline, and
+        runs as one script: Run script, Ctrl+Enter, or plain F5, with every
+        result linked to its line. Notes and docs carry live calculations
+        instead of frozen screenshots.
+      </p>
+      <p>
+        <img class="hero-shot"
+          src="img/ide-markdown.jpg?v=1"
+          alt="quadratics.md in VS Code: an epher code fence runs `solve x^2 == 5*x + 6`, the inline answer `= x = -1, x = 6` renders beside the statement, and the hover hint for `solve` is open"
+          width="2000"
+          height="1197"
+          loading="lazy"
+          decoding="async" />
+      </p>
       <p>
         <a href="https://marketplace.visualstudio.com/items?itemName=upyesp.epher" data-i18n="ide-vscode-marketplace">find epher on the Visual Studio Code Marketplace</a>
       </p>
@@ -179,8 +187,8 @@
       <h2><img class="ide-logo ide-logo-invert" src="ide-logos/cursor.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-cursor-title">Cursor</span></h2>
       <p data-i18n="ide-cursor-p1">
         Cursor searches the Open VSX registry through its own reviewed
-        marketplace, and Epher is listed: the Extensions view, search for
-        Epher, Install. The bundled server and every feature behave
+        marketplace, and epher is listed: the Extensions view, search for
+        epher, Install. The bundled server and every feature behave
         identically, and the publisher is verified in Cursor's
         marketplace.
       </p>
@@ -191,8 +199,8 @@
       <h2><img class="ide-logo" src="ide-logos/vscodium.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vscodium-title">VSCodium</span></h2>
       <p data-i18n="ide-vscodium-p1">
         VSCodium is VS Code without Microsoft's marketplace: it searches
-        the Open VSX registry instead, where Epher is listed. The
-        Extensions view, search for Epher, Install. Same server, same
+        the Open VSX registry instead, where epher is listed. The
+        Extensions view, search for epher, Install. Same server, same
         features, same local-only behavior.
       </p>
       <p>
