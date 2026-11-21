@@ -66,7 +66,7 @@ namespace Epher.VisualStudio
                 return;
             }
 
-            if (!EpherPackage.OverEpherScript())
+            if (!EpherPackage.OverRunnableScript())
             {
                 return;
             }
