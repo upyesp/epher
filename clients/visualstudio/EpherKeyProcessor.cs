@@ -50,9 +50,10 @@ namespace Epher.VisualStudio
     {
         // Plain F5 and Ctrl+F5 only: Shift/Alt+F5 (Restart, Stop
         // Debugging in some profiles) and every other chord pass
-        // through untouched. The OverEpherScript gate is the same one
+        // through untouched. The OverRunnableScript gate is the same one
         // the Tools command's enablement uses, so every surface agrees
-        // on what counts as a script.
+        // on what counts as a script: a .epher buffer, or a markdown
+        // document carrying an epher fence (ADR-0088).
         public override void KeyDown(KeyEventArgs args)
         {
             if (args.Key != Key.F5 || args.Handled)
@@ -66,7 +67,7 @@ namespace Epher.VisualStudio
                 return;
             }
 
-            if (!EpherPackage.OverEpherScript())
+            if (!EpherPackage.OverRunnableScript())
             {
                 return;
             }
