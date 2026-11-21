@@ -118,7 +118,7 @@
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>\b(def|const)\b</string>
+					<string>\b(def|const|share)\b</string>
 					<key>name</key>
 					<string>keyword.declaration.epher</string>
 				</dict>
