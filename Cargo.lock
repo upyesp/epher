@@ -1131,7 +1131,7 @@ dependencies = [
 
 [[package]]
 name = "epher-cli"
-version = "0.9.17"
+version = "0.9.18"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1180,7 +1180,7 @@ dependencies = [
 
 [[package]]
 name = "epher-lsp"
-version = "0.9.17"
+version = "0.9.18"
 dependencies = [
  "crossbeam-channel",
  "epher-core",
