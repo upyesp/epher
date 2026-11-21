@@ -260,7 +260,7 @@ window.EPHER_I18N["en"] = {
   "ide-f6-title": "Markdown",
   "ide-f6-desc": "Epher code fences inside markdown files are a script: the same answers, diagnostics, hover, completion, and run, with line numbers pointing into the markdown file.",
   "ide-markdown-title": "Markdown Files",
-  "ide-markdown-desc": "epher also lives inside markdown. A fenced block tagged `epher` in any `.md` file colors like epher, answers its statements inline, and runs as one script: Run script, Ctrl+F5, or plain F5, with every result linked to its line. Notes and docs carry live calculations instead of frozen screenshots.",
+  "ide-markdown-desc": "epher also lives inside markdown. A fenced block tagged `epher` in any `.md` file colors like epher, answers its statements inline, and runs as one script: Run script, Ctrl+F5, or plain F5, with every result linked to its line. Notes and docs carry live calculations.",
   "ide-vscode-title": "VS Code",
   "ide-manual-title": "Any LSP client",
   "ide-manual-p": "The server speaks the Language Server Protocol over stdio, so any LSP client works. Download the binary for your platform from the releases page, uncompress it, and point your editor's client at it:",
