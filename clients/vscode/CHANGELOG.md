@@ -5,6 +5,16 @@ language changes independently; the extension bundles the shared
 grammar, snippets, and the WebAssembly language server of whatever
 epher release built it.
 
+## 0.9.19 - 2026-11-21
+
+F5 and Ctrl+F5 in a markdown file with epher code blocks now run the
+script. The extension's debugger contribution did not claim the
+markdown language, so VS Code could not route a debug start to epher
+and answered with an offer to search the Marketplace for a markdown
+debugger. Markdown now sits beside epher in the debugger's language
+list; the run is the same whole-file run the results pane uses, and
+prose-only markdown keeps getting no run at all.
+
 ## 0.9.16 - 2026-11-21
 
 epher code blocks inside markdown (ADR-0088). Fences tagged `epher`

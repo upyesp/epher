@@ -85,7 +85,8 @@
         "type": "epher",
         "label": "Epher",
         "languages": [
-          "epher"
+          "epher",
+          "markdown"
         ],
         "configurationAttributes": {
           "launch": {
