@@ -51,7 +51,12 @@ object EpherMarkdown {
      *  files simply do not activate. */
     private fun hasEpherFence(file: VirtualFile): Boolean {
         if (file.length > MAX_SCAN_BYTES) return false
-        val text = runCatching { file.text }.getOrNull() ?: return false
+        // VirtualFile has no text accessor of its own: the bytes decode
+        // as UTF-8, which is all a fence scan needs (the fences the
+        // server scans are ASCII; a mis-decoded tail cannot invent one).
+        val text = runCatching {
+            String(file.contentsToByteArray(), Charsets.UTF_8)
+        }.getOrNull() ?: return false
         return hasEpherFence(text)
     }
 

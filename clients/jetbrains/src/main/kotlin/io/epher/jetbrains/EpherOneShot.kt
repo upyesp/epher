@@ -144,7 +144,7 @@ object EpherOneShot {
                     "reopen a .epher file to re-trigger the download"
             )
         }
-        return Session(binary, documentUri, rootUri, text).converse()
+        return Session(binary, documentUri, rootUri, text, languageId).converse()
     }
 
     private class Session(
@@ -152,6 +152,7 @@ object EpherOneShot {
         private val documentUri: String,
         private val rootUri: String,
         private val text: String,
+        private val languageId: String,
     ) {
         // The one deadline for the whole conversation, set once here.
         private val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS)
