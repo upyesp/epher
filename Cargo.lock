@@ -157,7 +157,6 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-log",
  "tempfile",
- "windows-sys 0.59.0",
 ]
 
 [[package]]

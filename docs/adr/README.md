@@ -95,10 +95,10 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0068 | Every editor gets a download, and the last two families ship | 2026-09-18 | accepted |
 | 0069 | The language server runs scripts, and every editor shows the results (amended 2026-09-21: every VS Code start is the same start; amended 2026-09-21: milestone two; JetBrains, Visual Studio, and Neovim run scripts, Zed documented to its limits) | 2026-09-19 | accepted |
 | 0070 | Double-clicking a `.epher` file opens the desktop app and stages it (renumbered from 0069, which was double-allocated) | 2026-09-17 | accepted |
-| 0071 | The store manifest ships two visible applications | 2026-10-04 | accepted |
+| 0071 | The store manifest ships two visible applications | 2026-10-04 | superseded (0089) |
 | 0072 | macOS installs come from Homebrew | 2026-10-10 | accepted |
 | 0073 | The release is cut by CI from a verified tree and the channels follow it | 2026-10-10 | accepted (amended by 0082) |
-| 0074 | The Windows CLI explains a bare run until the headless waiver | 2026-10-11 | accepted |
+| 0074 | The Windows CLI explains a bare run until the headless waiver | 2026-10-11 | superseded (0089) |
 | 0075 | The Apple-silicon gate reports without running when a pull request cannot change what it tests | 2026-10-19 | superseded (0082) |
 | 0076 | macOS offers three install paths, and none of them needs an approval | 2026-10-20 | accepted |
 | 0077 | The apps open the bundled examples from a menu browser | 2026-10-26 | accepted |
@@ -113,6 +113,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0086 | The REPL edits its line like a shell | 2026-11-20 | accepted |
 | 0087 | The desktop webview never keeps a stale shell | 2026-11-20 | accepted |
 | 0088 | The language server reads epher code blocks inside markdown | 2026-11-21 | accepted |
+| 0089 | The store manifest hides the console application under the approved headless waiver | 2026-11-21 | accepted |
 
 ## Decision chains
 
@@ -246,7 +247,10 @@ at the end of the chain.
 - **Unified binary and the platform split** - 0011 (one `epher` binary
   hosts every frontend; the Windows GUI-subsystem sibling `epher-gui`
   takes desktop launches) → 0074 (the Windows console build explains a
-  bare run until the headless waiver) → **0084 (the macOS GUI hands off
+  bare run until the headless waiver; repealed when the waiver landed,
+  0089) → **0084 (the macOS GUI hands off
   to the wrapper-free build; Linux keeps the in-process window)** →
   **0087 (the desktop webview never keeps a stale shell: no service
-  worker under Tauri, one browsing-data clear per version change)**.
+  worker under Tauri, one browsing-data clear per version change)** →
+  **0089 (the store manifest hides the console application under the
+  approved headless waiver)**.

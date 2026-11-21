@@ -2,6 +2,10 @@
 
 Date: 2026-10-04.
 
+Status: Superseded by ADR-0089 (2026-11-21): Microsoft approved the
+HeadlessAppBypass waiver, and the manifest hides the console
+application again.
+
 ## Context
 
 ADR-0011's store shape made the console build the one visible

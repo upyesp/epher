@@ -663,3 +663,14 @@ question needs no installer work - the alias resolves through
 default, and an MSIX cannot edit PATH itself (the NSIS channel manages
 PATH with its own hooks). The next Store update submission ships the
 revised package.
+
+2026-11-21, the waiver lands. Microsoft support confirmed
+HeadlessAppBypass approved and enabled for this product (case
+TrackingID#2610020050003316), so the manifest returns to the original
+1.3 shape: EpherGuiApp the only Start tile, EpherApp hidden under
+AppListEntry="none" with the epher.exe console alias (ADR-0089,
+superseding ADR-0071). The ADR-0074 bare-run banner is removed, so a
+bare `epher` on the Windows console build opens the window again
+(ADR-0011). The 0.9.19 train carries the reverted manifest; the next
+Store update submission is the live certification test of the waiver,
+and a pass gets reported back on the case, as Microsoft asked.
