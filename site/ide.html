@@ -143,6 +143,24 @@
           <span data-i18n="ide-f6-desc">Epher code fences inside markdown files are a script: the same answers, diagnostics, hover, completion, and run, with line numbers pointing into the markdown file.</span></li>
       </ul>
 
+      <h2 data-i18n="ide-markdown-title">Markdown Files</h2>
+      <p data-i18n="ide-markdown-desc">
+        epher also lives inside markdown. A fenced block tagged `epher` in
+        any `.md` file colors like epher, answers its statements inline, and
+        runs as one script: Run script, Ctrl+F5, or plain F5, with every
+        result linked to its line. Notes and docs carry live calculations
+        instead of frozen screenshots.
+      </p>
+      <p>
+        <img class="hero-shot"
+          src="img/ide-markdown.jpg?v=1"
+          alt="A screen shot of a markdown file open inside VS Code. There is a markdown note about quadratic equations and a snippet of epher code with syntax highlighting and an inline answer for the quadratic equation"
+          width="2000"
+          height="1197"
+          loading="lazy"
+          decoding="async" />
+      </p>
+
       <h2><img class="ide-logo" src="ide-logos/vscode.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vscode-title">VS Code</span></h2>
       <p data-i18n="ide-vscode-p1">
         Install it from the marketplace: the Extensions view, search for
@@ -155,30 +173,6 @@
         VS Code, vscode.dev and github.dev: press `.` on any GitHub
         repository or pull request to launch VS Code directly in the
         browser.
-      </p>
-      <p data-i18n="ide-vscode-p3">
-        Running scripts: the Run script button on line one, Ctrl+Enter,
-        or plain F5: epher ships a run-only debug adapter, so a debug
-        start runs the file and prints the answers in the Debug
-        Console. The button and Ctrl+Enter open the results pane
-        instead, which adds the run's graphs and links each row to its
-        line.
-      </p>
-      <p data-i18n="ide-vscode-markdown">
-        epher also lives inside markdown. A fenced block tagged `epher` in
-        any `.md` file colors like epher, answers its statements inline, and
-        runs as one script: Run script, Ctrl+Enter, or plain F5, with every
-        result linked to its line. Notes and docs carry live calculations
-        instead of frozen screenshots.
-      </p>
-      <p>
-        <img class="hero-shot"
-          src="img/ide-markdown.jpg?v=1"
-          alt="quadratics.md in VS Code: an epher code fence runs `solve x^2 == 5*x + 6`, the inline answer `= x = -1, x = 6` renders beside the statement, and the hover hint for `solve` is open"
-          width="2000"
-          height="1197"
-          loading="lazy"
-          decoding="async" />
       </p>
       <p>
         <a href="https://marketplace.visualstudio.com/items?itemName=upyesp.epher" data-i18n="ide-vscode-marketplace">find epher on the Visual Studio Code Marketplace</a>
