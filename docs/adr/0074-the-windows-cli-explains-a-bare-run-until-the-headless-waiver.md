@@ -2,9 +2,9 @@
 
 Date: 2026-10-11
 
-Status: Accepted (temporary: amends ADR-0011's bare-run rule on the
-Windows console build only, until Microsoft grants the HeadlessAppBypass
-waiver for the Store listing; removal rides the waiver's follow-up).
+Status: Superseded by ADR-0089 (2026-11-21): the HeadlessAppBypass
+waiver was approved and enabled for the Store listing; the banner is
+removed and the bare run returns to ADR-0011's rule.
 
 ## Context
 

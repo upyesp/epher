@@ -109,3 +109,6 @@ lives in the dispatcher:
   explains itself and ends after one keypress until Microsoft grants
   the HeadlessAppBypass waiver for the Store listing; `epher gui` and
   every other platform keep the rules above.
+- 2026-11-21 (ADR-0089): the waiver was approved, so the 2026-10-11
+  amendment is repealed: a bare `epher` on the Windows console build
+  opens the GUI again, on every install.

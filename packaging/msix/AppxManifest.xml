@@ -39,24 +39,21 @@
     <Resource Language="zh-CN"/>
   </Resources>
   <Applications>
-    <!-- Two visible applications, mirroring what the NSIS install puts
-         on disk (ADR-0011, ADR-0071). The store rejects hidden entries
-         (AppListEntry="none" reads as a headless app needing the
-         HeadlessAppBypass waiver) and an execution alias or a file type
-         association can only launch its own Application's Executable,
-         so the window and the CLI each need their own visible entry.
-         EpherGuiApp is the desktop app: the Start tile launches
-         epher-gui.exe directly, with no console flash, and the .epher
-         file type association routes double-clicks to it, which stages
-         the script in the entry box instead of evaluating it
-         (ADR-0070). EpherApp is the console build: its epher.exe
-         execution alias carries the full CLI in any terminal - the
-         alias resolves through %LOCALAPPDATA%\Microsoft\WindowsApps,
-         which is on the user PATH by default, because an MSIX cannot
-         edit PATH itself - and bare `epher` on the console build
-         explains itself and quits until the HeadlessAppBypass waiver
-         lands (ADR-0011, ADR-0074). The console alias requires
-         SupportsMultipleInstances. -->
+    <!-- The original two-Application shape (research doc 1.3, ADR-0011,
+         ADR-0089): Microsoft approved and enabled the HeadlessAppBypass
+         waiver for this product (case TrackingID#2610020050003316), so
+         the store rule against hidden entries no longer blocks this
+         package. EpherGuiApp is the desktop app: the only Start tile,
+         launching epher-gui.exe directly, and the .epher file type
+         association routes double-clicks to it, which stages the script
+         in the entry box instead of evaluating it (ADR-0070). EpherApp
+         is the console build: AppListEntry="none" keeps it out of the
+         Start menu, and its epher.exe execution alias carries the full
+         CLI in any terminal - the alias resolves through
+         %LOCALAPPDATA%\Microsoft\WindowsApps, which is on the user PATH
+         by default, because an MSIX cannot edit PATH itself. Bare
+         `epher` on the console build opens the window (ADR-0011). The
+         console alias requires SupportsMultipleInstances. -->
     <Application Id="EpherGuiApp"
                 Executable="epher-gui.exe"
                 EntryPoint="Windows.FullTrustApplication"
@@ -82,11 +79,12 @@
                 Executable="epher.exe"
                 EntryPoint="Windows.FullTrustApplication"
                 uap10:SupportsMultipleInstances="true">
-      <uap:VisualElements DisplayName="epher CLI"
+      <uap:VisualElements DisplayName="epher console"
                           Description="epher command line"
                           BackgroundColor="transparent"
                           Square150x150Logo="assets\Square150x150Logo.png"
-                          Square44x44Logo="assets\Square44x44Logo.png"/>
+                          Square44x44Logo="assets\Square44x44Logo.png"
+                          AppListEntry="none"/>
       <Extensions>
         <uap5:Extension Category="windows.appExecutionAlias">
           <uap5:AppExecutionAlias uap10:Subsystem="console">
