@@ -29,7 +29,7 @@ class EpherRunAction : AnAction() {
     override fun update(event: AnActionEvent) {
         val file = event.getData(CommonDataKeys.VIRTUAL_FILE)
         event.presentation.isEnabledAndVisible =
-            event.project != null && file != null && file.name.endsWith(".epher")
+            event.project != null && file != null && EpherMarkdown.isRunnable(file)
     }
 
     override fun actionPerformed(event: AnActionEvent) {
@@ -56,7 +56,13 @@ class EpherRunAction : AnAction() {
                         "the epher language server is not available: ${rootMessage(e)}", e
                     )
                 }
-                val report = EpherOneShot.run(binary, target.documentUri, target.rootUri, target.text)
+                val report = EpherOneShot.run(
+                    binary,
+                    target.documentUri,
+                    target.rootUri,
+                    target.text,
+                    target.languageId,
+                )
                 ApplicationManager.getApplication().invokeLater {
                     EpherResultsToolWindowFactory.show(project, target.fileName, report)
                 }
@@ -81,6 +87,7 @@ class EpherRunAction : AnAction() {
                 rootUri = EpherUris.rootUri(file),
                 text = document.text,
                 fileName = file.name,
+                languageId = EpherMarkdown.languageId(file),
             )
         }
 
@@ -105,6 +112,7 @@ class EpherRunAction : AnAction() {
         val rootUri: String,
         val text: String,
         val fileName: String,
+        val languageId: String,
     )
 
     private companion object {

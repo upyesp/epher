@@ -28,6 +28,7 @@ from __future__ import annotations
 import gzip
 import io
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -52,7 +53,7 @@ from LSP.plugin import uri_from_view
 # is the current train, so a symlinked test folder resolves to today's
 # release, with the latest-release fallback covering assemblies that
 # run ahead of their tag.
-_SERVER_VERSION = "0.9.16"
+_SERVER_VERSION = "0.9.17"
 
 # The results view's wrap (ADR-0078 R2): rows pre-broken at the
 # wire's soft-break segments to this width, continuation rows indented
@@ -204,6 +205,77 @@ def _download_server() -> "tuple[Path | None, str | None]":
 def _is_epher_view(view: sublime.View) -> bool:
     syntax = view.syntax()
     return syntax is not None and syntax.scope == "source.epher"
+
+
+# The markdown gate (ADR-0088): a markdown view is runnable when it
+# carries one epher fence with content. The fence grammar mirrors the
+# server's exactly (a deliberate copy, crates/lsp/src/markdown.rs):
+# up to three leading spaces, three or more of one fence character,
+# the info string's first word equal to "epher" case-insensitively, a
+# backtick info string may not contain a backtick, a closing fence is
+# the same character at least as long with nothing else on the line,
+# and an unclosed fence runs to end of file. Fence lines inside
+# another (non-epher) fence are content, not fence lines, so the walk
+# tracks the enclosing fence.
+_FENCE_LINE = re.compile(r"^[ ]{0,3}(`{3,}|~{3,})(.*)$")
+_CLOSE_LINE = re.compile(r"^[ ]{0,3}(`{3,}|~{3,})[ \t]*$")
+
+
+def _fence_first_word(info: str) -> str:
+    stripped = info.strip(" \t")
+    cut = re.search(r"[ \t]", stripped)
+    return stripped[: cut.start()] if cut else stripped
+
+
+def _has_epher_fence(text: str) -> bool:
+    fence_char = None
+    fence_len = 0
+    in_epher = False
+    epher_content = False
+    for line in text.splitlines():
+        if fence_char is None:
+            m = _FENCE_LINE.match(line)
+            if m is None:
+                continue
+            marker, info = m.group(1), m.group(2)
+            ch = marker[0]
+            if ch == "`" and "`" in info:
+                continue
+            fence_char, fence_len = ch, len(marker)
+            in_epher = _fence_first_word(info).lower() == "epher"
+            epher_content = False
+        else:
+            m = _CLOSE_LINE.match(line)
+            is_close = (
+                m is not None
+                and m.group(1)[0] == fence_char
+                and len(m.group(1)) >= fence_len
+            )
+            if is_close:
+                if in_epher and epher_content:
+                    return True
+                fence_char = None
+                fence_len = 0
+                in_epher = False
+            elif in_epher:
+                epher_content = True
+    # An epher fence never closed runs its content to end of file.
+    return in_epher and epher_content
+
+
+def _is_markdown_view(view: sublime.View) -> bool:
+    # The default Markdown syntax's root scope; every other markdown
+    # flavor must carry it as an ancestor for the opt-in to see it.
+    syntax = view.syntax()
+    return syntax is not None and syntax.scope.startswith("text.html.markdown")
+
+
+def _is_runnable_view(view: sublime.View) -> bool:
+    if _is_epher_view(view):
+        return True
+    if _is_markdown_view(view):
+        return _has_epher_fence(view.substr(sublime.Region(0, view.size())))
+    return False
 
 
 def _view_by_id(view_id: int) -> sublime.View | None:
@@ -398,11 +470,11 @@ class LspEpherRunCommand(LspTextCommand):
         # out in exactly that case.
         if self.session_by_name():
             return True
-        return _is_epher_view(self.view) or _source_view_of(self.view) is not None
+        return _is_runnable_view(self.view) or _source_view_of(self.view) is not None
 
     def run(self, edit) -> None:
         view = self.view
-        if not _is_epher_view(view):
+        if not _is_runnable_view(view):
             source = _source_view_of(view)
             if source is None:
                 sublime.status_message("LSP-epher: the current view is not an epher script")

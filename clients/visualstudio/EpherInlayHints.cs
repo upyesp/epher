@@ -103,6 +103,10 @@ namespace Epher.VisualStudio
 
     [Export(typeof(IViewTaggerProvider))]
     [ContentType("epher")]
+    // Markdown views serve their answers through the same tagger; the
+    // server's inlay-hint positions already arrive in the document's
+    // own coordinates for the markdown projection (ADR-0088).
+    [ContentType("markdown")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     [TagType(typeof(IntraTextAdornmentTag))]
     internal sealed class EpherInlayHintTaggerProvider : IViewTaggerProvider

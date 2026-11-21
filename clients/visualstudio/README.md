@@ -62,6 +62,27 @@ server's semantic tokens do not color a `.epher` file here the way
 they do in VS Code, Zed, and JetBrains. The TextMate grammar is the
 whole visual story in Visual Studio for now.
 
+### epher inside markdown
+
+A markdown document carrying epher code fences is a script too
+(ADR-0088): the server projects the document's epher fences into one
+virtual script, and the inline answers, diagnostics, and hover work
+in the document's own coordinates. The run road widens with it: F5,
+Ctrl+F5, the play button, and the Tools and context-menu commands all
+light up over a markdown buffer that carries at least one epher fence
+with content, and prose-only markdown never sees any of it.
+
+Two honest limitations here as well:
+
+- Fence coloring: Visual Studio's TextMate support does not process
+  grammar injections, so the fences keep the markdown editor's own
+  look. The inline answers and the run do not depend on it.
+- The inline features activate through the in-box markdown content
+  type ("markdown"). Where a shell or another markdown extension
+  names the content type differently, this extension stays inert over
+  those files; the run road still works there, because it gates on
+  the buffer's text alone.
+
 ## Run a script and see the results
 
 The **Tools > Run Epher Script** command (also on the right-click menu

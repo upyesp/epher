@@ -251,7 +251,9 @@ namespace Epher.VisualStudio
 
                 // didOpen carries the buffer's exact text so the run
                 // reflects what the editor showed; the server runs
-                // exactly this.
+                // exactly this. The languageId follows the file kind:
+                // markdown puts the server in its fence projection
+                // (ADR-0088).
                 Notify("textDocument/didOpen", new Dictionary<string, object>
                 {
                     {
@@ -259,7 +261,7 @@ namespace Epher.VisualStudio
                         new Dictionary<string, object>
                         {
                             { "uri", documentUri },
-                            { "languageId", "epher" },
+                            { "languageId", EpherMarkdown.LanguageIdFor(scriptPath) },
                             { "version", 1 },
                             { "text", scriptText },
                         }

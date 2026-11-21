@@ -2,7 +2,7 @@
   "name": "epher",
   "displayName": "epher",
   "description": "The epher calculator language: answers inline next to every statement, units that convert, hover signatures, and completion \u2014 desktop, web, and the forks.",
-  "version": "0.9.16",
+  "version": "0.9.17",
   "publisher": "upyesp",
   "license": "MIT",
   "repository": {
@@ -30,7 +30,8 @@
     "lsp"
   ],
   "activationEvents": [
-    "onLanguage:epher"
+    "onLanguage:epher",
+    "onLanguage:markdown"
   ],
   "main": "./out/extension.js",
   "browser": "./dist/browser.js",
@@ -56,12 +57,27 @@
         "language": "epher",
         "scopeName": "source.epher",
         "path": "./syntaxes/epher.tmLanguage.json"
+      },
+      {
+        "comment": "epher fences inside markdown (ADR-0088): the injection colors fenced blocks whose info string names epher, using the same epher grammar.",
+        "scopeName": "epher.markdown-injection",
+        "path": "./syntaxes/epher-markdown-injection.tmLanguage.json",
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.epher": "source.epher"
+        }
       }
     ],
     "snippets": [
       {
         "language": "epher",
         "path": "./snippets/epher.json"
+      },
+      {
+        "language": "markdown",
+        "path": "./snippets/epher-markdown.json"
       }
     ],
     "debuggers": [
@@ -79,7 +95,7 @@
             "properties": {
               "program": {
                 "type": "string",
-                "description": "The .epher script to run: a path, or the uri of an untitled document.",
+                "description": "The script to run: a .epher script, or a markdown file carrying epher code blocks (the whole file runs, fences in order). A path, or the uri of an untitled document.",
                 "default": "${workspaceFolder}/script.epher"
               }
             }
@@ -111,7 +127,7 @@
         "command": "epher.runScript",
         "key": "ctrl+enter",
         "mac": "cmd+enter",
-        "when": "editorTextFocus && editorLangId == epher"
+        "when": "editorTextFocus && (editorLangId == epher || editorLangId == markdown)"
       }
     ]
   },

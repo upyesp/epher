@@ -1,0 +1,46 @@
+{
+  "comment": "epher fences inside markdown (ADR-0088). Injected into the markdown grammar (scope text.html.markdown, the markdown-basics scope name): a fenced code block whose info string names epher colors its content with the shared epher grammar through the meta.embedded.block.epher scope. The injectionSelector carries L: (left priority) so the injection beats the markdown grammar's own generic fenced_code_block_unknown rule, which matches the same fence at the same position; without the priority the base rule wins the tie and the block stays uncolored. The pattern shape mirrors the markdown-basics grammar's own fenced_code_block_* rules, so the two compose instead of fighting: the base grammar keeps its fence markup, the injection adds the embedded language.",
+  "scopeName": "epher.markdown-injection",
+  "injectTo": ["text.html.markdown"],
+  "injectionSelector": "L:text.html.markdown",
+  "embeddedLanguages": {
+    "meta.embedded.block.epher": "source.epher"
+  },
+  "patterns": [
+    {
+      "comment": "An opening fence whose info string's first word is epher. The separator clause after the name keeps `ephemeral` out and admits `epher showLines`-style attribute strings, exactly as the markdown grammar does for its own languages.",
+      "name": "markup.fenced_code.block.markdown",
+      "begin": "(^|\\G)(\\s*)(`{3,}|~{3,})\\s*(?i:(epher)((\\s+|:|,|\\{|\\?)[^`]*)?$)",
+      "beginCaptures": {
+        "2": {
+          "name": "punctuation.definition.markdown"
+        },
+        "3": {
+          "name": "fenced_code.block.language.markdown"
+        },
+        "4": {
+          "name": "fenced_code.block.language.attributes.markdown"
+        }
+      },
+      "end": "(^|\\G)(\\s{0,3})(`{3,}|~{3,})\\s*$",
+      "endCaptures": {
+        "2": {
+          "name": "punctuation.definition.markdown"
+        }
+      },
+      "patterns": [
+        {
+          "comment": "One content line at a time, until a closing fence line: the same while clause the markdown grammar's embedded blocks use.",
+          "begin": "(^|\\G)",
+          "while": "(^|\\G)(?!\\s*(`{3,}|~{3,})\\s*$)",
+          "contentName": "meta.embedded.block.epher",
+          "patterns": [
+            {
+              "include": "source.epher"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

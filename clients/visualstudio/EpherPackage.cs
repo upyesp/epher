@@ -73,17 +73,19 @@ namespace Epher.VisualStudio
             base.Dispose(disposing);
         }
 
-        // Enabled (and visible) only over a .epher document: this drives
-        // the Tools-menu and code-window context-menu items. The
-        // standard F5/Ctrl+F5/play path does not ride on this command;
-        // it is the view command filter's QueryStatus (EpherViewFilter).
+        // Enabled (and visible) only over a runnable document, a
+        // .epher script or, since ADR-0088, a markdown document
+        // carrying an epher fence: this drives the Tools-menu and
+        // code-window context-menu items. The standard F5/Ctrl+F5/play
+        // path does not ride on this command; it is the view command
+        // filter's QueryStatus (EpherViewFilter).
         private void OnBeforeQueryStatus(object sender, EventArgs e)
         {
             var command = (OleMenuCommand)sender;
             string path;
-            bool overEpher = ActiveEpherBuffer(out path) != null;
-            command.Visible = overEpher;
-            command.Enabled = overEpher;
+            bool overRunnable = ActiveRunnableBuffer(out path) != null;
+            command.Visible = overRunnable;
+            command.Enabled = overRunnable;
         }
 
         private void RunActiveScript(object sender, EventArgs e)
@@ -106,9 +108,12 @@ namespace Epher.VisualStudio
             try
             {
                 // The buffer text travels whole: the run reflects exactly
-                // what the editor showed, saved or not.
+                // what the editor showed, saved or not. For markdown the
+                // server projects the document's epher fences itself; the
+                // run session's languageId follows the file kind inside
+                // EpherRun.
                 string path;
-                var buffer = ActiveEpherBuffer(out path);
+                var buffer = ActiveRunnableBuffer(out path);
                 if (buffer == null)
                 {
                     return;
@@ -135,9 +140,12 @@ namespace Epher.VisualStudio
         // The active document through the text manager, no DTE
         // dependency: the active view's buffer knows both its file name
         // and its text. Untitled buffers have no file name, and a run
-        // needs a path to anchor the results report to. Returns null for
-        // anything that is not a .epher file.
-        internal static IVsTextLines ActiveEpherBuffer(out string path)
+        // needs a path to anchor the results report to. Returns null
+        // for anything that is not runnable: a .epher file, or since
+        // ADR-0088 a markdown document carrying an epher fence
+        // (prose-only markdown never runs; the fence scan mirrors the
+        // server's in EpherMarkdown.cs).
+        internal static IVsTextLines ActiveRunnableBuffer(out string path)
         {
             path = null;
 
@@ -167,7 +175,32 @@ namespace Epher.VisualStudio
             // below rejects.
             uint formatIndex;
             ((IPersistFileFormat)buffer).GetCurFile(out path, out formatIndex);
-            if (string.IsNullOrEmpty(path) || !path.EndsWith(".epher", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(path))
+            {
+                path = null;
+                return null;
+            }
+
+            if (path.EndsWith(".epher", StringComparison.OrdinalIgnoreCase))
+            {
+                return buffer;
+            }
+
+            if (!EpherMarkdown.IsMarkdownPath(path))
+            {
+                path = null;
+                return null;
+            }
+
+            // Markdown runs only when an epher fence with content is
+            // in the buffer, so the run shows what the editor shows
+            // even unsaved.
+            int bufLastLine;
+            int bufLastColumn;
+            buffer.GetLastLineIndex(out bufLastLine, out bufLastColumn);
+            string bufText;
+            buffer.GetLineText(0, 0, bufLastLine, bufLastColumn, out bufText);
+            if (!EpherMarkdown.HasEpherFence(bufText))
             {
                 path = null;
                 return null;
@@ -178,10 +211,10 @@ namespace Epher.VisualStudio
 
         // The gate every run claim shares — the menu item's
         // BeforeQueryStatus, the view filter's QueryStatus and Exec.
-        internal static bool OverEpherScript()
+        internal static bool OverRunnableScript()
         {
             string path;
-            return ActiveEpherBuffer(out path) != null;
+            return ActiveRunnableBuffer(out path) != null;
         }
 
         // The whole transcript echoes to the "epher" Output pane, not

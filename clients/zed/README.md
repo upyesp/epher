@@ -42,6 +42,13 @@ side panel, no print statements: the editor *is* the calculator.
   language, and the server's semantic tokens refine it live: the `m`
   in `2 m` is a unit, not a variable. Turn semantic tokens on for the
   refinement (the settings below).
+- **Markdown**: not here, honestly. ADR-0088 brought epher fences in
+  markdown to every client whose extension API can attach a language
+  server to the built-in markdown mode; Zed's extension API cannot,
+  so a `.md` file stays plain markdown in Zed while every `.epher`
+  feature above works as before. The fence scanner to mirror is the
+  server's own (crates/lsp/src/markdown.rs), so the client-side work
+  is ready when the platform is.
 
 ## Quick start
 

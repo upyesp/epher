@@ -23,7 +23,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // and says so once.
   const serverOptions: ServerOptions = wasmServerOptions(context, channel);
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ language: "epher" }],
+    // epher documents, and markdown ones whose epher fences the server
+    // projects (ADR-0088): the server maps positions in and out, so
+    // one selector serves both and the extension stays thin.
+    documentSelector: [{ language: "epher" }, { language: "markdown" }],
     outputChannel: channel,
   };
   client = new LanguageClient(

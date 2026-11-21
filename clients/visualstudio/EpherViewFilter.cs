@@ -1,6 +1,8 @@
 // The standard-commands hook (ADR-0069): a view-level command filter
 // that claims the shell's own Debug.Start (F5) and
-// Debug.StartWithoutDebugging (Ctrl+F5) over a .epher document — the
+// Debug.StartWithoutDebugging (Ctrl+F5) over a runnable document: a
+// .epher script, or since ADR-0088 a markdown document carrying an
+// epher fence: the
 // commands the native Debug menu, the toolbar play button, and the
 // keyboard all speak. Nothing is rebound: the menu items light up
 // because this filter's QueryStatus answers SUPPORTED | ENABLED for
@@ -34,6 +36,12 @@ namespace Epher.VisualStudio
 {
     [Export(typeof(IVsTextViewCreationListener))]
     [ContentType("epher")]
+    // The filter joins markdown views too (ADR-0088) so F5 and
+    // Ctrl+F5 can run a runnable markdown document. Joining costs
+    // nothing by itself: every query and exec below still gates on
+    // the active buffer being runnable, so prose-only markdown is a
+    // pure pass-through.
+    [ContentType("markdown")]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed class EpherViewFilterProvider : IVsTextViewCreationListener
     {
@@ -82,7 +90,7 @@ namespace Epher.VisualStudio
                 && prgCmds != null
                 && prgCmds.Length > 0
                 && IsRunKey(prgCmds[0].cmdID)
-                && EpherPackage.OverEpherScript())
+                && EpherPackage.OverRunnableScript())
             {
                 // Claimed: the native Debug menu item, the toolbar play
                 // button, and the key binding all read this state and
@@ -101,13 +109,13 @@ namespace Epher.VisualStudio
         {
             if (pguidCmdGroup == StandardCommandSet97
                 && IsRunKey(nCmdID)
-                && EpherPackage.OverEpherScript())
+                && EpherPackage.OverRunnableScript())
             {
                 // The same one run path the Tools command uses; the
                 // report lands in the results pane either way.
                 EpherLog.Write(
                     "Debug.Start/StartNoDebug (" + nCmdID
-                    + ") claimed by the epher view filter over a .epher document — running the script");
+                    + ") claimed by the epher view filter over a runnable document, running the script");
                 EpherPackage.RunActiveScript();
                 return VSConstants.S_OK;
             }

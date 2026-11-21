@@ -1,0 +1,7 @@
+{
+  "epher-block": {
+    "prefix": "epher-block",
+    "body": ["```epher", "${1:1 + 1}", "```"],
+    "description": "a fenced epher code block inside markdown: analyzed, answered, and runnable in place (ADR-0088)"
+  }
+}
