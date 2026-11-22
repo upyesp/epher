@@ -173,7 +173,8 @@ jobs:
     # this job repins it at THIS tag before building, the same way the
     # snap job pins the version. Flathub publication was dropped
     # (ADR-0061 amendment, 2026-09-18); flatpak-build.yml keeps proving
-    # the manifest between releases, on x86_64 and aarch64.
+    # the manifest between releases, on x86_64 (the arm64 proof leg was
+    # withdrawn 2026-11-22 — the bundle is x86_64 only, ADR-0061).
     #
     # The arm bundle is not built (ADR-0061 amendment, 2026-10-08): the
     # release train's arm builds died on bwrap "Exec format error" on

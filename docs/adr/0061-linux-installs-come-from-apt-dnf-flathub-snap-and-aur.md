@@ -9,6 +9,9 @@ publish: see the Amendment at the end of this record.
 Amended 2026-09-18: Flathub publication is dropped, the Flatpak build
 stays as a maintained in-repo bundle channel: see the Amendment at the
 end of this record.
+Amended 2026-11-22: the Flatpak bundle is x86_64 only — the arm64
+manifest proof in CI is withdrawn with it: see the Amendment at the
+end of this record.
 
 ## Context
 
@@ -237,3 +240,35 @@ Decision: the release train builds one Flatpak bundle,
 - Returning the bundle is a new decision, taken when the arm runner's
   bwrap heals: re-add the aarch64 matrix leg to the release workflow's
   flatpak job.
+
+## Amendment (2026-11-22): the Flatpak bundle is x86_64 only, and the arm64 manifest proof is withdrawn
+
+The 2026-10-08 amendment stopped the release train's arm Flatpak
+bundle but kept `.github/workflows/flatpak-build.yml` proving the
+manifest on aarch64, so returning the bundle would be a matrix line.
+The arm proof never stabilized: the ubuntu-24.04-arm runner's
+flatpak-builder sandbox keeps dying with `bwrap: execvp /bin/sh: Exec
+format error` (eight consecutive failed attempts, both workflow
+retries included, on 2026-11-22), and the flake now also bites the
+x86_64 leg in a second form (`Failed to update org.gnome.Platform:
+Invalid cross-device link`, a Flathub runner-image failure that needs
+a manual rerun on a healthy runner). The proof leg fails often enough
+that its red marks are noise, and noise is what hides real breakage.
+
+Decision: Linux Flatpak is x86_64 only, everywhere, permanently until
+revisited.
+
+- `flatpak-build.yml` proves the manifest on x86_64 alone; the
+  aarch64 matrix entry is removed. One bundle exists and ships:
+  `epher-linux-x86_64.flatpak`.
+- Arm users install epher through the deb, rpm, AppImage, or snap —
+  every other arm channel is untouched (apt and dnf still serve
+  binary-arm64 / aarch64; this amendment narrows only the Flatpak
+  story).
+- The manifest itself stays arch-aware (it still carries its per-arch
+  binaryen and wasm sources), so a future return remains a matrix
+  line plus this record's reversal — not a rebuild of the packaging
+  story.
+- Returning the arm proof (and with it an arm bundle) is a new
+  decision, taken only when GitHub's arm runners run flatpak-builder
+  reliably for weeks.
