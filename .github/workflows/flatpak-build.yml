@@ -4,7 +4,10 @@
 # drift get caught in this repo instead of at release time. Flathub
 # publication was dropped (ADR-0061 amendment, 2026-09-18); maintaining
 # this build is the whole Flatpak story now, and each run leaves the
-# bundles as artifacts for direct testing.
+# bundle as an artifact for direct testing. The bundle is x86_64 only:
+# the arm64 proof leg was withdrawn (ADR-0061 amendment, 2026-11-22)
+# after the arm runner's flatpak-builder sandbox died reliably with
+# bwrap "Exec format error".
 name: flatpak build
 
 on:
@@ -31,8 +34,6 @@ jobs:
         include:
           - os: ubuntu-latest
             arch: x86_64
-          - os: ubuntu-24.04-arm
-            arch: aarch64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     container:
@@ -42,9 +43,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         id: build
-        # One automatic re-attempt absorbs the arm runner's transient
-        # bwrap "Exec format error" (the same flake the release train
-        # hits; see the comment in release.yml).
+        # One automatic re-attempt absorbs the runner images' transient
+        # flakes (the x86_64 SDK-update "Invalid cross-device link"; the
+        # arm bwrap "Exec format error" that killed the withdrawn arm
+        # leg entirely — see release.yml).
         continue-on-error: true
         with:
           bundle: epher-linux-${{ matrix.arch }}.flatpak
