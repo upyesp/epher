@@ -51,10 +51,10 @@
 # download is the Flatpak channel). Each of those jobs skips with a
 # notice when its credentials (GPG key, Snap Store login) are not yet
 # configured. The microsoft-store job uploads the release's MSIX to the
-# Microsoft Store as a draft submission (2026-11-22: the Entra credential
-# finally works, docs/research/microsoft-store-publishing.md), and a
-# human publishes it from Partner Center, so a certification failure
-# never blocks the train.
+# Microsoft Store and commits the submission (2026-11-22: the Entra
+# credential finally works, docs/research/microsoft-store-publishing.md),
+# so certification starts with no human click; a failed certification
+# leaves the previous Store version live and never blocks the train.
 #
 # The builds carry no developer identity: Windows is unsigned, macOS is
 # ad-hoc signed (a valid signature, so Gatekeeper's "damaged" check
@@ -696,11 +696,12 @@ jobs:
     # for the credential). The Store re-signs the unsigned MSIX, so no
     # certificate is involved; the credential is an Entra application
     # created inside Partner Center with the Manager(Windows) role.
-    # Draft only for now: the job uploads the package and leaves the
-    # submission for a human to publish in Partner Center. Skips with a
-    # notice until MSSTORE_* exists in the stores environment, and is
-    # deliberately absent from verify's needs: a Store review failure
-    # must not fail a release that has already shipped everywhere else.
+    # Fully automatic (Pete, 2026-11-22): the job uploads the package and
+    # commits the submission, so certification starts without a human
+    # click. Skips with a notice until MSSTORE_* exists in the stores
+    # environment, and is deliberately absent from verify's needs: a Store
+    # review failure must not fail a release that has already shipped
+    # everywhere else.
     name: microsoft store
     needs: [train, release]
     if: inputs.dry_run != true

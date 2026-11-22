@@ -892,12 +892,19 @@ quotes it should quote the `/v2/account-settings/` path instead.
 
 ### The publish leg, and two CLI facts learned building it
 
-`store-publish.yml` now rides the train: it takes the release's
+`store-publish.yml` rides the train: it takes the release's
 `epher-windows-x86_64.msix` (never a rebuild), checks the package version
-against the tag, refuses to touch a submission that is already open, runs
-`msstore publish <msix> -id 9NWXQ035T8TB --noCommit`, and writes the Partner
-Center link into the run summary. Draft only: a human publishes. Two facts
-cost a CI iteration each and are worth knowing:
+against the tag, refuses to touch a submission that is already open, and runs
+`msstore publish <msix> -id 9NWXQ035T8TB`. Same day, Pete called the
+destination: fully automatic, no human publish click, so the command runs
+without `--noCommit`. The CLI then uploads, commits and polls until the
+commit is accepted — minutes, because the poll stops as soon as the status
+leaves `CommitStarted` (`Helpers/IStorePackagedAPIExtensions.cs`) — and
+certification proceeds in Partner Center on its own. A `draft_only` input
+keeps the upload-and-stop behaviour for diagnostics. A failed certification
+leaves the previous version live, so the blast radius of an automatic
+submission is "the update does not ship", never "the Store listing breaks".
+Two facts cost a CI iteration each and are worth knowing:
 
 - **`msstore reconfigure` does not work on an ubuntu runner.** The CLI
   persists the client secret through the platform credential manager, and the
