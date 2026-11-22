@@ -55,26 +55,28 @@ jobs:
 
   cli:
     # The same credential through the tool the publish job drives, which
-    # is the half this test was missing: the raw REST call above proves
-    # the app is authorised, this proves `msstore` accepts the seller id
-    # and can read the product. Read-only: no submission is created.
-    runs-on: ubuntu-latest
+    # is the half the raw REST test above cannot cover: that the seller
+    # id is accepted and the CLI can read the product. Read-only, no
+    # submission is created. windows-latest for the same reason the
+    # publish job uses it: reconfigure persists the secret through the
+    # platform credential manager, and the Linux build wants libsecret.
+    runs-on: windows-latest
     environment: stores
     steps:
       - name: Secrets check
         id: secrets
+        shell: pwsh
         env:
           TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
           CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
           SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
-          SELLER: ${{ secrets.MSSTORE_SELLER_ID }}
         run: |
-          if [ -n "$TENANT" ] && [ -n "$CLIENT" ] && [ -n "$SECRET" ]; then
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::store cli test skipped: the MSSTORE_* secrets are not set in the stores environment."
-          fi
+          if ($env:TENANT -and $env:CLIENT -and $env:SECRET) {
+            "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          } else {
+            "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            Write-Host "::notice::store cli test skipped: the MSSTORE_* secrets are not set in the stores environment."
+          }
 
       - name: Install the Microsoft Store Developer CLI
         if: steps.secrets.outputs.skip == 'false'
@@ -84,22 +86,21 @@ jobs:
 
       - name: Configure, then read the catalog and the submission state
         if: steps.secrets.outputs.skip == 'false'
+        shell: pwsh
         env:
           TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
           SELLER: ${{ secrets.MSSTORE_SELLER_ID }}
           CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
           SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
         run: |
-          set -e
-          # human-facing progress goes to stderr, JSON to stdout; 2>&1
-          # so the log shows both halves of the reconfigure output
-          msstore reconfigure \
-            --tenantId "$TENANT" \
-            --sellerId "$SELLER" \
-            --clientId "$CLIENT" \
-            --clientSecret "$SECRET" 2>&1
-          echo "=== applications ==="
-          msstore apps list 2>&1
-          echo "=== last submission ==="
-          msstore submission status 9NWXQ035T8TB 2>/dev/null | tee status.json
-          echo "status: $(jq -r '.status // "missing"' status.json)"
+          msstore reconfigure --tenantId $env:TENANT --sellerId $env:SELLER --clientId $env:CLIENT --clientSecret $env:SECRET
+          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed with $LASTEXITCODE" }
+          Write-Host "=== applications ==="
+          msstore apps list
+          if ($LASTEXITCODE -ne 0) { throw "msstore apps list failed with $LASTEXITCODE" }
+          Write-Host "=== last submission ==="
+          msstore submission status 9NWXQ035T8TB 2>$null | Out-File -FilePath status.json -Encoding utf8
+          if ($LASTEXITCODE -ne 0) { throw "msstore submission status failed with $LASTEXITCODE" }
+          $status = (Get-Content -Raw status.json | ConvertFrom-Json).status
+          Write-Host "submission status: $status"
+          if ([string]::IsNullOrWhiteSpace($status)) { throw "the CLI printed no status field" }

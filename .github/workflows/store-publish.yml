@@ -14,10 +14,16 @@ name: microsoft store publish
 # in the Entra admin center and merely pointed at is refused with
 # "Identity cannot be authorized" (microsoft/msstore-cli#131). The four
 # MSSTORE_* secrets live in the `stores` environment and the job skips
-# with a notice until they exist. The app is created in the tenant
-# associated with the seller account, upyesp.onmicrosoft.com; see the
-# research doc for why a personal Microsoft account needs a work tenant
-# first.
+# with a notice until they exist. The app lives in the tenant associated
+# with the seller account, upyesp.onmicrosoft.com; see the research doc
+# for why a personal Microsoft account needs a work tenant first.
+#
+# windows-latest, not ubuntu: `msstore reconfigure` persists the client
+# secret through the platform credential manager, and the Linux build
+# uses libsecret, which a headless runner does not have (measured
+# 2026-11-22: "Ops, something doesn't seem to be right!" after
+# "Testing configuration", exit 255, on a clean ubuntu runner). Windows
+# Credential Manager is the path the CLI is developed against.
 #
 # DRAFT ONLY, first cycle: the job uploads the package and leaves a
 # pending submission, then names the Partner Center page in the run
@@ -63,134 +69,142 @@ jobs:
     environment: stores
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 30
     steps:
       - name: Secrets check
         id: secrets
+        shell: pwsh
         env:
           TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
           CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
           SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
         run: |
-          if [ -n "$TENANT" ] && [ -n "$CLIENT" ] && [ -n "$SECRET" ]; then
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::microsoft store publish skipped: set MSSTORE_TENANT_ID, MSSTORE_CLIENT_ID and MSSTORE_CLIENT_SECRET in the stores environment (see docs/research/microsoft-store-publishing.md)."
-          fi
+          if ($env:TENANT -and $env:CLIENT -and $env:SECRET) {
+            "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          } else {
+            "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            Write-Host "::notice::microsoft store publish skipped: set MSSTORE_TENANT_ID, MSSTORE_CLIENT_ID and MSSTORE_CLIENT_SECRET in the stores environment (see docs/research/microsoft-store-publishing.md)."
+          }
 
       - name: Resolve the tag and version
         if: steps.secrets.outputs.skip == 'false'
+        shell: pwsh
         env:
           TAG_INPUT: ${{ inputs.tag }}
           VERSION_INPUT: ${{ inputs.version }}
         run: |
-          set -e
-          TAG="$TAG_INPUT"
-          VERSION="${VERSION_INPUT#v}"
-          test -n "$TAG"
-          test -n "$VERSION"
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          $tag = $env:TAG_INPUT
+          $version = $env:VERSION_INPUT -replace '^v', ''
+          if (-not $tag) { throw "the tag input is empty" }
+          if (-not $version) { throw "the version input is empty" }
+          "TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Install the Microsoft Store Developer CLI
         if: steps.secrets.outputs.skip == 'false'
         uses: microsoft/microsoft-store-apppublisher@v1.1
         with:
           # pinned: the CLI gained client-assertion auth in 0.4.2 and
-          # per-command behaviour changes between minor versions
+          # per-command behaviour moves between minor versions
           version: v0.4.4
 
-      - name: Download the package from the release
+      - name: Download the package and check its version
         if: steps.secrets.outputs.skip == 'false'
+        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ env.TAG }}
         run: |
-          set -e
-          mkdir -p dist
-          gh release download "$TAG" --pattern 'epher-windows-x86_64.msix' --dir dist
-          test -f dist/epher-windows-x86_64.msix
-          # the package is a zip, and the manifest at its root is the
-          # version the Store will compare against the published one
-          PKG="$(unzip -p dist/epher-windows-x86_64.msix AppxManifest.xml \
-            | grep -o 'Version="[0-9.]*"' | head -1 | cut -d'"' -f2)"
-          echo "package version: ${PKG}"
-          if [ "$PKG" != "${VERSION}.0" ]; then
-            echo "::error::package version ${PKG} is not ${VERSION}.0 (the Store takes four sections, the fourth reserved and 0)"
-            exit 1
-          fi
+          $ErrorActionPreference = 'Stop'
+          gh release download $env:TAG --pattern 'epher-windows-x86_64.msix' --dir dist
+          if ($LASTEXITCODE -ne 0) { throw "gh release download failed with $LASTEXITCODE" }
+          $package = 'dist/epher-windows-x86_64.msix'
+          if (-not (Test-Path $package)) { throw "the release has no $package" }
+          # the package is a zip; read the manifest without touching the
+          # Store (an unsigned MSIX cannot be installed, but it unpacks)
+          $tmp = Join-Path $env:RUNNER_TEMP 'msixcheck'
+          New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+          Copy-Item $package (Join-Path $tmp 'package.zip')
+          Expand-Archive -Path (Join-Path $tmp 'package.zip') -DestinationPath $tmp -Force
+          $manifest = Get-Content -Raw (Join-Path $tmp 'AppxManifest.xml')
+          if ($manifest -notmatch 'Version="([0-9.]+)"') { throw "no Version attribute in AppxManifest.xml" }
+          $found = $Matches[1]
+          Write-Host "package version: $found"
+          if ($found -ne "$($env:VERSION).0") {
+            throw "package version $found is not $($env:VERSION).0 (the Store takes four sections, the fourth reserved and 0)"
+          }
 
       - name: Configure the Store CLI
         if: steps.secrets.outputs.skip == 'false'
+        shell: pwsh
         env:
           TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
           SELLER: ${{ secrets.MSSTORE_SELLER_ID }}
           CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
           SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
         run: |
-          set -e
-          msstore reconfigure \
-            --tenantId "$TENANT" \
-            --sellerId "$SELLER" \
-            --clientId "$CLIENT" \
-            --clientSecret "$SECRET"
+          msstore reconfigure --tenantId $env:TENANT --sellerId $env:SELLER --clientId $env:CLIENT --clientSecret $env:SECRET
+          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed with $LASTEXITCODE" }
 
       - name: Check the last submission
         id: state
         if: steps.secrets.outputs.skip == 'false'
+        shell: pwsh
         run: |
-          set -e
+          $ErrorActionPreference = 'Stop'
           # JSON on stdout, progress on stderr (the CLI's contract)
-          msstore submission status 9NWXQ035T8TB > status.json
-          STATUS="$(jq -r '.status // empty' status.json)"
-          echo "status=${STATUS}" >> "$GITHUB_OUTPUT"
-          case "$STATUS" in
-            Published)
+          msstore submission status 9NWXQ035T8TB 2>$null | Out-File -FilePath status.json -Encoding utf8
+          if ($LASTEXITCODE -ne 0) { throw "msstore submission status failed with $LASTEXITCODE" }
+          $status = (Get-Content -Raw status.json | ConvertFrom-Json).status
+          "status=$status" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          switch ($status) {
+            'Published' {
               # nothing outstanding: a new submission is safe to create
-              echo "proceed=true" >> "$GITHUB_OUTPUT"
-              ;;
-            PendingCommit)
+              "proceed=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            }
+            'PendingCommit' {
               # a draft is waiting for a human; clobbering it would throw
               # away whatever was edited in Partner Center
-              echo "proceed=false" >> "$GITHUB_OUTPUT"
-              echo "::notice::a draft submission is already open for ${VERSION}; publish or delete it in Partner Center, then re-run this job."
-              ;;
-            '')
-              echo "proceed=false" >> "$GITHUB_OUTPUT"
-              echo "::error::could not read the submission status; the CLI printed no status field."
-              exit 1
-              ;;
-            *)
-              # Certification, CommitStarted, PreProcessing and friends:
-              # the API refuses a second submission while one is live
-              echo "proceed=false" >> "$GITHUB_OUTPUT"
-              echo "::notice::the last submission is in state ${STATUS}; leaving it alone and not uploading ${VERSION}."
-              ;;
-          esac
+              "proceed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+              Write-Host "::notice::a draft submission is already open; publish or delete it in Partner Center, then re-run this job."
+            }
+            { [string]::IsNullOrWhiteSpace($_) } {
+              throw "could not read the submission status: the CLI printed no status field"
+            }
+            default {
+              # Certification, CommitStarted, PreProcessing: the API
+              # refuses a second submission while one is live
+              "proceed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+              Write-Host "::notice::the last submission is in state $status; leaving it alone and not uploading $($env:VERSION)."
+            }
+          }
 
       - name: Upload the package as a draft submission
         if: steps.secrets.outputs.skip == 'false' && steps.state.outputs.proceed == 'true'
+        shell: pwsh
         run: |
-          set -e
           # --noCommit leaves the submission pending: nothing reaches
           # certification, let alone the Store, until a human publishes
           msstore publish dist/epher-windows-x86_64.msix -id 9NWXQ035T8TB --noCommit
+          if ($LASTEXITCODE -ne 0) { throw "msstore publish failed with $LASTEXITCODE" }
 
       - name: Write the run summary
         if: steps.secrets.outputs.skip == 'false' && steps.state.outputs.proceed == 'true'
+        shell: pwsh
         run: |
-          set -e
-          msstore submission get 9NWXQ035T8TB > draft.json
-          jq -r '"status: `\(.status)`, submission `\(.id)`, packages: \(.applicationPackages | length)"' draft.json
-          {
-            echo "### Microsoft Store draft for ${VERSION}"
-            echo
-            echo "| field | value |"
-            echo "|---|---|"
-            jq -r '"| status | `\(.status)` |\n| submission | `\(.id)` |\n| packages in this submission | \(.applicationPackages | length) |"' draft.json
-            echo
-            echo "Publish it at https://partner.microsoft.com/dashboard/products/9NWXQ035T8TB/submissions"
-            echo "(press Publish on the pending submission; certification takes up to three business days)."
-          } >> "$GITHUB_STEP_SUMMARY"
+          $ErrorActionPreference = 'Stop'
+          msstore submission get 9NWXQ035T8TB 2>$null | Out-File -FilePath draft.json -Encoding utf8
+          if ($LASTEXITCODE -ne 0) { throw "msstore submission get failed with $LASTEXITCODE" }
+          $draft = Get-Content -Raw draft.json | ConvertFrom-Json
+          @(
+            "### Microsoft Store draft for $($env:VERSION)"
+            ""
+            "| field | value |"
+            "|---|---|"
+            "| status | ``$($draft.status)`` |"
+            "| submission | ``$($draft.id)`` |"
+            "| packages in this submission | $($draft.applicationPackages.Count) |"
+            ""
+            "Publish it at https://partner.microsoft.com/dashboard/products/9NWXQ035T8TB/submissions"
+            "(press Publish on the pending submission; certification takes up to three business days)."
+          ) | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
