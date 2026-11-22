@@ -1,6 +1,10 @@
 # ADR-0090: the solar pane's time knob spans a month and every play cycle lasts ~24 seconds
 
-- **Status:** accepted
+- **Status:** accepted; the span rule is superseded by ADR-0091
+  (2026-11-22): the knob now spans the outermost displayed orbit, with
+  this ADR's month window as the nothing-displayed fallback. The
+  ~24-second cycle, the proportionate play step, and the
+  reduced-motion press stand unchanged.
 - **Deciders:** epher maintainers
 - **Date:** 2026-11-22
 

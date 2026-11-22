@@ -2691,8 +2691,11 @@ impl App {
     /// constant referenced by any plotted surface (or curve) within its
     /// play span, stepping a cycle per tick and wrapping around, the
     /// TUI's counterpart of the web sliders' play button (ADR-0015).
-    /// The solar pane's time knob spans a month-wide window (ADR-0090):
-    /// over ±2 Julian days Earth crosses ~2° and play reads as frozen.
+    /// The solar pane's time knob spans the outermost displayed orbit
+    /// (ADR-0091): the terminal shows every body, so one ~24 s cycle
+    /// completes Pluto's orbit; the ADR-0090 month remains the
+    /// nothing-displayed fallback. The web pane applies the same rule
+    /// per legend checkbox; here the displayed set is the whole scene.
     pub fn toggle_play(&mut self) -> bool {
         if self.play.is_some() {
             self.play = None;
@@ -2717,7 +2720,12 @@ impl App {
             })
             .unwrap_or(false);
         let (lo, hi, step) = if solar_owned {
-            let (lo, hi) = epher_core::astro::solar_time_span(v);
+            let orbits = self
+                .solar
+                .as_ref()
+                .map(|s| s.orbits.as_slice())
+                .unwrap_or(&[]);
+            let (lo, hi) = epher_core::astro::solar_time_span_for(v, orbits);
             let step = (hi - lo) / 200.0; // 200 ticks at the 120 ms cadence, the web play cycle
             (lo, hi, step)
         } else {

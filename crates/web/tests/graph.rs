@@ -8,7 +8,10 @@ use epher_web::graph::{
     geometry, geometry_in, graph_svg, segments, ticks, trace_nearest, Poi, TracePoint,
     DEFAULT_STROKE_WIDTH,
 };
-use epher_web::{anchored_window, slider_names, slider_window, tune_value, zoom_slider_value};
+use epher_web::{
+    anchored_window, solar_slider_span, solar_slider_span_shown, slider_names, slider_window,
+    tune_value, zoom_slider_value,
+};
 
 fn env() -> Env {
     Env::default()
@@ -705,26 +708,54 @@ fn a_lost_draw_env_never_blanks_the_pane_it_just_rendered() {
     assert!(!z.pane_blank(), "reset must never blank the pane");
 }
 
-// ===== the solar pane's time knob (ADR-0090) =====
+// ===== the solar pane's time knob (ADR-0090 + the ADR-0091 amendment) =====
 
 #[test]
-fn solar_time_knob_spans_a_month_and_play_keeps_the_24s_cycle() {
+fn solar_time_knob_spans_the_outermost_displayed_orbit_and_play_keeps_the_24s_cycle() {
     // The guide promises "press the play button to watch the planets
-    // move". Over the generic large-constant ±2-day window Earth
-    // crosses ~2° across the whole slider track and play reads as
-    // frozen; the solar knob therefore spans a month (ADR-0090), and
-    // the play step scales to keep one cycle at ~24 s (200 ticks at
-    // the 120 ms cadence) whatever the span's width.
+    // move". The knob's sweep is the orbital period of the OUTERMOST
+    // body the legend still shows (ADR-0091): one cycle — 200 ticks at
+    // the 120 ms cadence, ~24 s — completes exactly that orbit.
+    // Unchecking the outermost planet hands the sweep to the next one
+    // out; with nothing orbit-bearing displayed the ADR-0090 month
+    // window stands.
     let jd = 2_461_366.5;
-    let (lo, hi) = epher_web::solar_slider_span(jd);
-    assert!((lo - (jd - 30.0)).abs() < 1e-9, "lo {lo}");
-    assert!((hi - (jd + 30.0)).abs() < 1e-9, "hi {hi}");
+    let scene = epher_core::astro::solar_scene(jd).expect("the scene builds");
+
+    // Everything displayed: Pluto's ~248-year orbit, one sweep.
+    let (lo, hi) = solar_slider_span_shown(jd, &scene, &[]);
+    let width = hi - lo;
+    assert!(
+        (88_000.0..94_000.0).contains(&width),
+        "one cycle is Pluto's orbit: {width} days"
+    );
+    assert!((lo + hi - 2.0 * jd).abs() < 1e-9, "centered on jd");
+
+    // Hide Pluto: Neptune's ~165-year orbit takes over.
+    let (lo8, hi8) = solar_slider_span_shown(jd, &scene, &[9]);
+    let width8 = hi8 - lo8;
+    assert!(
+        (58_000.0..62_000.0).contains(&width8),
+        "Neptune takes the sweep: {width8} days"
+    );
+    assert!(width8 < width, "hiding the outermost planet shortens the sweep");
+
+    // Hide every orbit-bearing body: the month fallback keeps the pane
+    // alive (the ADR-0039 empty pane still animates).
+    let (flo, fhi) = solar_slider_span_shown(jd, &scene, &[1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    assert_eq!((flo, fhi), solar_slider_span(jd), "the month fallback");
 
     // The base −10..10 span keeps the historical 0.1 step exactly.
     assert!((epher_web::play_step(-10.0, 10.0) - 0.1).abs() < 1e-9);
-    // The month window steps 0.3 days per tick: the inner planets
-    // visibly travel frame to frame.
-    assert!((epher_web::play_step(lo, hi) - 0.3).abs() < 1e-9);
+    // Whatever the span, a play cycle stays 200 ticks: Pluto's sweep
+    // steps ~453 days per tick, Earth-only ~1.8 days.
+    assert!((epher_web::play_step(lo, hi) - width / 200.0).abs() < 1e-9);
+    let (elo, ehi) = solar_slider_span_shown(jd, &scene, &[1, 2, 4, 5, 6, 7, 8, 9]);
+    assert!(
+        ((ehi - elo) - epher_core::astro::SIDEREAL_YEAR_DAYS).abs() < 5.0,
+        "Earth-only sweep is one year: {}",
+        ehi - elo
+    );
 }
 
 #[test]

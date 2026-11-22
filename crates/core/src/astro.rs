@@ -1444,20 +1444,72 @@ fn year_arg(name: &str, args: &[Value]) -> Result<i32, EpherError> {
 
 // ===== The solar3d scene (ADR-0037 + the ADR-0015 amendment) =====
 
-/// The width of the solar pane's time window, in days on each side of
-/// the drawn instant (ADR-0090). A Julian Date is day-scaled, so the
-/// knob's useful range is a month: over ±2 days (the generic
-/// large-constant window) Earth moves ~2° across the whole slider
-/// track and play reads as frozen — the guide promises "watch the
-/// planets move", and a month is where the inner system visibly
-/// comes alive. Shared by the web slider spans and the TUI play
-/// bounds so both frontends animate the same sky at the same rate.
+/// The fallback width of the solar pane's time window, in days on each
+/// side of the drawn instant. The knob's span is the outermost
+/// displayed orbit's period (ADR-0091); this month remains the floor
+/// for panes with nothing orbit-bearing displayed — the legend can
+/// hide every planet, and the pane still renders and animates (the
+/// ADR-0039 empty pane). It was the ADR-0090 window itself: a
+/// Julian Date is day-scaled, so over the generic ±2-day window (the
+/// large-constant rule) Earth moves ~2° across the whole slider track
+/// and play reads as frozen — a month is where the inner system
+/// visibly comes alive. Shared by the web slider spans and the TUI
+/// play bounds so both frontends animate the same sky at the same rate.
 pub const SOLAR_TIME_WINDOW_DAYS: f64 = 30.0;
 
-/// The slider/play window for a solar time constant at value `jd`:
+/// One sidereal year, in days: the Kepler constant that turns a
+/// semi-major axis in AU into an orbital period in days.
+pub const SIDEREAL_YEAR_DAYS: f64 = 365.256_898_3;
+
+/// The slider/play window for a solar time constant with no
+/// orbit-bearing body displayed: the fallback month,
 /// `jd − 30 ..= jd + 30` (ADR-0090).
 pub fn solar_time_span(jd: f64) -> (f64, f64) {
     (jd - SOLAR_TIME_WINDOW_DAYS, jd + SOLAR_TIME_WINDOW_DAYS)
+}
+
+/// The orbital period, in days, of an orbit sampled like a
+/// [`SolarPath`]: the osculating ellipse's semi-major axis falls out
+/// of the sampled points' extreme distances from the Sun (the focus
+/// sits at the origin), `a = (r_max + r_min) / 2`, and Kepler's third
+/// law turns AU into days. `None` for degenerate point sets.
+pub fn orbit_period_days(points: &[[f64; 3]]) -> Option<f64> {
+    let mut r_max = 0.0_f64;
+    let mut r_min = f64::INFINITY;
+    for [x, y, z] in points {
+        if !(x.is_finite() && y.is_finite() && z.is_finite()) {
+            continue;
+        }
+        let r = (x * x + y * y + z * z).sqrt();
+        r_max = r_max.max(r);
+        r_min = r_min.min(r);
+    }
+    if !r_min.is_finite() || r_max < 1e-9 {
+        return None;
+    }
+    let a = (r_max + r_min) / 2.0;
+    Some(SIDEREAL_YEAR_DAYS * a.powi(3).sqrt())
+}
+
+/// The slider/play window for a solar pane's time constant when the
+/// pane displays `shown` orbits (the legend's checkboxes already
+/// applied): the drawn Julian Date ± half the orbital period of the
+/// OUTERMOST displayed body, so one play cycle — 200 ticks at the
+/// 120 ms cadence, ~24 s — completes exactly that body's full orbit
+/// (ADR-0091). Hiding the outermost planet hands the span to the next
+/// one out; the sky date stays put, only the sweep shortens. With no
+/// orbit displayed at all the month window stands (ADR-0090's
+/// fallback, the ADR-0039 empty pane).
+pub fn solar_time_span_for(jd: f64, shown: &[SolarPath]) -> (f64, f64) {
+    let period = shown
+        .iter()
+        .filter_map(|p| orbit_period_days(&p.points))
+        .fold(f64::NEG_INFINITY, f64::max);
+    if period.is_finite() {
+        (jd - period / 2.0, jd + period / 2.0)
+    } else {
+        solar_time_span(jd)
+    }
 }
 
 /// Evaluate a `solar3d` time expression (any expression producing a
