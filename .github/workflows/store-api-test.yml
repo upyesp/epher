@@ -99,8 +99,8 @@ jobs:
           msstore apps list
           if ($LASTEXITCODE -ne 0) { throw "msstore apps list failed with $LASTEXITCODE" }
           Write-Host "=== last submission ==="
-          msstore submission status 9NWXQ035T8TB 2>$null | Out-File -FilePath status.json -Encoding utf8
-          if ($LASTEXITCODE -ne 0) { throw "msstore submission status failed with $LASTEXITCODE" }
+          msstore submission get 9NWXQ035T8TB 2>$null | Out-File -FilePath status.json -Encoding utf8
+          if ($LASTEXITCODE -ne 0) { throw "msstore submission get failed with $LASTEXITCODE" }
           $status = (Get-Content -Raw status.json | ConvertFrom-Json).status
           Write-Host "submission status: $status"
           if ([string]::IsNullOrWhiteSpace($status)) { throw "the CLI printed no status field" }
