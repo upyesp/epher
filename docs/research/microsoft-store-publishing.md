@@ -883,3 +883,31 @@ the new key, so the renewal date has to be read from the Entra admin center
 later; and the CLI's `TenantSetup` deep link stays broken, so any workflow or
 runbook that quotes it should quote the `/v2/account-settings/` path instead.
 
+
+### The publish leg, and two CLI facts learned building it
+
+`store-publish.yml` now rides the train: it takes the release's
+`epher-windows-x86_64.msix` (never a rebuild), checks the package version
+against the tag, refuses to touch a submission that is already open, runs
+`msstore publish <msix> -id 9NWXQ035T8TB --noCommit`, and writes the Partner
+Center link into the run summary. Draft only: a human publishes. Two facts
+cost a CI iteration each and are worth knowing:
+
+- **`msstore reconfigure` does not work on an ubuntu runner.** The CLI
+  persists the client secret through the platform credential manager, and the
+  Linux build calls `libsecret` (`MSStore.CLI/Services/CredentialManager/Unix/
+  CredentialManagerUnix.cs`, `secret_password_store_sync`). A headless runner
+  has no secret service, so the command prints "Ops, something doesn't seem to
+  be right!" after "Testing configuration" and exits 255. On `windows-latest`
+  the same command prints "Awesome! It seems to be working!". Run Store
+  submission jobs on Windows.
+- **`msstore submission status` does not print JSON for packaged apps**, only
+  a human line; `submission get` always serialises the submission to stdout
+  (`Commands/Submission/GetCommand.cs`). Workflows that need to branch on the
+  state must parse `submission get` and read `.status`. Measured states:
+  `Published` when nothing is pending, `PendingCommit` while a draft waits.
+
+`store-api-test.yml` grew a `cli` job covering `reconfigure`, `apps list` and
+`submission get`, so a credential or CLI regression surfaces without waiting
+for a release. Run 45059910455 is the first green one; it reports status
+`Published` for `9NWXQ035T8TB`.
