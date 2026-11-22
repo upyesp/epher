@@ -1990,3 +1990,82 @@ fn graph_sees_a_def_from_the_same_submitted_script() {
     assert!(!app.result().starts_with("error"), "{}", app.result());
     assert_eq!(app.graph().len(), 1, "{}", app.result());
 }
+
+// ===== the guide's solar3d time animation (ADR-0090) =====
+
+#[test]
+fn solar_script_shaped_submission_animates_for_a_month() {
+    // The guide (§1.x astronomy) hands out `const t = now(); solar3d t`:
+    // a multi-piece submission runs in a script scope whose constants
+    // evaporate when it closes (ADR-0012 amendment). The pane's knobs
+    // must resolve against the draw-time environment — the TUI mirror
+    // of the web pane's draw env — and the solar time knob spans a
+    // month (ADR-0090), not the ±2-day generic large-constant window,
+    // over which Earth crosses ~2° and play reads as frozen.
+    let (store, _keep) = scratch_store();
+    let en = Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    app.submit_line("const t = now(); solar3d t", &store, &en);
+    assert!(app.solar().is_some(), "the scene draws: {}", app.result());
+
+    // Space bar starts the animation from the script-scoped constant.
+    assert!(app.toggle_play(), "play must start for the script-scoped t");
+    let play = app.play().expect("playing");
+    let drawn = play.lo + (epher_core::astro::SOLAR_TIME_WINDOW_DAYS);
+    assert!(
+        (play.hi - drawn - epher_core::astro::SOLAR_TIME_WINDOW_DAYS).abs() < 1e-9,
+        "the play span is the drawn jd ± {} days: {}..={}",
+        epher_core::astro::SOLAR_TIME_WINDOW_DAYS,
+        play.lo,
+        play.hi
+    );
+    // 200 ticks per 24 s cycle (the web play cadence): 2×30/200.
+    assert!((play.step - 0.3).abs() < 1e-9, "step {}", play.step);
+
+    // A tick steps t and rebuilds the scene at the new instant.
+    let before = format!("{:?}", app.solar());
+    app.tick();
+    let after = format!("{:?}", app.solar());
+    assert_ne!(before, after, "the tick resamples the scene");
+
+    // Stop.
+    assert!(!app.toggle_play());
+}
+
+#[test]
+fn solar_interactive_submission_still_animates() {
+    // `const t = now()` then `solar3d t` as separate submissions: the
+    // interactive path kept working and must keep its span/step (the
+    // same month window as the script shape).
+    let (store, _keep) = scratch_store();
+    let en = Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    app.submit_line("const t = now()", &store, &en);
+    app.submit_line("solar3d t", &store, &en);
+    assert!(app.solar().is_some(), "{}", app.result());
+    assert!(app.toggle_play());
+    let play = app.play().expect("playing");
+    assert!((play.step - 0.3).abs() < 1e-9, "step {}", play.step);
+    let before = format!("{:?}", app.solar());
+    app.tick();
+    assert_ne!(before, format!("{:?}", app.solar()));
+    app.toggle_play();
+}
+
+#[test]
+fn surface_play_keeps_its_historical_span() {
+    // Non-solar knobs are untouched: a surface's constant still plays
+    // ±2 at 0.1 per tick (ADR-0015 as shipped).
+    let (store, _keep) = scratch_store();
+    let en = Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    app.submit_line("const a = 1", &store, &en);
+    app.submit_line("graph3d sin(a * (x ^ 2 + y ^ 2)) from -3 to 3", &store, &en);
+    assert!(!app.surfaces().is_empty(), "{}", app.result());
+    assert!(app.toggle_play());
+    let play = app.play().expect("playing");
+    assert!((play.lo - (-1.0)).abs() < 1e-9, "lo {}", play.lo);
+    assert!((play.hi - 3.0).abs() < 1e-9, "hi {}", play.hi);
+    assert!((play.step - 0.1).abs() < 1e-9, "step {}", play.step);
+    app.toggle_play();
+}

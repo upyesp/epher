@@ -114,6 +114,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0087 | The desktop webview never keeps a stale shell | 2026-11-20 | accepted |
 | 0088 | The language server reads epher code blocks inside markdown | 2026-11-21 | accepted |
 | 0089 | The store manifest hides the console application under the approved headless waiver | 2026-11-21 | accepted |
+| 0090 | The solar time knob spans a month and every play cycle lasts ~24 seconds | 2026-11-22 | accepted |
 
 ## Decision chains
 

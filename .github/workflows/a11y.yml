@@ -61,6 +61,11 @@ jobs:
         env:
           A11Y_DIST: _site/pwa
 
+      - name: Browser regression - the solar3d time knob animates the planets
+        run: node scripts/browser/solar-animate.mjs
+        env:
+          A11Y_DIST: _site/pwa
+
       - name: Audit the website (SR + low-vision perspectives)
         run: node scripts/a11y/site-audit.mjs _site
 

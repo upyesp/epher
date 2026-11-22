@@ -144,6 +144,13 @@ pub struct App {
     /// its time expression, for playback resampling.
     solar: Option<SolarScene>,
     solar_source: Option<String>,
+    /// The environment the current pane was drawn in (ADR-0090): a
+    /// multi-statement submission is a script scope whose constants
+    /// evaporate when it closes (ADR-0012 amendment), and the pane's
+    /// knobs must survive the close exactly as its re-samples do —
+    /// the TUI mirror of the web pane's draw-time environment. The
+    /// newest scope's defs win; stored extras linger harmlessly.
+    draw_env: Option<epher_core::Env>,
     view: View3D,
     /// The 3D fine-control offsets (ADR-0031): horizontal rotation,
     /// vertical rotation, zoom; each −1..1, step 0.1, 0 = the orbit
@@ -948,6 +955,7 @@ impl App {
             data: None,
             solar: None,
             solar_source: None,
+            draw_env: None,
             view: View3D::default(),
             view_h: 0.0,
             view_v: 0.0,
@@ -2455,6 +2463,7 @@ impl App {
         self.data = None;
         self.solar = Some(scene);
         self.solar_source = Some(source.trim().to_string());
+        self.capture_draw_env();
         self.view = self.solar.as_ref().expect("just set").default_view();
         self.reset_view_offsets();
         self.result.clear();
@@ -2480,6 +2489,7 @@ impl App {
                     self.surface.clear();
                     self.data = Some(plot);
                     self.view2d = None;
+                    self.capture_draw_env();
                     self.result.clear();
                     Ok(())
                 }
@@ -2527,6 +2537,7 @@ impl App {
         // A new plot re-fits the viewport: the previous pan/zoom was
         // about the curves that were there (ADR-0034).
         self.view2d = None;
+        self.capture_draw_env();
         // Graphing prints nothing to the answer line (ADR-0027): the
         // command joins the history list, and the plot is the result.
         self.result.clear();
@@ -2566,6 +2577,7 @@ impl App {
             }
             self.result.clear();
             self.curve3d.push(curve);
+            self.capture_draw_env();
             return Ok(());
         }
         let first = self.surface.is_empty();
@@ -2591,6 +2603,7 @@ impl App {
         }
         self.result.clear();
         self.surface.push(surface);
+        self.capture_draw_env();
         Ok(())
     }
 
@@ -2676,28 +2689,84 @@ impl App {
 
     /// Start or stop the parameter animation. Playing animates the first
     /// constant referenced by any plotted surface (or curve) within its
-    /// current value ±2, stepping 0.1 per tick and wrapping around, the
+    /// play span, stepping a cycle per tick and wrapping around, the
     /// TUI's counterpart of the web sliders' play button (ADR-0015).
+    /// The solar pane's time knob spans a month-wide window (ADR-0090):
+    /// over ±2 Julian days Earth crosses ~2° and play reads as frozen.
     pub fn toggle_play(&mut self) -> bool {
         if self.play.is_some() {
             self.play = None;
             return false;
         }
         let name = self.animated_constant();
-        let Some(v) = name.as_ref().and_then(|n| self.session.env().constant(n)) else {
+        let Some(v) = name.as_ref().and_then(|n| self.knob_value(n)) else {
             return false;
         };
-        let v = match v {
-            epher_core::Value::Float(f) => *f,
-            _ => return false,
+        // The solar pane owns the knob when the chosen name is free in
+        // the scene's time expression; one pane kind owns the pane at a
+        // time, so the 2D/3D knobs keep their historical ±2 span.
+        let solar_owned = self
+            .solar_source
+            .as_deref()
+            .map(|src| {
+                let mut names = std::collections::BTreeSet::new();
+                if let Ok(expr) = epher_core::parse(src) {
+                    free_names(&expr, &mut names);
+                }
+                name.as_deref().is_some_and(|n| names.contains(n))
+            })
+            .unwrap_or(false);
+        let (lo, hi, step) = if solar_owned {
+            let (lo, hi) = epher_core::astro::solar_time_span(v);
+            let step = (hi - lo) / 200.0; // 200 ticks at the 120 ms cadence, the web play cycle
+            (lo, hi, step)
+        } else {
+            (v - 2.0, v + 2.0, 0.1)
         };
         self.play = Some(Play {
             name: name.unwrap(),
-            lo: v - 2.0,
-            hi: v + 2.0,
-            step: 0.1,
+            lo,
+            hi,
+            step,
         });
         true
+    }
+
+    /// The value a knob animates: the session's constant first (fresh —
+    /// a play tick rewrites it in place), falling back to the pane's
+    /// draw-time environment for a script-scoped constant the session
+    /// never received (ADR-0090; the web `tune_value` mirror).
+    fn knob_value(&self, name: &str) -> Option<f64> {
+        match self.session.env().constant(name) {
+            Some(epher_core::Value::Float(v)) => Some(*v),
+            _ => match self.draw_env.as_ref().and_then(|e| e.constant(name)) {
+                Some(epher_core::Value::Float(v)) => Some(*v),
+                _ => None,
+            },
+        }
+    }
+
+    /// The environment re-samples run against: the live session with
+    /// the pane's draw-time definitions absorbed (ADR-0090), the same
+    /// rule the web pane samples by.
+    fn sampling_env(&self) -> epher_core::Env {
+        let mut env = self.session.env().clone();
+        if let Some(draw) = &self.draw_env {
+            env.absorb_defs(draw);
+        }
+        env
+    }
+
+    /// Capture the draw-time environment after a successful draw: the
+    /// scope is still open here, so its constants and defs are present;
+    /// the snapshot carries them across `end_script` (ADR-0090). The
+    /// newest scope's defs win; stored extras linger harmlessly.
+    fn capture_draw_env(&mut self) {
+        let mut env = self.session.env().clone();
+        if let Some(stored) = self.draw_env.take() {
+            env.absorb_defs(&stored);
+        }
+        self.draw_env = Some(env);
     }
 
     /// The first constant referenced by a plotted surface, else a plotted
@@ -2723,7 +2792,7 @@ impl App {
         }
         if let Some(n) = names
             .into_iter()
-            .find(|n| self.session.env().constant(n.as_str()).is_some())
+            .find(|n| self.knob_value(n.as_str()).is_some())
         {
             return Some(n);
         }
@@ -2751,7 +2820,7 @@ impl App {
         }
         names
             .into_iter()
-            .find(|n| self.session.env().constant(n.as_str()).is_some())
+            .find(|n| self.knob_value(n.as_str()).is_some())
     }
 
     /// Advance the animation by one tick: step the constant, wrapping at the
@@ -2760,16 +2829,9 @@ impl App {
         let Some(play) = self.play.clone() else {
             return;
         };
-        let Some(v) = self.session.env().constant(&play.name) else {
+        let Some(v) = self.knob_value(&play.name) else {
             self.play = None;
             return;
-        };
-        let v = match v {
-            epher_core::Value::Float(f) => *f,
-            _ => {
-                self.play = None;
-                return;
-            }
         };
         let mut next = v + play.step;
         if next > play.hi {
@@ -2786,7 +2848,7 @@ impl App {
     /// Re-sample every plot against the current environment (after an
     /// animation tick moved a constant).
     fn resample_all(&mut self) {
-        let env = self.session.env().clone();
+        let env = self.sampling_env();
         for c in &mut self.graph {
             if let Ok(spec) = parse_graph_source(&c.source) {
                 if let Ok(samples) = sample_spec(&spec, 120, &env) {

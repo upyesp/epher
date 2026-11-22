@@ -1444,6 +1444,22 @@ fn year_arg(name: &str, args: &[Value]) -> Result<i32, EpherError> {
 
 // ===== The solar3d scene (ADR-0037 + the ADR-0015 amendment) =====
 
+/// The width of the solar pane's time window, in days on each side of
+/// the drawn instant (ADR-0090). A Julian Date is day-scaled, so the
+/// knob's useful range is a month: over ±2 days (the generic
+/// large-constant window) Earth moves ~2° across the whole slider
+/// track and play reads as frozen — the guide promises "watch the
+/// planets move", and a month is where the inner system visibly
+/// comes alive. Shared by the web slider spans and the TUI play
+/// bounds so both frontends animate the same sky at the same rate.
+pub const SOLAR_TIME_WINDOW_DAYS: f64 = 30.0;
+
+/// The slider/play window for a solar time constant at value `jd`:
+/// `jd − 30 ..= jd + 30` (ADR-0090).
+pub fn solar_time_span(jd: f64) -> (f64, f64) {
+    (jd - SOLAR_TIME_WINDOW_DAYS, jd + SOLAR_TIME_WINDOW_DAYS)
+}
+
 /// Evaluate a `solar3d` time expression (any expression producing a
 /// Julian Date: `now()`, `t`, `jd(2020, 1, 1)`). One helper for all the
 /// frontends, so the grammar and the error voice agree everywhere.
