@@ -114,7 +114,8 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0087 | The desktop webview never keeps a stale shell | 2026-11-20 | accepted |
 | 0088 | The language server reads epher code blocks inside markdown | 2026-11-21 | accepted |
 | 0089 | The store manifest hides the console application under the approved headless waiver | 2026-11-21 | accepted |
-| 0090 | The solar time knob spans a month and every play cycle lasts ~24 seconds | 2026-11-22 | accepted |
+| 0090 | The solar time knob spans a month and every play cycle lasts ~24 seconds | 2026-11-22 | accepted (the span rule superseded by 0091) |
+| 0091 | The solar knob spans the outermost displayed orbit, and a legend toggle re-spans it and refits the frame | 2026-11-22 | accepted (supersedes the 0090 span) |
 
 ## Decision chains
 
@@ -170,7 +171,11 @@ at the end of the chain.
   every kind; data plots zoom; 3D zoom lives in the slider)**.
 - **Solar system** - **0037** → **0038 (per-body legend checkboxes on
   the solar pane)**. → **0040 (hiding every body leaves an
-  empty framed plot with the legend intact)**.
+  empty framed plot with the legend intact)** → **0090 (the
+  time knob spans a month, every play cycle ~24 s)** → **0091 (the
+  knob spans the outermost DISPLAYED orbit — one cycle completes that
+  orbit; a legend toggle re-spans the sweep and refits the frame to
+  what is shown)**.
 - **Graph commands** - 0014 (cartesian/parametric/polar grammar) → 0019
   (hints) → 0020 (SVG export) → 0038 (per-curve legend) → **0044 (data
   plots: `graph scatter`, `graph histogram`, `graph boxplot`)** →

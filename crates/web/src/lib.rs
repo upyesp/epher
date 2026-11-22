@@ -99,13 +99,35 @@ fn slider_span(v: f64) -> (f64, f64) {
     }
 }
 
-/// The slider/play span for a SOLAR pane's time constant (ADR-0090):
-/// the drawn Julian Date ± [`epher_core::astro::SOLAR_TIME_WINDOW_DAYS`]
-/// — a month-wide window, not the generic large-constant ±2 (Earth
-/// crosses ~2° over that whole track and play reads as frozen). The
-/// generic rule keeps governing every other pane.
+/// The FALLBACK slider/play span for a SOLAR pane's time constant
+/// (ADR-0090): the drawn Julian Date ±
+/// [`epher_core::astro::SOLAR_TIME_WINDOW_DAYS`] — a month-wide
+/// window, not the generic large-constant ±2 (Earth crosses ~2° over
+/// that whole track and play reads as frozen). The generic rule keeps
+/// governing every other pane. The solar knob's real span follows the
+/// displayed bodies: see [`solar_slider_span_shown`].
 pub fn solar_slider_span(v: f64) -> (f64, f64) {
     epher_core::astro::solar_time_span(v)
+}
+
+/// The slider/play span for a SOLAR pane's time constant with the
+/// legend's per-body checkboxes applied (ADR-0091): the drawn Julian
+/// Date ± half the orbital period of the OUTERMOST DISPLAYED body, so
+/// one ~24 s play cycle completes exactly that body's full orbit.
+/// With no orbit-bearing body displayed (every checkbox unchecked,
+/// the ADR-0039 empty pane) the month window stands.
+pub fn solar_slider_span_shown(
+    v: f64,
+    scene: &epher_core::astro::SolarScene,
+    hidden: &[i64],
+) -> (f64, f64) {
+    let shown: Vec<epher_core::astro::SolarPath> = scene
+        .orbits
+        .iter()
+        .filter(|p| !hidden.contains(&p.body))
+        .cloned()
+        .collect();
+    epher_core::astro::solar_time_span_for(v, &shown)
 }
 
 /// The play-loop step for a span: 200 ticks per full cycle at the
@@ -5469,11 +5491,13 @@ fn epher_app() -> Html {
         let rendered_box = rendered_box.clone();
         let live_apply = live_apply.clone();
         let solar = solar.clone();
+        let solar_hidden = solar_hidden.clone();
         Callback::from(move |(name, value): (String, f64)| {
-            // The solar pane's time knob spans a month-wide window
-            // (ADR-0090): one pane kind owns the pane at a time, so a
-            // solar scene on the pane means the knob the button belongs
-            // to is the time knob.
+            // The solar pane's time knob spans the outermost displayed
+            // orbit (ADR-0091): one pane kind owns the pane at a time, so
+            // a solar scene on the pane means the knob the button belongs
+            // to is the time knob, and the legend's checkboxes decide
+            // which orbit one cycle completes.
             let solar_pane = solar.is_some();
             let reduce = web_sys::window()
                 .and_then(|w| w.match_media("(prefers-reduced-motion: reduce)").ok())
@@ -5481,7 +5505,10 @@ fn epher_app() -> Html {
                 .map(|m| m.matches())
                 .unwrap_or(false);
             let (lo, hi) = if solar_pane {
-                solar_slider_span(value)
+                match solar.as_ref() {
+                    Some(scene) => solar_slider_span_shown(value, scene, &solar_hidden),
+                    None => solar_slider_span(value),
+                }
             } else {
                 slider_span(value)
             };
@@ -6115,8 +6142,22 @@ fn epher_app() -> Html {
     };
     // The solar legend's per-body checkboxes (ADR-0038): like the curve
     // legend, unchecking hides the body from the plot and the export.
+    // ADR-0091 adds the pane's response: the visible body set decides
+    // the time knob's span AND the frame, so a toggle re-spans the knob
+    // (a running animation picks up the new sweep immediately) and
+    // resets the zoom so the pane is just big enough for the outermost
+    // orbit still shown.
     let on_toggle_solar_body = {
         let solar_hidden = solar_hidden.clone();
+        let solar = solar.clone();
+        let play = play.clone();
+        let play_cell = play_cell.clone();
+        let view_z = view_z.clone();
+        let view_z_cell = view_z_cell.clone();
+        let view = view.clone();
+        let view_h = view_h.clone();
+        let view_v = view_v.clone();
+        let spin_phase = spin_phase.clone();
         Callback::from(move |(body, on): (i64, bool)| {
             let mut hidden = (*solar_hidden).clone();
             if on {
@@ -6124,7 +6165,36 @@ fn epher_app() -> Html {
             } else if !hidden.contains(&body) {
                 hidden.push(body);
             }
-            solar_hidden.set(hidden);
+            solar_hidden.set(hidden.clone());
+            // The zoom resets with the fit: zero offset means the
+            // default camera, which the render below applies to the
+            // displayed orbits (the wheel/pinch slider reads the state).
+            *view_z_cell.borrow_mut() = 0.0;
+            view_z.set(0.0);
+            // A running animation re-spans at once: the new sweep keeps
+            // the watched instant (the span re-centers on the current
+            // knob value) and refreshes the frozen frame so the layout
+            // follows the fit instead of clipping it.
+            let playing = (*play_cell).borrow().clone();
+            if let (Some(mut spec), Some(scene)) = (playing, solar.as_ref()) {
+                let (lo, hi) = solar_slider_span_shown(spec.value, scene, &hidden);
+                let step = play_step(lo, hi);
+                let effective = effective_view(&view, *view_h, *view_v, 0.0, *spin_phase);
+                let shown = filter_solar_scene(scene, &hidden);
+                spec.freeze = if shown.orbits.is_empty() {
+                    graph::solar_view_box(scene, &effective)
+                } else {
+                    graph::solar_view_box(&shown, &effective)
+                };
+                let updated = PlaySpec {
+                    lo,
+                    hi,
+                    step,
+                    ..spec.clone()
+                };
+                play.set(Some(updated.clone()));
+                *play_cell.borrow_mut() = Some(updated);
+            }
         })
     };
     // Copy the answer (ADR-0057, amended): the clipboard carries both
@@ -6443,10 +6513,14 @@ fn epher_app() -> Html {
     // `const` knobs — `const a = 1; graph sin(x * a)` must still show
     // the slider and its play button, with the value the pane drew.
     let tune_draw = live.borrow().draw_env.clone();
-    // `solar` marks rows of the solar pane: its time knob spans a
-    // month-wide window (ADR-0090), every other pane keeps the generic
-    // span. One pane kind owns the pane at a time, so the flag is a
-    // property of the row list, not of each row.
+    // The solar scene's state under a distinct name inside `build_rows`
+    // (whose `solar` parameter is the row-list flag): the knob row reads
+    // the displayed bodies to span the track (ADR-0091).
+    let solar_scene_state = solar.clone();
+    // `solar` marks rows of the solar pane: its time knob spans the
+    // outermost displayed orbit (ADR-0091), every other pane keeps the
+    // generic span. One pane kind owns the pane at a time, so the flag
+    // is a property of the row list, not of each row.
     let build_rows = |names: &[String], solar: bool| -> Vec<Html> {
         names
             .iter()
@@ -6461,7 +6535,10 @@ fn epher_app() -> Html {
                 let playing_this = (*play).as_ref().is_some_and(|p| p.name == *name);
                 let (lo, hi) = match (*play).as_ref().filter(|p| p.name == *name) {
                     Some(p) => (p.lo, p.hi),
-                    None if solar => solar_slider_span(v),
+                    None if solar => match solar_scene_state.as_ref() {
+                        Some(scene) => solar_slider_span_shown(v, scene, &solar_hidden),
+                        None => solar_slider_span(v),
+                    },
                     None => slider_span(v),
                 };
                 let on_slider = on_slider.clone();
@@ -8315,37 +8392,27 @@ fn epher_app() -> Html {
                             // inherited (the ADR-0015 amendment). The
                             // legend's unchecked bodies (ADR-0038) stay out
                             // of the render and the aria name.
-                            let shown = epher_core::astro::SolarScene {
-                                jd: scene.jd,
-                                orbits: scene
-                                    .orbits
-                                    .iter()
-                                    .filter(|p| !solar_hidden.contains(&p.body))
-                                    .cloned()
-                                    .collect(),
-                                trails: scene
-                                    .trails
-                                    .iter()
-                                    .filter(|p| !solar_hidden.contains(&p.body))
-                                    .cloned()
-                                    .collect(),
-                                dots: scene
-                                    .dots
-                                    .iter()
-                                    .filter(|d| !solar_hidden.contains(&d.body))
-                                    .cloned()
-                                    .collect(),
-                            };
+                            let shown = filter_solar_scene(scene, &solar_hidden);
                             let effective =
                                 effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
-                            // The frame comes from the FULL scene (ADR-0038
-                            // amendment): hiding a body through the legend
-                            // must never rescale or jump the view. The parts
-                            // come from the filtered scene - and when every
-                            // body is hidden the pane still renders (the
-                            // ADR-0039 amendment): the legend stays so the
-                            // bodies can be brought back.
-                            let rendered = graph::solar_view_box(&scene, &effective).map(
+                            // The frame follows the DISPLAYED bodies
+                            // (ADR-0091): the pane is always just big
+                            // enough for the outermost orbit still shown —
+                            // the toggle handler zeroes the zoom offset so
+                            // the refit lands exactly, and the frozen play
+                            // box (below) carries the same fit. This
+                            // supersedes the ADR-0038 amendment's
+                            // hide-never-rescales rule for the solar pane;
+                            // the frame still never resizes WHILE the
+                            // system rotates or animates, because the fit
+                            // reads the fixed orbit curves, not the moving
+                            // dots. When every orbit is hidden the full
+                            // scene keeps the frame — the pane still
+                            // renders around an empty plot (the ADR-0039
+                            // amendment), and the exports (which fit what
+                            // they show) keep matching the pane.
+                            let fit_scene = if shown.orbits.is_empty() { scene } else { &shown };
+                            let rendered = graph::solar_view_box(fit_scene, &effective).map(
                                 |view_box| {
                                     let content = graph::solar_parts_in(
                                         &shown,
