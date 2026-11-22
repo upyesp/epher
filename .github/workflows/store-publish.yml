@@ -1,0 +1,210 @@
+name: microsoft store publish
+
+# The Microsoft Store channel for the Windows build (docs/research/
+# microsoft-store-publishing.md, the 2026-11-22 section). The Windows
+# leg of build-installers.yml already packs packaging/msix/AppxManifest.xml
+# into epher-windows-x86_64.msix and the release job attaches it, so this
+# job uploads an existing asset: nothing is rebuilt and the package
+# cannot drift from the installer. The Store re-signs unsigned MSIX
+# during publishing, so no certificate is involved anywhere.
+#
+# The credential is a Microsoft Entra application created INSIDE Partner
+# Center (Account settings, User management, Microsoft Entra
+# applications) and given the Manager(Windows) role. An app registered
+# in the Entra admin center and merely pointed at is refused with
+# "Identity cannot be authorized" (microsoft/msstore-cli#131). The four
+# MSSTORE_* secrets live in the `stores` environment and the job skips
+# with a notice until they exist. The app lives in the tenant associated
+# with the seller account, upyesp.onmicrosoft.com; see the research doc
+# for why a personal Microsoft account needs a work tenant first.
+#
+# windows-latest, not ubuntu: `msstore reconfigure` persists the client
+# secret through the platform credential manager, and the Linux build
+# uses libsecret, which a headless runner does not have (measured
+# 2026-11-22: "Ops, something doesn't seem to be right!" after
+# "Testing configuration", exit 255, on a clean ubuntu runner). Windows
+# Credential Manager is the path the CLI is developed against.
+#
+# DRAFT ONLY, first cycle: the job uploads the package and leaves a
+# pending submission, then names the Partner Center page in the run
+# summary. Publishing it is a human click, which also means a failed
+# certificate review costs nothing live. Once a cycle has gone through
+# cleanly, add `msstore submission publish 9NWXQ035T8TB` behind the
+# environment's required reviewer (one change, one line).
+#
+# The submission API copies the last published submission when it
+# creates a new one (learn.microsoft.com/windows/uwp/monetize/
+# manage-app-submissions), so listing text, screenshots, pricing and
+# age rating carry forward untouched: an update only replaces the
+# package. If the CLI ever stops with "Could not preserve this
+# product's price", the product has per-market pricing the API cannot
+# round-trip; the fix is a human check of Pricing and availability, not
+# a flag.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "release tag carrying epher-windows-x86_64.msix"
+        type: string
+        required: true
+      version:
+        description: "release version, with or without the leading v"
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "release tag carrying epher-windows-x86_64.msix"
+        type: string
+        required: true
+      version:
+        description: "release version, with or without the leading v"
+        type: string
+        required: true
+
+jobs:
+  store:
+    name: submit to the microsoft store
+    environment: stores
+    permissions:
+      contents: read
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Secrets check
+        id: secrets
+        shell: pwsh
+        env:
+          TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
+          CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
+          SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          if ($env:TENANT -and $env:CLIENT -and $env:SECRET) {
+            "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          } else {
+            "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            Write-Host "::notice::microsoft store publish skipped: set MSSTORE_TENANT_ID, MSSTORE_CLIENT_ID and MSSTORE_CLIENT_SECRET in the stores environment (see docs/research/microsoft-store-publishing.md)."
+          }
+
+      - name: Resolve the tag and version
+        if: steps.secrets.outputs.skip == 'false'
+        shell: pwsh
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          $tag = $env:TAG_INPUT
+          $version = $env:VERSION_INPUT -replace '^v', ''
+          if (-not $tag) { throw "the tag input is empty" }
+          if (-not $version) { throw "the version input is empty" }
+          "TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Install the Microsoft Store Developer CLI
+        if: steps.secrets.outputs.skip == 'false'
+        uses: microsoft/microsoft-store-apppublisher@v1.1
+        with:
+          # pinned: the CLI gained client-assertion auth in 0.4.2 and
+          # per-command behaviour moves between minor versions
+          version: v0.4.4
+
+      - name: Download the package and check its version
+        if: steps.secrets.outputs.skip == 'false'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release download $env:TAG --pattern 'epher-windows-x86_64.msix' --dir dist
+          if ($LASTEXITCODE -ne 0) { throw "gh release download failed with $LASTEXITCODE" }
+          $package = 'dist/epher-windows-x86_64.msix'
+          if (-not (Test-Path $package)) { throw "the release has no $package" }
+          # the package is a zip; read the manifest without touching the
+          # Store (an unsigned MSIX cannot be installed, but it unpacks)
+          $tmp = Join-Path $env:RUNNER_TEMP 'msixcheck'
+          New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+          Copy-Item $package (Join-Path $tmp 'package.zip')
+          Expand-Archive -Path (Join-Path $tmp 'package.zip') -DestinationPath $tmp -Force
+          $manifest = Get-Content -Raw (Join-Path $tmp 'AppxManifest.xml')
+          if ($manifest -notmatch 'Version="([0-9.]+)"') { throw "no Version attribute in AppxManifest.xml" }
+          $found = $Matches[1]
+          Write-Host "package version: $found"
+          if ($found -ne "$($env:VERSION).0") {
+            throw "package version $found is not $($env:VERSION).0 (the Store takes four sections, the fourth reserved and 0)"
+          }
+
+      - name: Configure the Store CLI
+        if: steps.secrets.outputs.skip == 'false'
+        shell: pwsh
+        env:
+          TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
+          SELLER: ${{ secrets.MSSTORE_SELLER_ID }}
+          CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
+          SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          msstore reconfigure --tenantId $env:TENANT --sellerId $env:SELLER --clientId $env:CLIENT --clientSecret $env:SECRET
+          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed with $LASTEXITCODE" }
+
+      - name: Check the last submission
+        id: state
+        if: steps.secrets.outputs.skip == 'false'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # JSON on stdout, progress on stderr (the CLI's contract)
+          msstore submission get 9NWXQ035T8TB 2>$null | Out-File -FilePath status.json -Encoding utf8
+          if ($LASTEXITCODE -ne 0) { throw "msstore submission get failed with $LASTEXITCODE" }
+          $status = (Get-Content -Raw status.json | ConvertFrom-Json).status
+          "status=$status" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          switch ($status) {
+            'Published' {
+              # nothing outstanding: a new submission is safe to create
+              "proceed=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            }
+            'PendingCommit' {
+              # a draft is waiting for a human; clobbering it would throw
+              # away whatever was edited in Partner Center
+              "proceed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+              Write-Host "::notice::a draft submission is already open; publish or delete it in Partner Center, then re-run this job."
+            }
+            { [string]::IsNullOrWhiteSpace($_) } {
+              throw "could not read the submission status: the CLI printed no status field"
+            }
+            default {
+              # Certification, CommitStarted, PreProcessing: the API
+              # refuses a second submission while one is live
+              "proceed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+              Write-Host "::notice::the last submission is in state $status; leaving it alone and not uploading $($env:VERSION)."
+            }
+          }
+
+      - name: Upload the package as a draft submission
+        if: steps.secrets.outputs.skip == 'false' && steps.state.outputs.proceed == 'true'
+        shell: pwsh
+        run: |
+          # --noCommit leaves the submission pending: nothing reaches
+          # certification, let alone the Store, until a human publishes
+          msstore publish dist/epher-windows-x86_64.msix -id 9NWXQ035T8TB --noCommit
+          if ($LASTEXITCODE -ne 0) { throw "msstore publish failed with $LASTEXITCODE" }
+
+      - name: Write the run summary
+        if: steps.secrets.outputs.skip == 'false' && steps.state.outputs.proceed == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          msstore submission get 9NWXQ035T8TB 2>$null | Out-File -FilePath draft.json -Encoding utf8
+          if ($LASTEXITCODE -ne 0) { throw "msstore submission get failed with $LASTEXITCODE" }
+          $draft = Get-Content -Raw draft.json | ConvertFrom-Json
+          @(
+            "### Microsoft Store draft for $($env:VERSION)"
+            ""
+            "| field | value |"
+            "|---|---|"
+            "| status | ``$($draft.status)`` |"
+            "| submission | ``$($draft.id)`` |"
+            "| packages in this submission | $($draft.applicationPackages.Count) |"
+            ""
+            "Publish it at https://partner.microsoft.com/dashboard/products/9NWXQ035T8TB/submissions"
+            "(press Publish on the pending submission; certification takes up to three business days)."
+          ) | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8

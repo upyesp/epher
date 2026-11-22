@@ -510,7 +510,10 @@ full detail already researched in
 route is documented for this API**; unlike the VS Code Marketplace's managed-
 identity + `vsce publish --azure-credential` path we built, CI here would hold
 a client secret; that's the honest asymmetry with the Entra-federated publish
-already in place for the Marketplace.
+already in place for the Marketplace. **Amendment, 2026-11-22:** the `msstore`
+CLI now accepts a client assertion (`--clientAssertion`) in place of the
+secret, which GitHub OIDC can supply; Microsoft has not added it to the Learn
+pages yet. See the 2026-11-22 section at the end of this document.
 
 The repo's side is nearly free: the Windows artifacts are already built on a
 GitHub Actions `windows-latest` runner (`build-installers.yml` matrix leg,
@@ -674,3 +677,243 @@ bare `epher` on the Windows console build opens the window again
 (ADR-0011). The 0.9.19 train carries the reverted manifest; the next
 Store update submission is the live certification test of the waiver,
 and a pass gets reported back on the case, as Microsoft asked.
+
+## 2026-11-22: why the token was rejected, and the route that works for individual accounts
+
+Research of 2026-11-22 into the store CI blocker, against the `msstore` CLI
+docs and source, the Partner Center docs, and publishers who shipped the same
+setup in October and November 2026. The short version: **the token was never
+the problem, and the account is not broken.** A client-credentials token is
+obtained successfully today; what `manage.devcenter.microsoft.com` rejects is
+the *identity behind it* (`Unauthorized; The user is not authorized to access
+this resource`, and in the CLI's wording, `{"code":"Unauthorized","message":
+"Identity cannot be authorized"}`). The account theory in the brief was close,
+but the mechanism is narrower than "one login, too many account types".
+
+### The three conditions a Store API token must satisfy
+
+1. **The token must be issued by the tenant associated with the Partner
+   Center account.** A valid token from any other tenant is refused; the
+   service maps `tid` to a seller. An individual Store account created at
+   [storedeveloper.microsoft.com](https://storedeveloper.microsoft.com) starts
+   with **no tenant associated at all**, so there is nothing to issue from in
+   the first place.
+2. **The application must be a Partner Center user with a developer-program
+   role.** Registering an app in the Entra admin center and pointing CI at its
+   client id is not enough. `msstore-cli` #131 is the canonical report: every
+   credential is correct, `Unauthorized` every time, fixed by **deleting the
+   app and recreating it through Partner Center** ("apparently, it is not
+   sufficient to create an Entra app directly in Entra; the application must
+   be created through Partner Center so it is properly linked and
+   authorized") ([microsoft/msstore-cli#131](https://github.com/microsoft/msstore-cli/issues/131)).
+3. **The signed-in Manager must be a global administrator of that tenant.**
+   The User management pages require it
+   ([manage Entra applications](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/manage-azure-ad-applications-in-partner-center),
+   [manage users](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/manage-users-in-partner-center)).
+
+### Why a single personal MSA lands in the broken corner
+
+- The **Microsoft Entra applications** tab under Account settings, User
+  management only exists once a tenant is associated. Microsoft's own docs
+  state "Individual accounts do not support multiple users" (manage users, FAQ)
+  and say nothing about applications, which is where the earlier research's
+  "assume no" came from. That reading is **too pessimistic and now known to be
+  wrong**: publishers on free individual accounts have associated a tenant and
+  submit from CI with `msstore` in November 2026 (Koeroesi86/tunelle#203, whose
+  checklist item "check that an individual developer account can link or
+  create an Entra tenant and an app registration" is ticked; ffMathy/valafind#38
+  is an explicit correction of its own earlier company-only claim).
+- **The association step itself cannot be done by the MSA.** Partner Center
+  prompts for the credentials of the tenant being associated, and the account
+  used must be a work account that is global administrator of that tenant
+  ([associate an existing tenant](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/associate-existing-azure-ad-tenant-with-partner-center-account)).
+  Signing in with the Gmail MSA, as the epher setup did, either associates the
+  MSA's own auto-created directory (a different tenant from the one the app
+  registration was made in, hence condition 1 failing) or associates nothing
+  visible. Do not invite the personal MSA into the new tenant as a guest.
+- So the account being "several types at once" is the trap in a precise sense:
+  the MSA owns the Store account, but a *work* identity must own the tenant.
+  When the same mailbox is the only identity used everywhere, the two are
+  never connected.
+- There is also a live Microsoft-side gap: a publisher with an individual
+  account, an associated tenant and a global-admin Entra user still saw no
+  **Microsoft Entra applications** tab and no developer-program roles on that
+  user. That report was filed against the docs and closed with no public
+  resolution ([MicrosoftDocs/windows-dev-docs#6153](https://github.com/MicrosoftDocs/windows-dev-docs/issues/6153),
+  closed 13 minutes later, label Pri3). Treat it as the one failure mode that
+  ends in a Partner Center support case.
+
+### The sequence that works
+
+1. Partner Center, Account settings, **Tenants**
+   ([direct link](https://partner.microsoft.com/dashboard/account/TenantSetup)).
+   Choose **Create Microsoft Entra ID** and create a fresh free tenant whose
+   global administrator is a new work account (for example
+   `admin@upyespstore.onmicrosoft.com`), **not** the Gmail MSA. A fresh tenant
+   avoids the Azure-subscription tenant and the MSA's default directory
+   entirely, which is the tangle the brief describes. Associating an existing
+   tenant also works, if its global admin is a work account you control.
+2. Sign in to Partner Center as that work account and give it the **Manager**
+   role under **Users**. Sign out and back in; the role and the tenant can take
+   a while to appear. Any existing Manager can grant this.
+3. As that account: **User management, Microsoft Entra applications**, then
+   **Add Microsoft Entra application, Create Microsoft Entra application**.
+   Name it, any reply URL, and pick **Manager (Windows)** under "Roles
+   applicable to developer programs". Creating it here is what satisfies
+   condition 2; this is the step the earlier attempts missed.
+4. Open the application, **Add new key**, and copy **Tenant ID** and **Client
+   ID** with the key. Keys last one to two years and the expiry is not visible
+   from CI, so note the date.
+5. **Seller ID**: Legal info
+   ([direct link](https://partner.microsoft.com/dashboard/account/v3/organization/legalinfo#mpn)).
+6. Store the four values as the `stores` environment secrets the repo already
+   names: `MSSTORE_TENANT_ID`, `MSSTORE_CLIENT_ID`, `MSSTORE_CLIENT_SECRET`,
+   plus `MSSTORE_SELLER_ID` (absent today, the CLI needs it).
+
+If step 3 shows no applications tab, or the Entra user has no developer-program
+roles (the #6153 signature), the answer is a Partner Center support request
+(Help and support). No configuration on our side fixes a role that the
+Store backend never provisioned. Until then the MSIX artifact stays the manual
+
+**Two navigation facts learned by doing it on 2026-11-22**, both worth keeping
+because they cost an afternoon otherwise:
+
+- The deep link `https://partner.microsoft.com/dashboard/account/TenantSetup`
+  (the one the `msstore` CLI opens, and the one every write-up quotes) returns
+  **Access restricted** for this account. The page has moved to
+  `https://partner.microsoft.com/dashboard/v2/account-settings/organization/tenants`,
+  reached in the UI by gear, Account settings, Organization profile, Tenants.
+- The avatar menu's directory list showed two entries, `upyesp@gmail.com` and
+  `Default Directory`. The second is the tenant `upyespgmail.onmicrosoft.com`,
+  where the MSA is a `#EXT#` guest; it holds nothing of the Store account.
+  Switching into it makes the Apps and games workspace disappear and leaves the
+  session half-switched. A clean sign-out and sign-in in a private window is the
+  cure. The Store account lives in the `upyesp@gmail.com` context.
+route.
+
+### The tool: `msstore`, and what it will run
+
+[Microsoft Store Developer CLI](https://learn.microsoft.com/en-us/windows/apps/publish/msstore-dev-cli/overview)
+(`msstore`, cross-platform, [microsoft/msstore-cli](https://github.com/microsoft/msstore-cli),
+v0.4.4 current) is the supported automation path; it calls the same submission
+API the earlier research priced. For CI:
+
+```
+msstore reconfigure --tenantId $TENANT --sellerId $SELLER \
+  --clientId $CLIENT --clientSecret $SECRET
+msstore publish epher-<version>-windows-x86_64.msix -id 9NWXQ035T8TB --noCommit
+msstore submission get  9NWXQ035T8TB
+msstore submission publish 9NWXQ035T8TB
+msstore submission status 9NWXQ035T8TB
+```
+
+Verified against the CLI source and docs: `.msix`, `.msixbundle` and
+`.msixupload` are all accepted; `--noCommit` leaves a draft for a human or a
+later step to publish; `--flightId` and `--packageRolloutPercentage` exist for
+flights and gradual rollout. Because `POST /submissions` creates "a new
+in-progress submission, which is a copy of your last published submission"
+([manage app submissions](https://learn.microsoft.com/en-us/windows/uwp/monetize/manage-app-submissions)),
+the listing text, screenshots, pricing and age rating carry forward with no
+work per release: an update submission only has to replace the package. That is
+the whole of the "update the Store listing from CI" requirement.
+The official action is `microsoft/microsoft-store-apppublisher@v1.1`; it only
+installs the CLI, so a plain `dotnet tool` install or a downloaded binary works
+the same.
+
+### Optional hardening: no secret at all (client assertion / GitHub OIDC)
+
+Added in msstore-cli 0.4.2 (2026-08-29), after the first version of this
+document was written, and **not yet in the Learn pages**:
+`msstore reconfigure --clientAssertion`, with the signed JWT supplied through
+`MSSTORE_CLIENT_ASSERTION` or `MSSTORE_CLIENT_ASSERTION_FILE`
+([msstore-cli#145](https://github.com/microsoft/msstore-cli/issues/145),
+`MSStore.CLI/Services/EnvironmentInfo.cs`). A GitHub Actions OIDC token minted
+with audience `api://AzureADTokenExchange` is exactly such an assertion, so a
+federated credential on the Partner Center app replaces the client secret, the
+same shape as the VS Code route already in `vscode-publish.yml`. Two caveats,
+both honest: Microsoft documents neither the flag nor a FIC on a
+Partner-Center-created app, and it assumes the app created through Partner
+Center still accepts a federated credential (it is an ordinary app
+registration in that tenant, so it should). The proven-today route is the
+secret; treat the assertion as one follow-up experiment, not a dependency.
+
+### Left unverified
+
+- Whether Microsoft has fixed the missing developer-program roles for
+  individual accounts (#6153 closed without a public answer).
+- Whether the individual-account, tenant-association path is officially
+  supported; Microsoft's docs neither allow nor forbid it, and two independent
+  publishers report success in November 2026.
+- The exact first run against epher's app: the repo has no Actions history for
+  `store-api-test.yml` to read back, and the `MSSTORE_*` secrets were set on
+  2026-10-05 to values whose tenant is unknowable from here. Step 1 of the
+  sequence is also the diagnostic: which tenant does Partner Center list?
+
+### Result, 2026-11-22: the submission API authorises this repo
+
+The sequence above was carried out end to end. What exists now:
+
+| Item | Value |
+|---|---|
+| Tenant | `upyesp.onmicrosoft.com`, created inside Partner Center (the signup flow at `signup.microsoft.com/createaccount?scenario=PartnerCenter`: account details, sign-in details, payment, then mandatory MFA) |
+| Tenant admin | `admin@upyesp.onmicrosoft.com`, roles **Global admin, Manager(Windows)**, MFA on a TOTP secret |
+| Association | Partner Center, account settings, Tenants, Associate: confirmed against `upyesp.onmicrosoft.com` |
+| Application | `epher-store-ci`, client ID `ef3450a1-8bc8-4321-97d2-97b6c9b9133d`, created **inside** Partner Center with Manager(Windows), one key |
+| Seller ID | `96346900` (a plain number, Legal info) |
+| Secrets | the four `MSSTORE_*` values in the `stores` environment |
+
+The check that had failed for a month now passes: `store api test` run
+45059314967 minted a token and read the app back.
+
+```
+token call: HTTP 200
+applications call: HTTP 200
+applications visible to this app: 1
+ - 9NWXQ035T8TB | epher
+```
+
+The returned record carries `PackageFamilyName upyesp.epher_qmt5ym29gwpzm` and
+`publisherName CN=B286A718-5628-4B88-8D87-6AE265D62164`, so the credential is
+attached to the live listing and not to a lookalike. The remaining work is the
+publish leg in `release.yml` (build the MSIX, `msstore publish` it, commit or
+leave a draft), not credentials.
+
+Two cautions from the same session. First, Partner Center does not display an
+expiry for a key it creates; the date lives in the Entra admin center (App
+registrations, `epher-store-ci`, Certificates & secrets, also reachable as the
+"Client secrets" item), where it reads **2028-11-22**, two years out. Rotation
+when that approaches: **Add new key** in Partner Center, update
+`MSSTORE_CLIENT_SECRET`, confirm `store api test` is green, then remove the old
+key. The failure it causes is a bare `401` on the token call with nothing
+naming the cause, which is why the date is written down here. Second, the
+CLI's `TenantSetup` deep link stays broken, so any workflow or runbook that
+quotes it should quote the `/v2/account-settings/` path instead.
+
+
+### The publish leg, and two CLI facts learned building it
+
+`store-publish.yml` now rides the train: it takes the release's
+`epher-windows-x86_64.msix` (never a rebuild), checks the package version
+against the tag, refuses to touch a submission that is already open, runs
+`msstore publish <msix> -id 9NWXQ035T8TB --noCommit`, and writes the Partner
+Center link into the run summary. Draft only: a human publishes. Two facts
+cost a CI iteration each and are worth knowing:
+
+- **`msstore reconfigure` does not work on an ubuntu runner.** The CLI
+  persists the client secret through the platform credential manager, and the
+  Linux build calls `libsecret` (`MSStore.CLI/Services/CredentialManager/Unix/
+  CredentialManagerUnix.cs`, `secret_password_store_sync`). A headless runner
+  has no secret service, so the command prints "Ops, something doesn't seem to
+  be right!" after "Testing configuration" and exits 255. On `windows-latest`
+  the same command prints "Awesome! It seems to be working!". Run Store
+  submission jobs on Windows.
+- **`msstore submission status` does not print JSON for packaged apps**, only
+  a human line; `submission get` always serialises the submission to stdout
+  (`Commands/Submission/GetCommand.cs`). Workflows that need to branch on the
+  state must parse `submission get` and read `.status`. Measured states:
+  `Published` when nothing is pending, `PendingCommit` while a draft waits.
+
+`store-api-test.yml` grew a `cli` job covering `reconfigure`, `apps list` and
+`submission get`, so a credential or CLI regression surfaces without waiting
+for a release. Run 45059910455 is the first green one; it reports status
+`Published` for `9NWXQ035T8TB`.

@@ -52,3 +52,55 @@ jobs:
               for a in apps:
                   print(' -', a.get('id'), '|', a.get('primaryName'))
           PY
+
+  cli:
+    # The same credential through the tool the publish job drives, which
+    # is the half the raw REST test above cannot cover: that the seller
+    # id is accepted and the CLI can read the product. Read-only, no
+    # submission is created. windows-latest for the same reason the
+    # publish job uses it: reconfigure persists the secret through the
+    # platform credential manager, and the Linux build wants libsecret.
+    runs-on: windows-latest
+    environment: stores
+    steps:
+      - name: Secrets check
+        id: secrets
+        shell: pwsh
+        env:
+          TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
+          CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
+          SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          if ($env:TENANT -and $env:CLIENT -and $env:SECRET) {
+            "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          } else {
+            "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            Write-Host "::notice::store cli test skipped: the MSSTORE_* secrets are not set in the stores environment."
+          }
+
+      - name: Install the Microsoft Store Developer CLI
+        if: steps.secrets.outputs.skip == 'false'
+        uses: microsoft/microsoft-store-apppublisher@v1.1
+        with:
+          version: v0.4.4
+
+      - name: Configure, then read the catalog and the submission state
+        if: steps.secrets.outputs.skip == 'false'
+        shell: pwsh
+        env:
+          TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
+          SELLER: ${{ secrets.MSSTORE_SELLER_ID }}
+          CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
+          SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          msstore reconfigure --tenantId $env:TENANT --sellerId $env:SELLER --clientId $env:CLIENT --clientSecret $env:SECRET
+          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed with $LASTEXITCODE" }
+          Write-Host "=== applications ==="
+          msstore apps list
+          if ($LASTEXITCODE -ne 0) { throw "msstore apps list failed with $LASTEXITCODE" }
+          Write-Host "=== last submission ==="
+          msstore submission get 9NWXQ035T8TB 2>$null | Out-File -FilePath status.json -Encoding utf8
+          if ($LASTEXITCODE -ne 0) { throw "msstore submission get failed with $LASTEXITCODE" }
+          $status = (Get-Content -Raw status.json | ConvertFrom-Json).status
+          Write-Host "submission status: $status"
+          if ([string]::IsNullOrWhiteSpace($status)) { throw "the CLI printed no status field" }
