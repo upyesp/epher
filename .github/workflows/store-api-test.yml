@@ -52,3 +52,54 @@ jobs:
               for a in apps:
                   print(' -', a.get('id'), '|', a.get('primaryName'))
           PY
+
+  cli:
+    # The same credential through the tool the publish job drives, which
+    # is the half this test was missing: the raw REST call above proves
+    # the app is authorised, this proves `msstore` accepts the seller id
+    # and can read the product. Read-only: no submission is created.
+    runs-on: ubuntu-latest
+    environment: stores
+    steps:
+      - name: Secrets check
+        id: secrets
+        env:
+          TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
+          CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
+          SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+          SELLER: ${{ secrets.MSSTORE_SELLER_ID }}
+        run: |
+          if [ -n "$TENANT" ] && [ -n "$CLIENT" ] && [ -n "$SECRET" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::store cli test skipped: the MSSTORE_* secrets are not set in the stores environment."
+          fi
+
+      - name: Install the Microsoft Store Developer CLI
+        if: steps.secrets.outputs.skip == 'false'
+        uses: microsoft/microsoft-store-apppublisher@v1.1
+        with:
+          version: v0.4.4
+
+      - name: Configure, then read the catalog and the submission state
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
+          SELLER: ${{ secrets.MSSTORE_SELLER_ID }}
+          CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
+          SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          set -e
+          # human-facing progress goes to stderr, JSON to stdout; 2>&1
+          # so the log shows both halves of the reconfigure output
+          msstore reconfigure \
+            --tenantId "$TENANT" \
+            --sellerId "$SELLER" \
+            --clientId "$CLIENT" \
+            --clientSecret "$SECRET" 2>&1
+          echo "=== applications ==="
+          msstore apps list 2>&1
+          echo "=== last submission ==="
+          msstore submission status 9NWXQ035T8TB 2>/dev/null | tee status.json
+          echo "status: $(jq -r '.status // "missing"' status.json)"
