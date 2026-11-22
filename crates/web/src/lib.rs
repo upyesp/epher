@@ -99,6 +99,25 @@ fn slider_span(v: f64) -> (f64, f64) {
     }
 }
 
+/// The slider/play span for a SOLAR pane's time constant (ADR-0090):
+/// the drawn Julian Date ± [`epher_core::astro::SOLAR_TIME_WINDOW_DAYS`]
+/// — a month-wide window, not the generic large-constant ±2 (Earth
+/// crosses ~2° over that whole track and play reads as frozen). The
+/// generic rule keeps governing every other pane.
+pub fn solar_slider_span(v: f64) -> (f64, f64) {
+    epher_core::astro::solar_time_span(v)
+}
+
+/// The play-loop step for a span: 200 ticks per full cycle at the
+/// loop's 120 ms cadence, so a cycle always lasts ~24 s (ADR-0015's
+/// vendor-norm speed) whatever the span's width. Over the base −10..10
+/// span this is the historical 0.1 exactly; over the solar month
+/// window it is 0.3 days per tick, where the inner planets visibly
+/// travel frame to frame.
+pub fn play_step(lo: f64, hi: f64) -> f64 {
+    (hi - lo) / 200.0
+}
+
 /// Whether the tune panel offers `name` a slider (ADR-0014/0015): a
 /// constant the user defined — interactively this session (the
 /// session's const sources) or inside the script that drew the current
@@ -5449,17 +5468,30 @@ fn epher_app() -> Html {
         let play_cell = play_cell.clone();
         let rendered_box = rendered_box.clone();
         let live_apply = live_apply.clone();
+        let solar = solar.clone();
         Callback::from(move |(name, value): (String, f64)| {
+            // The solar pane's time knob spans a month-wide window
+            // (ADR-0090): one pane kind owns the pane at a time, so a
+            // solar scene on the pane means the knob the button belongs
+            // to is the time knob.
+            let solar_pane = solar.is_some();
             let reduce = web_sys::window()
                 .and_then(|w| w.match_media("(prefers-reduced-motion: reduce)").ok())
                 .flatten()
                 .map(|m| m.matches())
                 .unwrap_or(false);
+            let (lo, hi) = if solar_pane {
+                solar_slider_span(value)
+            } else {
+                slider_span(value)
+            };
             if reduce {
                 // No looping playback under reduced motion: each press
-                // steps the parameter once (WCAG 2.3.3).
-                let (lo, hi) = slider_span(value);
-                let mut next = value + 0.1;
+                // steps the parameter once (WCAG 2.3.3). The step is a
+                // twentieth of the span, not a bare 0.1 — over a
+                // Julian Date, 0.1 is 2.4 hours and the planets do not
+                // visibly move, so the press would look dead (ADR-0090).
+                let mut next = value + (hi - lo) / 20.0;
                 if next > hi {
                     next = lo;
                 }
@@ -5468,12 +5500,11 @@ fn epher_app() -> Html {
                 }
                 return;
             }
-            let (lo, hi) = slider_span(value);
             let spec = PlaySpec {
                 name,
                 lo,
                 hi,
-                step: 0.1,
+                step: play_step(lo, hi),
                 value,
                 freeze: (*rendered_box).borrow().clone(),
             };
@@ -6412,7 +6443,11 @@ fn epher_app() -> Html {
     // `const` knobs — `const a = 1; graph sin(x * a)` must still show
     // the slider and its play button, with the value the pane drew.
     let tune_draw = live.borrow().draw_env.clone();
-    let build_rows = |names: &[String]| -> Vec<Html> {
+    // `solar` marks rows of the solar pane: its time knob spans a
+    // month-wide window (ADR-0090), every other pane keeps the generic
+    // span. One pane kind owns the pane at a time, so the flag is a
+    // property of the row list, not of each row.
+    let build_rows = |names: &[String], solar: bool| -> Vec<Html> {
         names
             .iter()
             .filter_map(|name| {
@@ -6426,6 +6461,7 @@ fn epher_app() -> Html {
                 let playing_this = (*play).as_ref().is_some_and(|p| p.name == *name);
                 let (lo, hi) = match (*play).as_ref().filter(|p| p.name == *name) {
                     Some(p) => (p.lo, p.hi),
+                    None if solar => solar_slider_span(v),
                     None => slider_span(v),
                 };
                 let on_slider = on_slider.clone();
@@ -6513,9 +6549,9 @@ fn epher_app() -> Html {
         Some(src) => solar_slider_names(src, &session, tune_draw.as_ref()),
         None => Vec::new(),
     };
-    let curve_rows = build_rows(&curve_sliders);
-    let surface_rows = build_rows(&surface_sliders);
-    let solar_rows = build_rows(&solar_sliders);
+    let curve_rows = build_rows(&curve_sliders, false);
+    let surface_rows = build_rows(&surface_sliders, false);
+    let solar_rows = build_rows(&solar_sliders, true);
 
     // Per-curve visibility toggle (ADR-0015 amendment): the legend's
     // checkbox. Unchecking hides the curve from the plot, its points of

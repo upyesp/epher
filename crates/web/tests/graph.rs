@@ -704,3 +704,47 @@ fn a_lost_draw_env_never_blanks_the_pane_it_just_rendered() {
     assert!(z.apply(None), "reset applies");
     assert!(!z.pane_blank(), "reset must never blank the pane");
 }
+
+// ===== the solar pane's time knob (ADR-0090) =====
+
+#[test]
+fn solar_time_knob_spans_a_month_and_play_keeps_the_24s_cycle() {
+    // The guide promises "press the play button to watch the planets
+    // move". Over the generic large-constant ±2-day window Earth
+    // crosses ~2° across the whole slider track and play reads as
+    // frozen; the solar knob therefore spans a month (ADR-0090), and
+    // the play step scales to keep one cycle at ~24 s (200 ticks at
+    // the 120 ms cadence) whatever the span's width.
+    let jd = 2_461_366.5;
+    let (lo, hi) = epher_web::solar_slider_span(jd);
+    assert!((lo - (jd - 30.0)).abs() < 1e-9, "lo {lo}");
+    assert!((hi - (jd + 30.0)).abs() < 1e-9, "hi {hi}");
+
+    // The base −10..10 span keeps the historical 0.1 step exactly.
+    assert!((epher_web::play_step(-10.0, 10.0) - 0.1).abs() < 1e-9);
+    // The month window steps 0.3 days per tick: the inner planets
+    // visibly travel frame to frame.
+    assert!((epher_web::play_step(lo, hi) - 0.3).abs() < 1e-9);
+}
+
+#[test]
+fn the_solar_knob_resolves_through_the_draw_env_like_the_curve_knobs() {
+    // The examples page opens `const t = now()` + `solar3d t` as a
+    // script; the constant evaporates from the session when the scope
+    // closes, and the knob must still resolve against the pane's
+    // draw-time environment (the 88faecc rule, now asserted for the
+    // solar list too).
+    let mut s = Session::new();
+    s.begin_script();
+    s.submit_quiet("const t = now()");
+    let draw_env = s.env().clone();
+    s.end_script();
+    assert!(s.const_sources().get("t").is_none());
+    assert_eq!(
+        epher_web::solar_slider_names("t", &s, Some(&draw_env)),
+        vec!["t".to_string()]
+    );
+    let v = tune_value(&s, Some(&draw_env), "t").expect("draw-time value");
+    let (lo, hi) = epher_web::solar_slider_span(v);
+    assert!(hi - lo > 50.0, "a month-wide window, not ±2: {lo}..{hi}");
+}
