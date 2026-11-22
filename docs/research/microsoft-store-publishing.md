@@ -878,10 +878,16 @@ attached to the live listing and not to a lookalike. The remaining work is the
 publish leg in `release.yml` (build the MSIX, `msstore publish` it, commit or
 leave a draft), not credentials.
 
-Two cautions from the same session: Partner Center did not display an expiry for
-the new key, so the renewal date has to be read from the Entra admin center
-later; and the CLI's `TenantSetup` deep link stays broken, so any workflow or
-runbook that quotes it should quote the `/v2/account-settings/` path instead.
+Two cautions from the same session. First, Partner Center does not display an
+expiry for a key it creates; the date lives in the Entra admin center (App
+registrations, `epher-store-ci`, Certificates & secrets, also reachable as the
+"Client secrets" item), where it reads **2028-11-22**, two years out. Rotation
+when that approaches: **Add new key** in Partner Center, update
+`MSSTORE_CLIENT_SECRET`, confirm `store api test` is green, then remove the old
+key. The failure it causes is a bare `401` on the token call with nothing
+naming the cause, which is why the date is written down here. Second, the
+CLI's `TenantSetup` deep link stays broken, so any workflow or runbook that
+quotes it should quote the `/v2/account-settings/` path instead.
 
 
 ### The publish leg, and two CLI facts learned building it
