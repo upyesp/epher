@@ -25,12 +25,16 @@ name: microsoft store publish
 # "Testing configuration", exit 255, on a clean ubuntu runner). Windows
 # Credential Manager is the path the CLI is developed against.
 #
-# DRAFT ONLY, first cycle: the job uploads the package and leaves a
-# pending submission, then names the Partner Center page in the run
-# summary. Publishing it is a human click, which also means a failed
-# certificate review costs nothing live. Once a cycle has gone through
-# cleanly, add `msstore submission publish 9NWXQ035T8TB` behind the
-# environment's required reviewer (one change, one line).
+# FULLY AUTOMATIC (Pete's call, 2026-11-22): the job uploads the package
+# AND commits the submission, so certification starts with no human click
+# and the update goes live when it passes. The CLI's commit poll exits as
+# soon as the submission leaves CommitStarted (Helpers/
+# IStorePackagedAPIExtensions.cs), so the job finishes in minutes;
+# certification itself takes up to three business days and its progress
+# lives in Partner Center. A failed certification leaves the previous
+# version live, so the blast radius is "the update does not ship", never
+# "the Store listing breaks". The draft_only input keeps the old
+# upload-and-stop behaviour for diagnostics.
 #
 # The submission API copies the last published submission when it
 # creates a new one (learn.microsoft.com/windows/uwp/monetize/
@@ -52,6 +56,11 @@ on:
         description: "release version, with or without the leading v"
         type: string
         required: true
+      draft_only:
+        description: "upload and stop at a pending submission instead of committing"
+        type: boolean
+        required: false
+        default: false
   workflow_dispatch:
     inputs:
       tag:
@@ -62,6 +71,11 @@ on:
         description: "release version, with or without the leading v"
         type: string
         required: true
+      draft_only:
+        description: "upload and stop at a pending submission instead of committing"
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   store:
@@ -179,32 +193,51 @@ jobs:
             }
           }
 
-      - name: Upload the package as a draft submission
+      - name: Upload the package and submit it to the Store
         if: steps.secrets.outputs.skip == 'false' && steps.state.outputs.proceed == 'true'
         shell: pwsh
+        env:
+          DRAFT_ONLY: ${{ inputs.draft_only == true }}
         run: |
-          # --noCommit leaves the submission pending: nothing reaches
-          # certification, let alone the Store, until a human publishes
-          msstore publish dist/epher-windows-x86_64.msix -id 9NWXQ035T8TB --noCommit
+          # Without --noCommit the CLI uploads, commits the submission and
+          # polls until the commit is accepted (minutes); certification then
+          # proceeds in Partner Center with no human click. --noCommit stops
+          # after the upload and leaves the submission pending.
+          $publishArgs = @('dist/epher-windows-x86_64.msix', '-id', '9NWXQ035T8TB')
+          if ($env:DRAFT_ONLY -eq 'true') { $publishArgs += '--noCommit' }
+          msstore @publishArgs
           if ($LASTEXITCODE -ne 0) { throw "msstore publish failed with $LASTEXITCODE" }
 
       - name: Write the run summary
         if: steps.secrets.outputs.skip == 'false' && steps.state.outputs.proceed == 'true'
         shell: pwsh
+        env:
+          DRAFT_ONLY: ${{ inputs.draft_only == true }}
         run: |
           $ErrorActionPreference = 'Stop'
-          msstore submission get 9NWXQ035T8TB 2>$null | Out-File -FilePath draft.json -Encoding utf8
+          msstore submission get 9NWXQ035T8TB 2>$null | Out-File -FilePath submission.json -Encoding utf8
           if ($LASTEXITCODE -ne 0) { throw "msstore submission get failed with $LASTEXITCODE" }
-          $draft = Get-Content -Raw draft.json | ConvertFrom-Json
-          @(
-            "### Microsoft Store draft for $($env:VERSION)"
+          $submission = Get-Content -Raw submission.json | ConvertFrom-Json
+          $lines = @(
+            "### Microsoft Store submission for $($env:VERSION)"
             ""
             "| field | value |"
             "|---|---|"
-            "| status | ``$($draft.status)`` |"
-            "| submission | ``$($draft.id)`` |"
-            "| packages in this submission | $($draft.applicationPackages.Count) |"
+            "| status | ``$($submission.status)`` |"
+            "| submission | ``$($submission.id)`` |"
+            "| packages in this submission | $($submission.applicationPackages.Count) |"
             ""
-            "Publish it at https://partner.microsoft.com/dashboard/products/9NWXQ035T8TB/submissions"
-            "(press Publish on the pending submission; certification takes up to three business days)."
-          ) | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          )
+          if ($env:DRAFT_ONLY -eq 'true') {
+            $lines += @(
+              "Draft only: publish it at https://partner.microsoft.com/dashboard/products/9NWXQ035T8TB/submissions"
+              "(press Publish on the pending submission; certification takes up to three business days)."
+            )
+          } else {
+            $lines += @(
+              "Committed automatically; certification runs in Partner Center with no human click"
+              "(https://partner.microsoft.com/dashboard/products/9NWXQ035T8TB/submissions, up to three business days)."
+              "A failed certification leaves the previous version live in the Store."
+            )
+          }
+          $lines | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
