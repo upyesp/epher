@@ -950,3 +950,32 @@ Two facts cost a CI iteration each and are worth knowing:
 `submission get`, so a credential or CLI regression surfaces without waiting
 for a release. Run 45059910455 is the first green one; it reports status
 `Published` for `9NWXQ035T8TB`.
+
+### Result, 2026-11-23: the train publishes the Store build on its own
+
+The 0.9.23 train shipped 24 of 25 jobs green; only the Store leg failed, and it
+failed three times in a row before it worked, each time before touching the
+Store. The failures and their fixes are all recorded above (no `GH_REPO`
+without a checkout, the case-insensitive version match, the missing `publish`
+subcommand). After the third fix, `store-publish.yml` run 45141484072 for tag
+`v0.9.23` completed green with no human input:
+
+```
+New Submission properly configured.
+Waiting for the submission commit processing to complete.
+Submission Committed - Status=CommitStarted
+Submission Status - PreProcessing
+Submission commit success!
+```
+
+The Store API now reports `pendingApplicationSubmission`
+`1152921505702480498` with status `Certification`
+(`store api test` run 45142339246), the package is `0.9.23.0`, and
+certification proceeds unattended: on a pass the update goes live in the
+Store, on a failure the previous version stays live. Nothing else in the train
+depends on the outcome, because the job is outside `verify.needs`.
+
+The one thing this exercise proves about the tooling: the CLI reports argument
+errors as root help rather than as a failure of the intended command, so a
+red drive should be read from the first `Unrecognized command or argument`
+line, not from the exit code alone.
