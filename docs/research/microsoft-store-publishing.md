@@ -919,6 +919,13 @@ Two facts cost a CI iteration each and are worth knowing:
   (`Commands/Submission/GetCommand.cs`). Workflows that need to branch on the
   state must parse `submission get` and read `.status`. Measured states:
   `Published` when nothing is pending, `PendingCommit` while a draft waits.
+- **`gh` needs repo context when the job has no checkout.** The store job
+  downloads the MSIX straight from the release, so it has no
+  `actions/checkout` step, and `gh release download` then falls back to git
+  for the repository name and dies with "failed to run git: fatal: not a git
+  repository". The fix is one env line, `GH_REPO: ${{ github.repository }}`,
+  first attached by the 0.9.23 train (2026-11-23) and proven by re-driving
+  the store job standalone.
 
 `store-api-test.yml` grew a `cli` job covering `reconfigure`, `apps list` and
 `submission get`, so a credential or CLI regression surfaces without waiting

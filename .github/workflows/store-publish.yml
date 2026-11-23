@@ -128,6 +128,10 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          # no actions/checkout in this job: GH_REPO is how gh learns which
+          # repository's release to read (measured 2026-11-23: without it,
+          # gh falls back to git and dies "not a git repository")
+          GH_REPO: ${{ github.repository }}
         run: |
           $ErrorActionPreference = 'Stop'
           gh release download $env:TAG --pattern 'epher-windows-x86_64.msix' --dir dist
