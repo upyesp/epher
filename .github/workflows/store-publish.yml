@@ -145,8 +145,13 @@ jobs:
           Copy-Item $package (Join-Path $tmp 'package.zip')
           Expand-Archive -Path (Join-Path $tmp 'package.zip') -DestinationPath $tmp -Force
           $manifest = Get-Content -Raw (Join-Path $tmp 'AppxManifest.xml')
-          if ($manifest -notmatch 'Version="([0-9.]+)"') { throw "no Version attribute in AppxManifest.xml" }
-          $found = $Matches[1]
+          # [regex]::Match is case-sensitive on purpose: PowerShell's -match
+          # is case-insensitive and matched the xml declaration's lowercase
+          # version="1.0" before the Identity element (measured on the
+          # 0.9.23 train, 2026-11-23: "package version: 1.0")
+          $identity = [regex]::Match($manifest, '<Identity[^>]*Version="([0-9.]+)"')
+          if (-not $identity.Success) { throw "no Identity Version attribute in AppxManifest.xml" }
+          $found = $identity.Groups[1].Value
           Write-Host "package version: $found"
           if ($found -ne "$($env:VERSION).0") {
             throw "package version $found is not $($env:VERSION).0 (the Store takes four sections, the fourth reserved and 0)"

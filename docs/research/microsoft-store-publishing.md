@@ -925,7 +925,11 @@ Two facts cost a CI iteration each and are worth knowing:
   for the repository name and dies with "failed to run git: fatal: not a git
   repository". The fix is one env line, `GH_REPO: ${{ github.repository }}`,
   first attached by the 0.9.23 train (2026-11-23) and proven by re-driving
-  the store job standalone.
+  the store job standalone. Its neighbour in the same step, the version
+  check, failed the other way one drive later: PowerShell's `-match` is
+  case-insensitive, so the xml declaration's lowercase `version="1.0"`
+  matched before the Identity element and the guard read "package version:
+  1.0"; parse with `[regex]::Match`, which is case-sensitive.
 
 `store-api-test.yml` grew a `cli` job covering `reconfigure`, `apps list` and
 `submission get`, so a credential or CLI regression surfaces without waiting
