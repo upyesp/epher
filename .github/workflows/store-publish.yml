@@ -212,7 +212,14 @@ jobs:
           # polls until the commit is accepted (minutes); certification then
           # proceeds in Partner Center with no human click. --noCommit stops
           # after the upload and leaves the submission pending.
-          $publishArgs = @('dist/epher-windows-x86_64.msix', '-id', '9NWXQ035T8TB')
+          #
+          # 'publish' is the subcommand and must lead the splat: without it
+          # msstore parses the path as a command and prints root help
+          # (measured 2026-11-23, "Unrecognized command or argument").
+          # A loose .msix FILE path is supported: MSIXProjectPublisher uses
+          # new FileInfo(pathOrUrl) and defaults the input directory to the
+          # file's own folder, so no --inputDirectory is needed.
+          $publishArgs = @('publish', 'dist/epher-windows-x86_64.msix', '--appId', '9NWXQ035T8TB')
           if ($env:DRAFT_ONLY -eq 'true') { $publishArgs += '--noCommit' }
           msstore @publishArgs
           if ($LASTEXITCODE -ne 0) { throw "msstore publish failed with $LASTEXITCODE" }

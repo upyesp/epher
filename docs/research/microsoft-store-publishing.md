@@ -930,6 +930,21 @@ Two facts cost a CI iteration each and are worth knowing:
   case-insensitive, so the xml declaration's lowercase `version="1.0"`
   matched before the Identity element and the guard read "package version:
   1.0"; parse with `[regex]::Match`, which is case-sensitive.
+- **The invocation is `msstore publish <file.msix> --appId <id>`** and the
+  subcommand word is not optional. A third drive failed with "Unrecognized
+  command or argument 'dist/epher-windows-x86_64.msix'" because the
+  PowerShell argument array omitted `publish`, so the CLI parsed the path as
+  a command and printed root help. Two facts settle the rest of the shape
+  (`ProjectConfigurators/MSIXProjectPublisher.cs` in v0.4.4): a **loose
+  `.msix` file** is a valid first argument (it is wrapped in `FileInfo` and
+  the input directory defaults to that file's folder, so no
+  `--inputDirectory` is needed), and `--appId` is the long spelling of `-id`.
+  Passing a *directory* instead selects the project-configurator path and
+  can end in "we could not find a project publisher" (msstore-cli#89), so the
+  file form is the one to use when CI has a built artifact. v0.4.4 remains
+  the newest CLI release, and the official action
+  (`microsoft/microsoft-store-apppublisher`) only installs it; there is no
+  publish input to hide the arguments behind.
 
 `store-api-test.yml` grew a `cli` job covering `reconfigure`, `apps list` and
 `submission get`, so a credential or CLI regression surfaces without waiting
