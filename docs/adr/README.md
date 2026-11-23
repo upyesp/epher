@@ -116,6 +116,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0089 | The store manifest hides the console application under the approved headless waiver | 2026-11-21 | accepted |
 | 0090 | The solar time knob spans a month and every play cycle lasts ~24 seconds | 2026-11-22 | accepted (the span rule superseded by 0091) |
 | 0091 | The solar knob spans the outermost displayed orbit, and a legend toggle re-spans it and refits the frame | 2026-11-22 | accepted (supersedes the 0090 span) |
+| 0092 | The repo keeps the latest release and the two before it | 2026-11-23 | accepted |
 
 ## Decision chains
 
