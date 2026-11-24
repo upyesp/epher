@@ -2712,6 +2712,12 @@ ist.
 
 Jeder Eintrag liegt zwischen dünnen Trennlinien: ein einzeiliger Ausdruck ist eine Zeile, und ein mehrzeiliges Skript ist ein Eintrag, der alle seine Zeilen zeigt. Klicke einen Eintrag an, um ihn zurück ins Eingabefeld zu laden und erneut auszuführen.
 
+Bei leerem Eingabefeld durchlaufen die Pfeiltasten den Verlauf: **↓** lädt
+den neuesten Eintrag, **↓** nochmals den davor, und **↑** geht zurück zum
+neueren. Die hervorgehobene Zeile in der Liste zeigt, wo du bist, und **↑**
+vom neuesten Eintrag leert das Feld. Der Lauf endet, sobald du den Text
+änderst, und die Pfeile bewegen wieder den Cursor.
+
 ### 2.4 Graphen zeichnen
 
 Tippe `graph`, gefolgt von einem Ausdruck, und drücke **Enter**:
@@ -3324,12 +3330,12 @@ Der Bildschirm ist in Panels unterteilt:
 | Tippen | am Cursor zum Ausdruck hinzufügen |
 | **Enter** | das ganze Skript auswerten (eine mehrzeilige Eingabe läuft als ein Verlaufseintrag) |
 | **Shift+Enter** | eine neue Zeile beginnen |
-| **← → ↑ ↓** | den Cursor bewegen (bei leerer Eingabe: die 3D-Ansicht drehen) |
+| **← → ↑ ↓** | den Cursor im Text bewegen; bei leerer Eingabe ruft **↓** die neueste Verlaufszeile zurück und **↑ ↓** durchlaufen dann die Liste (die hervorgehobene Zeile zeigt, wo du bist; **↑** vom neuesten Eintrag leert die Eingabe) |
 | **Esc** | die Eingabezeile leeren |
 | **F1** | die Funktion unter dem Cursor beschreiben (in der Ergebniszeile) |
 | **Ctrl+C** | beenden |
 | **q** | beenden (wenn die Eingabe leer ist) |
-| **Arrow keys** | die 3D-Ansicht drehen (wenn die Eingabe leer ist) |
+| **← →** / **Umschalt+↑ ↓** | die 3D-Ansicht drehen (wenn die Eingabe leer ist) |
 | **Space** | die Animation starten/stoppen (wenn die Eingabe leer ist) |
 | **F9** | die Menüs öffnen (Datei, Bearbeiten, Graph, Einstellungen, Hilfe) |
 | **Tab** | das immer sichtbare Tastenfeld fokussieren (bzw. den Verlauf, vom Tastenfeld aus); Gruppen wechseln (**Esc** zurück zum Tippen) |
@@ -3388,11 +3394,12 @@ Plot. Nach jedem graph-Befehl listet die TUI die besonderen Punkte
 Befehl `table` (Abschnitt 2.4.2) funktioniert auch hier.
 
 `graph3d x ^ 2 - y ^ 2` zeichnet eine 3D-Fläche als ASCII-Drahtgitter.
-Drehe sie mit den Pfeiltasten, solange die Eingabe leer ist, und drücke
-die Leertaste, um die Konstante eines Schiebereglers zu animieren
-(Abschnitt 2.4.5). Die Hinweiszeile unten zeigt die Pfeil- und
-Leertasten-Hinweise nur, solange eine 3D-Fläche oder eine animierbare
-Kurve angezeigt wird.
+Drehe sie mit ← → (und Umschalt+↑ ↓ für die Neigung), solange die
+Eingabe leer ist, und drücke die Leertaste, um die Konstante eines
+Schiebereglers zu animieren (Abschnitt 2.4.5). Die Hinweiszeile unten
+zeigt die Dreh- und Leertasten-Hinweise nur, solange eine 3D-Fläche
+oder eine animierbare Kurve angezeigt wird, und den Verlaufshinweis,
+wenn die Eingabe leer ist und der Verlauf eine Zeile hat.
 
 `graph save plot.svg` schreibt den aktuellen Plot als dasselbe SVG-Bild,
 das die Schaltfläche **SVG kopieren** der Web-App liefert; `graph3d save

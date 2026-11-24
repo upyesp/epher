@@ -316,3 +316,13 @@ whose goal is accuracy must not let a viewing control lie about the data.
   (scene parts carry the curve-N classes), hidden elements out of the
   plot and the export while keeping their palette index. The space
   curve pane also gets the graph toolbar it was missing.
+
+## Amendment (2026-11-24): on an empty entry the plain Up/Down walk the history (ADR-0093)
+
+- The TUI's "arrow keys (empty input) orbit" narrows: Left/Right still
+  rotate the yaw, and Shift+Up/Down take the pitch, while the plain
+  Up/Down on an empty entry recall the history (Down the newest line,
+  then older; Up back toward newer). The history walk is the entry's
+  need, the same precedence the ADR-0035 amendment gave the entry over
+  the plot, and the mouse drag (ADR-0034) and the Settings fine controls
+  (ADR-0031) remain the other two paths to a pose.

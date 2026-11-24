@@ -2693,6 +2693,13 @@ mantido enquanto a página estiver aberta.
 
 Cada entrada fica entre linhas finas: uma expressão de uma linha é uma fila, e um script de várias linhas é uma entrada que mostra todas as suas linhas. Clique numa entrada para a voltar a carregar no campo de entrada e executá-la de novo.
 
+Com o campo de entrada vazio, as teclas de seta percorrem o histórico:
+**↓** carrega a entrada mais recente, **↓** de novo a anterior, e **↑**
+volta em direção à mais recente. A linha realçada na lista mostra onde
+você está, e **↑** a partir da entrada mais recente esvazia o campo. O
+percurso termina assim que você edita o texto, e as setas voltam a mover
+o cursor.
+
 ### 2.4 Gráficos
 
 Escreva `graph` seguido de uma expressão e prima **Enter**:
@@ -3305,12 +3312,12 @@ O ecrã está dividido em painéis:
 | Escrever | adicionar à expressão no cursor |
 | **Enter** | avaliar todo o script (uma entrada multilinha corre como um item do histórico) |
 | **Shift+Enter** | começar uma nova linha |
-| **← → ↑ ↓** | mover o cursor (com a entrada vazia: rodar a vista 3D) |
+| **← → ↑ ↓** | mover o cursor dentro do texto; com a entrada vazia, **↓** recupera a linha do histórico mais recente e **↑ ↓** percorrem depois a lista (a linha realçada mostra onde você está; **↑** a partir da mais recente esvazia a entrada) |
 | **Esc** | limpar a linha de entrada |
 | **F1** | descrever a função sob o cursor (na linha de resultado) |
 | **Ctrl+C** | sair |
 | **q** | sair (quando a entrada está vazia) |
-| **Arrow keys** | rodar a vista 3D (quando a entrada está vazia) |
+| **← →** / **Shift+↑ ↓** | rodar a vista 3D (quando a entrada está vazia) |
 | **Space** | iniciar/parar a animação (quando a entrada está vazia) |
 | **F9** | abrir os menus (Ficheiro, Editar, Gráfico, Definições, Ajuda) |
 | **Tab** | focar o teclado sempre visível (ou o histórico, a partir do teclado); trocar de grupo (**Esc** volta à escrita) |
@@ -3369,11 +3376,12 @@ interseções) por baixo do gráfico. O comando `table` (secção 2.4.2)
 também funciona aqui.
 
 `graph3d x ^ 2 - y ^ 2` desenha uma superfície 3D como uma malha de
-arame em ASCII. Rode-a com as teclas de seta enquanto a entrada estiver
-vazia, e prima a barra de espaço para animar uma constante de deslizador
-(secção 2.4.5). A linha de ajudas no fundo mostra as indicações de setas
-e espaço apenas enquanto estiver visível uma superfície 3D ou uma curva
-animável.
+arame em ASCII. Rode-a com ← → (e Shift+↑ ↓ para a inclinação) enquanto
+a entrada estiver vazia, e prima a barra de espaço para animar uma
+constante de deslizador (secção 2.4.5). A linha de ajudas no fundo mostra
+as indicações de rotação e espaço apenas enquanto estiver visível uma
+superfície 3D ou uma curva animável, e a indicação de histórico quando a
+entrada está vazia e o histórico tem uma linha.
 
 `graph save plot.svg` grava o gráfico atual como a mesma imagem SVG que
 o botão **Copiar SVG** da aplicação web produz; `graph3d

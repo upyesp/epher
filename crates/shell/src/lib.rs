@@ -6,9 +6,14 @@
 //! the session (validation and source lookups, `save name` finds functions
 //! and constants); [`run_command`] additionally persists through the store
 //! for native shells. The webview reuses classify/prepare and persists
-//! through its IPC bridge instead.
+//! through its IPC bridge instead. The history walk (ADR-0093) is the
+//! other shared policy: the TUI and the web entry recall earlier lines
+//! with the arrow keys through the same [`history::history_step`].
 
+pub mod history;
 pub mod plots;
+
+pub use history::{history_step, HistoryStep};
 
 use epher_core::Session;
 use epher_i18n::Localizer;

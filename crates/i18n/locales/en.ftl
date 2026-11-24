@@ -114,7 +114,8 @@ tune-rot-v = Vertical rotation speed
 tune-zoom = Zoom speed
 
 tui-hint-base-a = Enter evaluate · Tab history/keypad · F9 menu · ? key help · Esc clear
-tui-hint-rotate =  · arrows rotate
+tui-hint-rotate =  · ← → / Shift+↑ ↓ rotate
+tui-hint-recall =  · ↑ ↓ history
 tui-hint-play =  · space animate
 tui-hint-base-b =  · Ctrl+K keypad · Ctrl+L clear history · Ctrl+C quit · q quit
 

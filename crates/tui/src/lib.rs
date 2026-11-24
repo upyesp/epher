@@ -228,6 +228,14 @@ pub struct App {
     hist_focus: bool,
     hist_sel: usize,
     hist_rows: Vec<usize>,
+    /// The history walk (ADR-0093): on an empty entry, Down recalls the
+    /// newest line and the arrows then walk the list (Down older, Up
+    /// newer, the way the list renders); the history panel highlights
+    /// the recalled row. `Some(row)` is the displayed row (0 = newest)
+    /// the entry currently shows. The walk outlives the first recall (the
+    /// entry holds text by then) and ends when the text changes: typing,
+    /// deleting, a pick, a submit, or Esc.
+    hist_recall: Option<usize>,
     /// The in-app user guide view (ADR-0018): `Some(scroll)` when open,
     /// the offset counting wrapped rows from the top. `guide_chapters`
     /// holds the top-level chapter titles with their wrapped-row offsets
@@ -965,6 +973,7 @@ impl App {
             keypad: false,
             keypad_docked: false,
             prompt_cursor: 0,
+            hist_recall: None,
             key_help: None,
             constants: None,
             constants_rows: Vec::new(),
@@ -1695,7 +1704,10 @@ impl App {
 
     pub fn history_open(&mut self) {
         self.hist_focus = true;
-        self.hist_sel = 0;
+        // The list's own arrows continue from the row the walk recalled
+        // (ADR-0093), so the highlight stays where the entry shows it.
+        self.hist_sel = self.hist_recall.unwrap_or(0);
+        self.hist_recall = None;
         self.keypad = false;
         self.menu = None;
     }
@@ -1723,24 +1735,58 @@ impl App {
 
     /// Load the entry shown at `display_idx` (0 = newest on top) into the
     /// input, the mouse spelling of the web's clickable history
-    /// (ADR-0034).
+    /// (ADR-0034). Ends history focus; `None` when the history is empty
+    /// or the row is out of range.
     pub fn history_pick_display(&mut self, display_idx: usize) -> Option<String> {
+        self.hist_focus = false;
+        self.history_text(display_idx)
+    }
+
+    /// The expression of the entry shown at `display_idx` (0 = newest on
+    /// top), the text a pick or a recall (ADR-0093) loads: the recorded
+    /// answer suffix (`  = …`, `  error: …`, `  warning: …`) stays out
+    /// so the user can edit and re-run it (ADR-0031), and a multi-line
+    /// script entry (ADR-0027 amendment) comes back as one `; `-joined
+    /// line: `;` is the same separator, so the script re-runs exactly as
+    /// recorded. `None` when the history is empty or the row is out of
+    /// range.
+    fn history_text(&self, display_idx: usize) -> Option<String> {
         let len = self.session.history().len();
-        if len == 0 || display_idx >= len {
-            self.hist_focus = false;
+        if display_idx >= len {
             return None;
         }
-        let sel = display_idx;
-        let entry = self.session.history()[len - 1 - sel].clone();
-        // ADR-0031: the pick loads the expression, the recorded answer
-        // suffix (`  = …`, `  error: …`, `  warning: …`) stays out of the
-        // input so the user can edit and re-run it. Multi-line script
-        // entries (ADR-0027 amendment) come back as one `; `-joined
-        // line: the one-row input cannot hold newlines, and `;` is the
-        // same separator, so the script re-runs exactly as recorded.
-        let line = epher_core::history_expression(&entry).to_string();
-        self.hist_focus = false;
-        Some(line.replace('\n', "; "))
+        let entry = &self.session.history()[len - 1 - display_idx];
+        Some(
+            epher_core::history_expression(entry)
+                .replace('\n', "; "),
+        )
+    }
+
+    /// Step the history walk from the entry (ADR-0093): `dir` > 0 is
+    /// Down (older, down the list), < 0 is Up (newer); the policy is
+    /// [`epher_shell::history_step`]. The recalled line loads into the
+    /// input (expression only, `;`-joined like a pick) and the walk's
+    /// row becomes [`history_recall`], which the panel highlights. Up
+    /// from the newest line empties the entry and ends the walk. Returns
+    /// false when nothing moved (an empty history, Up from a fresh entry,
+    /// Down from the oldest line), true otherwise.
+    pub fn history_recall_step(&mut self, dir: isize) -> bool {
+        match epher_shell::history_step(self.session.history().len(), self.hist_recall, dir) {
+            epher_shell::HistoryStep::Stay => false,
+            epher_shell::HistoryStep::Leave => {
+                self.clear_input();
+                true
+            }
+            epher_shell::HistoryStep::Row(row) => match self.history_text(row) {
+                Some(line) => {
+                    self.input = line;
+                    self.cursor = self.input.len();
+                    self.hist_recall = Some(row);
+                    true
+                }
+                None => false,
+            },
+        }
     }
 
     /// Open a menu with the highlight on a given item (mouse click on a
@@ -1871,6 +1917,20 @@ impl App {
     pub fn set_input(&mut self, input: &str) {
         self.input = input.to_string();
         self.cursor = self.input.len();
+        self.hist_recall = None;
+    }
+
+    /// Whether the plain arrow keys serve the entry right now: no file
+    /// prompt, menu, keypad, or history list has them.
+    pub fn entry_owns_arrows(&self) -> bool {
+        self.prompt.is_none() && self.menu.is_none() && !self.keypad && !self.hist_focus
+    }
+
+    /// The displayed row (0 = newest on top) the entry currently recalls
+    /// through the history walk (ADR-0093), `None` when it is not
+    /// walking the history.
+    pub fn history_recall(&self) -> Option<usize> {
+        self.hist_recall
     }
 
     pub fn input(&self) -> &str {
@@ -1975,11 +2035,13 @@ impl App {
     pub fn clear_input(&mut self) {
         self.input.clear();
         self.cursor = 0;
+        self.hist_recall = None;
     }
 
     /// Empty the history list (Ctrl+L); definitions and constants stay.
     pub fn clear_history(&mut self) {
         self.session.clear_history();
+        self.hist_recall = None;
     }
 
     /// The insertion point (byte offset) inside the input text.
@@ -1994,6 +2056,7 @@ impl App {
         let at = self.cursor();
         self.input.insert_str(at, text);
         self.cursor = at + text.len();
+        self.hist_recall = None;
     }
 
     /// Insert a pasted text at the cursor as one unit (ADR-0059): the
@@ -2020,6 +2083,7 @@ impl App {
         let at = self.cursor();
         self.input.insert(at, c);
         self.cursor = at + c.len_utf8();
+        self.hist_recall = None;
     }
 
     /// The word ending at the caret, for F1 help (ADR-0042).
@@ -2057,6 +2121,7 @@ impl App {
             .unwrap_or(0);
         self.input.replace_range(start..at, "");
         self.cursor = start;
+        self.hist_recall = None;
     }
 
     /// Move the cursor one character left/right (byte-aware).
@@ -2175,8 +2240,7 @@ impl App {
     pub fn submit(&mut self) {
         let input = self.input.clone();
         self.result = self.session.submit_entry(&input);
-        self.input.clear();
-        self.cursor = 0;
+        self.clear_input();
     }
 
     /// Handle one submitted line the way the event loop does: shell commands
@@ -2371,7 +2435,7 @@ impl App {
                 let _ = save_history(store, self.history());
                 let _ = save_session(store, self.bindings());
             }
-            self.input.clear();
+            self.clear_input();
             // The `theme` command persists through run_command (the shell
             // kernel saved it); the App re-applies its palette right here,
             // so the TUI needs no extra plumbing (ADR-0017).
@@ -2384,7 +2448,7 @@ impl App {
         }
         if quiet {
             self.result = self.session.submit_quiet(piece);
-            self.input.clear();
+            self.clear_input();
         } else {
             self.input = piece.to_string();
             self.submit();
@@ -3835,6 +3899,45 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         KeyCode::Up if app.history_focused() => app.history_move(-1),
                         KeyCode::Down if app.history_focused() => app.history_move(1),
                         KeyCode::Esc if app.history_focused() => app.history_close(),
+                        // 3D pitch on an empty entry (ADR-0015, amended by
+                        // ADR-0093): Shift+Up/Down orbit while the plain
+                        // Up/Down below walk the history. These arms come
+                        // first so the shift is read before the walk.
+                        KeyCode::Up
+                            if key.modifiers.contains(KeyModifiers::SHIFT)
+                                && app.input().is_empty() =>
+                        {
+                            app.rotate_view(0.0, 0.15)
+                        }
+                        KeyCode::Down
+                            if key.modifiers.contains(KeyModifiers::SHIFT)
+                                && app.input().is_empty() =>
+                        {
+                            app.rotate_view(0.0, -0.15)
+                        }
+                        // The history walk (ADR-0093): on an empty entry,
+                        // Down recalls the newest line and the arrows then
+                        // walk the list, Down older and Up newer, the way
+                        // the list renders (the ADR-0033 amendment's rule
+                        // for history focus). The walk outlives the first
+                        // recall: while it lasts, Up/Down keep walking
+                        // although the entry holds text, and any edit ends
+                        // it (a typed or deleted character, a pick, a
+                        // submit, Esc). Left/Right and Home/End stay the
+                        // caret's, so the recalled line can be positioned
+                        // in before the walk continues.
+                        KeyCode::Down
+                            if app.entry_owns_arrows()
+                                && (app.input().is_empty() || app.history_recall().is_some()) =>
+                        {
+                            app.history_recall_step(1);
+                        }
+                        KeyCode::Up
+                            if app.entry_owns_arrows()
+                                && (app.input().is_empty() || app.history_recall().is_some()) =>
+                        {
+                            app.history_recall_step(-1);
+                        }
                         // The entry owns the arrow keys while it holds text
                         // (ADR-0035 amendment): Left/Right move the caret,
                         // Up/Down move between lines of a multi-line script,
@@ -3905,12 +4008,14 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         {
                             app.push_char('\n')
                         }
-                        // 3D orbit (ADR-0015): arrows rotate when the input line
-                        // is empty, so typing never loses an arrow key.
+                        // 3D yaw on an empty entry (ADR-0015, amended by
+                        // ADR-0093): Left/Right rotate; the plain Up/Down
+                        // above walk the history now, Shift+Up/Down the pitch.
+                        // The mouse drag (ADR-0034) and the Settings fine
+                        // controls (ADR-0031) remain the other two paths to
+                        // the same pose.
                         KeyCode::Left if app.input().is_empty() => app.rotate_view(-0.15, 0.0),
                         KeyCode::Right if app.input().is_empty() => app.rotate_view(0.15, 0.0),
-                        KeyCode::Up if app.input().is_empty() => app.rotate_view(0.0, 0.15),
-                        KeyCode::Down if app.input().is_empty() => app.rotate_view(0.0, -0.15),
                         // Space starts/stops the parameter animation (ADR-0015).
                         KeyCode::Char(' ') if app.input().is_empty() => {
                             app.toggle_play();
@@ -5212,11 +5317,20 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // current plot does not offer.
     let has_surface = !app.surfaces().is_empty();
     let animatable_2d = !app.graph().is_empty() && app.curve_animated_constant().is_some();
+    // The walk hint shows exactly when the arrows would recall (ADR-0093):
+    // the entry is empty (or already walking) and the history has a line.
+    let recallable =
+        !app.history().is_empty() && (app.input().is_empty() || app.history_recall().is_some());
     let hint_text = format!(
-        "{}{}{}{}",
+        "{}{}{}{}{}",
         localizer.lookup("tui-hint-base-a"),
         if has_surface {
             localizer.lookup("tui-hint-rotate")
+        } else {
+            String::new()
+        },
+        if recallable {
+            localizer.lookup("tui-hint-recall")
         } else {
             String::new()
         },
@@ -5359,7 +5473,12 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             history_lines.push(Line::from(Span::styled(rule.clone(), rule_style)));
             hist_rows.push(usize::MAX);
         }
-        let selected = app.history_focused() && display_idx == app.history_sel();
+        // Every row of the selected entry is highlighted with the theme's
+        // selection colors: history focus (ADR-0027), and the row the
+        // history walk recalled (ADR-0093), so the arrows' place in the
+        // list is visible while the entry is walked from the keyboard.
+        let selected = (app.history_focused() && display_idx == app.history_sel())
+            || app.history_recall() == Some(display_idx);
         for row in h.split('\n') {
             let line = Line::from(row.to_string());
             // History focus (ADR-0027): every row of the selected entry
@@ -5373,26 +5492,31 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         }
     }
     app.hist_rows = hist_rows;
-    // Keep the selection in view while the history has focus: the
-    // paragraph scrolls (in rows) so the selected entry is visible; its
-    // last row sits at the bottom edge when it fits, its first row at
-    // the top when it is taller than the viewport.
-    let history_scroll = if app.history_focused() {
+    // Keep the selection in view while the history has focus or the walk
+    // recalls a row: the paragraph scrolls (in rows) so the selected
+    // entry is visible; its last row sits at the bottom edge when it
+    // fits, its first row at the top when it is taller than the viewport.
+    let followed_row = if app.history_focused() {
+        Some(app.history_sel())
+    } else {
+        app.history_recall()
+    };
+    let history_scroll = if let Some(sel_row) = followed_row {
         let visible = history_area.height.saturating_sub(2) as usize;
         let total_rows = app.hist_rows.len();
         // The selected entry's first row in the displayed list. (An
         // earlier scan stopped at the first rule, so any selection past
-        // the newest entry read as row zero and the view never followed
-        // — the ADR-0033 amendment's "history stops answering" report.)
+        // the newest entry read as row zero and the view never followed:
+        // the ADR-0033 amendment's "history stops answering" report.)
         let sel_top = app
             .hist_rows
             .iter()
-            .position(|&i| i == app.history_sel())
+            .position(|&i| i == sel_row)
             .unwrap_or(0);
         let sel_height = app
             .hist_rows
             .iter()
-            .filter(|&&i| i == app.history_sel())
+            .filter(|&&i| i == sel_row)
             .count()
             .max(1);
         let scroll = sel_top.saturating_sub(visible.saturating_sub(sel_height.min(visible)));

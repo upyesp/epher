@@ -185,6 +185,9 @@ at the end of the chain.
 - **History** - 0021 (`ans`) → 0025 → 0027 → 0030 → **0038 (share icon
   on every item, `?expr=` links stage the entry; `clear`/`history`
   keypad keys finally run)**. → **0042 (auto-ans on an empty entry)**
+  → **0093 (on an empty entry, ↑ ↓ walk the history in the TUI, desktop,
+  and PWA, the list highlighting the recalled row; the REPL's spelling
+  is 0086)**.
 - **Calculations** - 0005 (float default) → 0022 (number bases) → 0042 (percent,
   primes) → **0043 (complex values, numeric solve, calculus, exact fractions,
   engineering/scientific/grouped formats)** → **0044 (lists, elementwise

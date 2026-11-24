@@ -2773,6 +2773,13 @@ Each entry sits between thin rules: a single-line expression is one row,
 and a multi-line script is one entry showing all of its lines. Click an
 entry to load it back into the entry field and run it again.
 
+With the entry field empty, the arrow keys walk the history: **↓**
+loads the newest entry, **↓** again the one before it, and **↑** steps
+back toward the newest. The highlighted row in the list shows where you
+are, and **↑** from the newest entry returns the field to empty. The
+walk ends as soon as you edit the text, and the arrows go back to
+moving the cursor.
+
 ### 2.4 Graphing
 
 Type `graph` followed by an expression and press **Enter**:
@@ -3370,12 +3377,12 @@ The screen is divided into panels:
 | Type | add to the expression at the cursor |
 | **Enter** | evaluate the whole script (a multi-line entry runs as one history item) |
 | **Shift+Enter** | start a new line |
-| **← → ↑ ↓** | move the cursor (with empty input: rotate the 3D graph) |
+| **← → ↑ ↓** | move the cursor inside the text; with the input empty, **↓** recalls the newest history line and **↑ ↓** then walk the list (the highlighted row shows where you are; **↑** from the newest empties the input again) |
 | **Esc** | clear the input line |
 | **F1** | describe the function under the cursor (in the answer line) |
 | **Ctrl+C** | quit |
 | **q** | quit (when the input is empty) |
-| **Arrow keys** | rotate the 3D view (when the input is empty) |
+| **← →** / **Shift+↑ ↓** | rotate the 3D view (when the input is empty) |
 | **Space** | start/stop the animation (when the input is empty) |
 | **F9** | open the menus (File, Edit, Graph, Settings, Help) |
 | **Tab** | focus the always-visible keypad (or history, from the keypad); switch its banks (**Esc** returns focus to typing) |
@@ -3440,10 +3447,12 @@ intersections) under the plot. The `table` command (section 2.4.2) works
 here too.
 
 `graph3d x ^ 2 - y ^ 2` plots a 3D surface as an ASCII wireframe.
-Rotate it with the arrow keys while the input is empty, and press the
+Rotate it with ← → (and Shift+↑ ↓ for the pitch) while the input is
+empty, and press the
 space bar to animate a slider constant (section 2.4.5). The bottom hint
-line shows the arrow-key and space hints only while a 3D surface or an
-animatable curve is displayed.
+line shows the rotate and space hints only while a 3D surface or an
+animatable curve is displayed, and the history hint while the input is
+empty and the history has a line.
 
 `graph save plot.svg` writes the current plot as the same SVG image the
 web app's **Copy SVG** button yields; `graph3d save file.svg` saves the

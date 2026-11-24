@@ -2706,6 +2706,13 @@ abierta.
 
 Cada entrada queda entre reglas finas: una expresión de una línea es una fila, y un script de varias líneas es una entrada que muestra todas sus líneas. Haz clic en una entrada para volver a cargarla en el campo de entrada y ejecutarla de nuevo.
 
+Con el campo de entrada vacío, las teclas de flecha recorren el historial:
+**↓** carga la entrada más reciente, **↓** de nuevo la anterior, y **↑**
+retrocede hacia la más reciente. La fila resaltada de la lista muestra
+dónde estás, y **↑** desde la entrada más reciente vacía el campo. El
+recorrido termina en cuanto editas el texto, y las flechas vuelven a
+mover el cursor.
+
 ### 2.4 Gráficas
 
 Escribe `graph` seguido de una expresión y pulsa **Intro**:
@@ -3316,12 +3323,12 @@ La pantalla está dividida en paneles:
 | Escribir | añadir a la expresión en el cursor |
 | **Intro** | evaluar todo el script (una entrada multilínea se ejecuta como un elemento del historial) |
 | **Shift+Enter** | empezar una nueva línea |
-| **← → ↑ ↓** | mover el cursor (con la entrada vacía: girar la vista 3D) |
+| **← → ↑ ↓** | mover el cursor dentro del texto; con la entrada vacía, **↓** recupera la línea del historial más reciente y **↑ ↓** recorren luego la lista (la fila resaltada muestra dónde estás; **↑** desde la más reciente vacía la entrada) |
 | **Esc** | borrar la línea de entrada |
 | **F1** | describir la función bajo el cursor (en la línea de resultado) |
 | **Ctrl+C** | salir |
 | **q** | salir (cuando la entrada está vacía) |
-| **Teclas de flecha** | girar la vista 3D (cuando la entrada está vacía) |
+| **← →** / **Mayús+↑ ↓** | girar la vista 3D (cuando la entrada está vacía) |
 | **Espacio** | iniciar/detener la animación (cuando la entrada está vacía) |
 | **F9** | abrir los menús (File, Edit, Graph, Settings, Help) |
 | **Tab** | enfocar el teclado siempre visible (o el historial, desde el teclado); cambiar de grupo (**Esc** vuelve a escribir) |
@@ -3380,10 +3387,12 @@ mínimos e intersecciones) bajo la gráfica. El comando `table`
 (sección 2.4.2) también funciona aquí.
 
 `graph3d x ^ 2 - y ^ 2` dibuja una superficie 3D como una malla alámbrica
-ASCII. Gírala con las teclas de flecha mientras la entrada esté vacía, y
-pulsa la barra espaciadora para animar una constante con deslizador
-(sección 2.4.5). La línea de ayuda inferior muestra los avisos de flechas
-y espacio solo mientras haya una superficie 3D o una curva animable.
+ASCII. Gírala con ← → (y Mayús+↑ ↓ para la inclinación) mientras la
+entrada esté vacía, y pulsa la barra espaciadora para animar una
+constante con deslizador (sección 2.4.5). La línea de ayuda inferior
+muestra los avisos de giro y espacio solo mientras haya una superficie 3D
+o una curva animable, y el aviso de historial cuando la entrada esté
+vacía y el historial tenga una línea.
 
 `graph save plot.svg` escribe la gráfica actual como la misma imagen SVG
 que produce el botón **Copiar SVG** de la aplicación web; `graph3d

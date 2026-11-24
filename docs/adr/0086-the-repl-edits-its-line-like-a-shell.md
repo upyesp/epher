@@ -70,3 +70,11 @@ Windows).
 - Piped REPL behavior is unchanged and still test-verified; terminal
   behavior is verified by hand (a pipe cannot enter raw mode), noted in
   the 0.9.14 train checklist.
+
+## Related (2026-11-24)
+
+ADR-0093 gives the TUI, the desktop app, and the PWA the same recall
+from an empty entry. There Down walks older and Up newer, because those
+frontends show the list newest on top and the highlight moves the way
+the key points; the REPL keeps rustyline's shell convention (Up is
+older) because it shows no list.
