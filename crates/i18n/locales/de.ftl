@@ -114,7 +114,8 @@ tune-rot-v = Vertikale Drehgeschwindigkeit
 tune-zoom = Zoomgeschwindigkeit
 
 tui-hint-base-a = Enter auswerten · Tab Verlauf/Keypad · F9 Menü · ? Tastenhilfe · Esc leeren
-tui-hint-rotate =  · Pfeile drehen
+tui-hint-rotate =  · ← → / Umschalt+↑ ↓ drehen
+tui-hint-recall =  · ↑ ↓ Verlauf
 tui-hint-play =  · Leertaste animieren
 tui-hint-base-b =  · Ctrl+K Tastenfeld · Ctrl+L Verlauf leeren · Ctrl+C beenden · q beenden
 

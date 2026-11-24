@@ -116,6 +116,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0089 | The store manifest hides the console application under the approved headless waiver | 2026-11-21 | accepted |
 | 0090 | The solar time knob spans a month and every play cycle lasts ~24 seconds | 2026-11-22 | accepted (the span rule superseded by 0091) |
 | 0091 | The solar knob spans the outermost displayed orbit, and a legend toggle re-spans it and refits the frame | 2026-11-22 | accepted (supersedes the 0090 span) |
+| 0092 | The repo keeps the latest release and the two before it | 2026-11-23 | accepted |
 
 ## Decision chains
 
@@ -184,6 +185,9 @@ at the end of the chain.
 - **History** - 0021 (`ans`) → 0025 → 0027 → 0030 → **0038 (share icon
   on every item, `?expr=` links stage the entry; `clear`/`history`
   keypad keys finally run)**. → **0042 (auto-ans on an empty entry)**
+  → **0093 (on an empty entry, ↑ ↓ walk the history in the TUI, desktop,
+  and PWA, the list highlighting the recalled row; the REPL's spelling
+  is 0086)**.
 - **Calculations** - 0005 (float default) → 0022 (number bases) → 0042 (percent,
   primes) → **0043 (complex values, numeric solve, calculus, exact fractions,
   engineering/scientific/grouped formats)** → **0044 (lists, elementwise

@@ -805,6 +805,17 @@
     .history-row .share-btn {
       align-self: center;
     }
+    /* The history walk (ADR-0093): the row the arrows recalled wears the
+       accent as a left rule over the panel tint, so the arrows' place is
+       visible in the list; the row keeps its own hover and focus styles.
+       An inset rule, not a border, so the row's width never shifts. */
+    .history-row[aria-current="true"] {
+      background: var(--panel);
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+    .history-row[aria-current="true"] .history-item {
+      color: var(--text);
+    }
     /* The points-of-interest heading with its copy button (ADR-0038,
        amended: the icon leads, left of the heading). */
     .poi-head {

@@ -1345,6 +1345,123 @@ fn history_pick_drops_the_answer_suffix() {
     assert_eq!(app.history_pick(), Some("graph x ^ 2".to_string()));
 }
 
+/// ADR-0093: on an empty entry, Down recalls the newest history line and
+/// the arrows then walk the list the way it renders (newest on top): Down
+/// older, Up newer. The recalled line is the expression only (a
+/// multi-line script `;`-joined like a pick), the walk's row is what the
+/// panel highlights, Up from the newest returns the entry to empty, and
+/// Down from the oldest stays put. Nothing runs.
+#[test]
+fn history_walk_recalls_lines_from_an_empty_entry_with_the_arrows() {
+    let mut app = App::with_session(Session::with_history(vec![
+        "1 + 1  = 2".to_string(),
+        "2 + 2  = 4".to_string(),
+        // Multi-line scripts are recorded verbatim, newlines intact
+        // (ADR-0027 amendment); the recall `;`-joins them like a pick.
+        "x = 10\nx + 5".to_string(),
+    ]));
+    assert_eq!(app.history_recall(), None);
+    // Up from a fresh entry has nothing newer to show.
+    assert!(!app.history_recall_step(-1));
+    assert_eq!(app.input(), "");
+    // Down recalls the newest line first, then walks older.
+    assert!(app.history_recall_step(1));
+    assert_eq!(app.input(), "x = 10; x + 5");
+    assert_eq!(app.cursor(), app.input().len(), "the caret sits at the end");
+    assert_eq!(app.history_recall(), Some(0));
+    assert!(app.history_recall_step(1));
+    assert_eq!(app.input(), "2 + 2");
+    assert_eq!(app.history_recall(), Some(1));
+    // Down from the oldest stays put.
+    assert!(app.history_recall_step(1));
+    assert_eq!(app.input(), "1 + 1");
+    assert_eq!(app.history_recall(), Some(2));
+    assert!(!app.history_recall_step(1));
+    assert_eq!(app.history_recall(), Some(2));
+    // Up walks back toward newer, and from the newest returns the entry
+    // to empty, ending the walk.
+    assert!(app.history_recall_step(-1));
+    assert_eq!(app.input(), "2 + 2");
+    assert!(app.history_recall_step(-1));
+    assert_eq!(app.input(), "x = 10; x + 5");
+    assert!(app.history_recall_step(-1));
+    assert_eq!(app.input(), "");
+    assert_eq!(app.history_recall(), None);
+    // Nothing runs: the result line stays empty throughout.
+    assert!(app.result().is_empty(), "recalling must not run the line");
+
+    // An empty history recalls nothing.
+    let mut empty = App::with_session(Session::new());
+    assert!(!empty.history_recall_step(1));
+    assert_eq!(empty.input(), "");
+}
+
+/// ADR-0093: the walk outlives the first recall but ends when the entry's
+/// text changes by any other hand (typing, deleting, a paste, a pick, a
+/// submit, Esc, a cleared history); Tab hands the list's own arrows the
+/// row the walk was on.
+#[test]
+fn history_walk_ends_when_the_recalled_text_changes() {
+    let store = tui_store();
+    let localizer = epher_i18n::Localizer::resolve(Some("en"), &[]);
+    let mut app = App::with_session(Session::with_history(vec![
+        "1 + 1  = 2".to_string(),
+        "2 + 2  = 4".to_string(),
+    ]));
+    app.history_recall_step(1);
+    assert_eq!(app.history_recall(), Some(0));
+    // Typing ends the walk: the arrows are the caret's again.
+    app.push_char(' ');
+    assert_eq!(app.history_recall(), None);
+    app.clear_input();
+    app.history_recall_step(1);
+    app.pop_char();
+    assert_eq!(app.history_recall(), None);
+    app.clear_input();
+    app.history_recall_step(1);
+    app.paste_text("7");
+    assert_eq!(app.history_recall(), None);
+    app.clear_input();
+    app.history_recall_step(1);
+    // A pick (the mouse, the examples browser) replaces the entry.
+    app.set_input("graph x");
+    assert_eq!(app.history_recall(), None);
+    // Esc ends it with the entry empty.
+    app.clear_input();
+    app.history_recall_step(1);
+    assert!(app.history_recall().is_some());
+    app.clear_input();
+    assert_eq!(app.history_recall(), None);
+    // A submit ends it: the entry is empty and the walk is over.
+    app.history_recall_step(1);
+    assert!(app.history_recall().is_some());
+    app.submit_line("3 + 3", &store, &localizer);
+    assert_eq!(app.input(), "");
+    assert_eq!(app.history_recall(), None);
+    // Clearing the history ends it too, and nothing is left to recall.
+    app.history_recall_step(1);
+    assert_eq!(app.history_recall(), Some(0));
+    app.clear_history();
+    assert_eq!(app.history_recall(), None);
+    assert!(!app.history_recall_step(1));
+
+    // Tab from a recalled row continues the list's own arrows there: the
+    // highlight stays where the entry shows it.
+    let mut app = App::with_session(Session::with_history(vec![
+        "1 + 1  = 2".to_string(),
+        "2 + 2  = 4".to_string(),
+        "3 + 3  = 6".to_string(),
+    ]));
+    app.history_recall_step(1);
+    app.history_recall_step(1);
+    assert_eq!(app.history_recall(), Some(1));
+    app.history_open();
+    assert!(app.history_focused());
+    assert_eq!(app.history_sel(), 1);
+    assert_eq!(app.history_recall(), None);
+    assert_eq!(app.history_pick(), Some("2 + 2".to_string()));
+}
+
 // --- mouse support (ADR-0034) ---
 
 #[test]

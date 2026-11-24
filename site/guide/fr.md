@@ -2726,6 +2726,13 @@ même icône). L'historique est conservé tant que la page est ouverte.
 
 Chaque entrée est délimitée par de fines règles : une expression sur une ligne occupe une ligne, et un script multi-lignes est une entrée qui affiche toutes ses lignes. Cliquez sur une entrée pour la recharger dans le champ de saisie et la réexécuter.
 
+Champ de saisie vide, les touches fléchées parcourent l'historique : **↓**
+charge l'entrée la plus récente, **↓** encore la précédente, et **↑** revient
+vers la plus récente. La ligne en surbrillance dans la liste montre où vous
+en êtes, et **↑** depuis l'entrée la plus récente vide le champ. Le
+parcours s'arrête dès que vous modifiez le texte, et les flèches déplacent à
+nouveau le curseur.
+
 ### 2.4 Les graphiques
 
 Tapez `graph` suivi d'une expression et appuyez sur **Entrée** :
@@ -3348,12 +3355,12 @@ L'écran est divisé en panneaux :
 | Taper | ajouter à l'expression au curseur |
 | **Entrée** | évaluer tout le script (une saisie multiligne s'exécute comme un seul élément d'historique) |
 | **Shift+Entrée** | commencer une nouvelle ligne |
-| **← → ↑ ↓** | déplacer le curseur (saisie vide : faire pivoter la vue 3D) |
+| **← → ↑ ↓** | déplacer le curseur dans le texte ; saisie vide, **↓** rappelle la ligne d'historique la plus récente et **↑ ↓** parcourent ensuite la liste (la ligne en surbrillance montre où vous en êtes ; **↑** depuis la plus récente vide la saisie) |
 | **Échap** | effacer la ligne de saisie |
 | **F1** | décrire la fonction sous le curseur (dans la ligne de résultat) |
 | **Ctrl+C** | quitter |
 | **q** | quitter (quand la saisie est vide) |
-| **Touches fléchées** | faire pivoter la vue 3D (quand la saisie est vide) |
+| **← →** / **Maj+↑ ↓** | faire pivoter la vue 3D (quand la saisie est vide) |
 | **Espace** | démarrer/arrêter l'animation (quand la saisie est vide) |
 | **F9** | ouvrir les menus (Fichier, Édition, Graphique, Paramètres, Aide) |
 | **Tab** | activer le clavier toujours visible (ou l'historique, depuis le clavier) ; changer de groupe (**Esc** revient à la saisie) |
@@ -3412,10 +3419,12 @@ extremums et intersections) sous le tracé. La commande `table`
 (section 2.4.2) fonctionne ici aussi.
 
 `graph3d x ^ 2 - y ^ 2` trace une surface 3D sous forme de filaire ASCII.
-Faites-la pivoter avec les touches fléchées tant que la saisie est vide,
-et appuyez sur la barre d'espace pour animer une constante à curseur
-(section 2.4.5). La ligne d'aide du bas n'affiche les indications flèches
-et espace que lorsqu'une surface 3D ou une courbe animable est affichée.
+Faites-la pivoter avec ← → (et Maj+↑ ↓ pour l'inclinaison) tant que la
+saisie est vide, et appuyez sur la barre d'espace pour animer une
+constante à curseur (section 2.4.5). La ligne d'aide du bas n'affiche
+les indications de rotation et d'espace que lorsqu'une surface 3D ou une
+courbe animable est affichée, et l'indication d'historique quand la
+saisie est vide et que l'historique contient une ligne.
 
 `graph save plot.svg` écrit le tracé actuel comme la même image SVG que
 le bouton **Copier le SVG** de l'application web ; `graph3d

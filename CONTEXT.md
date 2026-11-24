@@ -277,6 +277,11 @@ _Avoid_: trace (ambiguous with the plotting sense), execution log
   cuts the tag itself at the end. A local `git tag` + push publishes
   nothing and is how v0.5.78 got burned. Failed releases re-drive by
   re-running the run or dispatching the same version again.
+- Release retention is three (ADR-0092, 2026-11-23): when the release
+  job publishes a train's release it prunes the repo to the latest
+  and the two before it, deleting older releases together with their
+  tags. Nothing documented pins an old release, so pruning breaks
+  nothing users touch.
 - Version bumps are one command: `scripts/train <version>` rewrites
   VERSION and every copy (nine locations, ADR-0073);
   `scripts/check-version-lock` is also a required-shaped CI check on

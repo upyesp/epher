@@ -56,6 +56,11 @@
 # so certification starts with no human click; a failed certification
 # leaves the previous Store version live and never blocks the train.
 #
+# Release retention (ADR-0092): the repo keeps the latest release and
+# the two before it. The release job deletes every older release and
+# its tag right after this train's assets land; nothing documented
+# pins an old release, everything resolves releases/latest/download/...
+#
 # The builds carry no developer identity: Windows is unsigned, macOS is
 # ad-hoc signed (a valid signature, so Gatekeeper's "damaged" check
 # passes): first launch shows the ordinary overridable warning, and the
@@ -330,6 +335,28 @@ jobs:
             > unsigned (choose *More info* → *Run anyway*). macOS is
             > ad-hoc signed, first launch: right-click epher → **Open**,
             > or System Settings → Privacy & Security → *Open Anyway*.
+
+      - name: Prune releases older than the previous two
+        # ADR-0092: the repo keeps the latest release and the two
+        # before it. This runs right after this train's release is
+        # published, so the just-published one is always in the kept
+        # set. Older releases are deleted with their tags; drafts are
+        # never touched; a re-drive finds nothing to delete.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --paginate \
+            --jq '.[] | select(.draft | not) | [.created_at, .tag_name] | @tsv' \
+          | sort -r \
+          | tail -n +4 \
+          | cut -f2 \
+          | while IFS= read -r tag; do
+              echo "pruning $tag (older than the previous two releases, ADR-0092)"
+              gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag
+            done
+          echo "retention: latest + previous two kept, older pruned (ADR-0092)"
 
       - name: Dispatch the channel workflows
         # ADR-0073: a tag pushed by this run's own token fires no

@@ -114,7 +114,8 @@ tune-rot-v = Velocidad de giro vertical
 tune-zoom = Velocidad de zoom
 
 tui-hint-base-a = Enter evalúa · Tab historial/teclado · F9 menú · ? ayuda de teclas · Esc borra
-tui-hint-rotate =  · flechas girar
+tui-hint-rotate =  · ← → / Mayús+↑ ↓ girar
+tui-hint-recall =  · ↑ ↓ historial
 tui-hint-play =  · espacio animar
 tui-hint-base-b =  · Ctrl+K teclado · Ctrl+L borrar historial · Ctrl+C salir · q salir
 

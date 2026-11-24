@@ -1035,6 +1035,18 @@ fn stage_in_entry(
     }
 }
 
+/// The row the history walk (ADR-0093) currently recalls, if the entry
+/// still shows the text it loaded: `recall` is `(displayed row, text)`,
+/// and any other change to the entry ends the walk by construction, so
+/// typing, a click on a row, a staged file, or the keypad need no
+/// reset of their own. `None` when no walk is active.
+fn recalled_row(recall: &Option<(usize, String)>, entry: &str) -> Option<usize> {
+    recall
+        .as_ref()
+        .filter(|(_, text)| text == entry)
+        .map(|(row, _)| *row)
+}
+
 /// One active grab-bar drag (ADR-0060): where the gesture began, the
 /// heights it works between, and the flick velocity. Lives in a cell
 /// the pointer handlers read and write without re-rendering, the
@@ -3611,12 +3623,66 @@ fn epher_app() -> Html {
     let history_box_ref = use_node_ref();
     let bridge = Bridge::detect();
 
+    // The history walk (ADR-0093): on an empty entry, Down recalls the
+    // newest history line and the arrows then walk the list (Down older,
+    // Up newer, the way the list renders, newest on top), the list
+    // highlighting the recalled row. The walk is `(displayed row, text)`
+    // and stays active only while the entry still shows that text (see
+    // [`recalled_row`]); the submit, the clear-history, and the store-changed
+    // apply paths drop it because the list itself changes.
+    let recall = use_state(|| None::<(usize, String)>);
+    // Keep the recalled row in view: the history box scrolls by the least
+    // amount that shows it, under its sticky heading. Touch layouts skip
+    // it: the entry is where the eyes are, and the box may sit below the
+    // fold, so scrolling to it would push the entry out of view.
+    {
+        let recall = recall.clone();
+        let input = input.clone();
+        let history_box_ref = history_box_ref.clone();
+        use_effect_with(recall.clone(), move |recall| {
+            let Some(row) = recalled_row(recall, &input) else {
+                return ();
+            };
+            if mobile_layout() {
+                return ();
+            }
+            let Some(section) = history_box_ref.cast::<HtmlElement>() else {
+                return ();
+            };
+            let Ok(Some(li)) =
+                section.query_selector(&format!(".history-row:nth-child({})", row + 1))
+            else {
+                return ();
+            };
+            let Ok(li) = li.dyn_into::<HtmlElement>() else {
+                return ();
+            };
+            let head = section
+                .query_selector(".history-head")
+                .ok()
+                .flatten()
+                .and_then(|h| h.dyn_into::<HtmlElement>().ok())
+                .map(|h| h.offset_height() as f64)
+                .unwrap_or(0.0);
+            let box_rect = section.get_bounding_client_rect();
+            let row_rect = li.get_bounding_client_rect();
+            let top = box_rect.top() + head;
+            if row_rect.top() < top {
+                section.set_scroll_top(section.scroll_top() - (top - row_rect.top()).ceil() as i32);
+            } else if row_rect.bottom() > box_rect.bottom() {
+                section
+                    .set_scroll_top(section.scroll_top() + (row_rect.bottom() - box_rect.bottom()).ceil() as i32);
+            }
+        });
+    }
+
     // Clear history (the button next to the list): empty the session's
     // history, persist the cleared state in the desktop shell, and leave
     // definitions, constants, and plotted curves untouched.
     let on_clear_history = {
         let session = session.clone();
         let result = result.clone();
+        let recall = recall.clone();
         Callback::from(move |_| {
             let mut s = (*session).clone();
             s.clear_history();
@@ -3627,6 +3693,7 @@ fn epher_app() -> Html {
                 let _ = store.remove_item("epher-result");
             }
             result.set(String::new());
+            recall.set(None);
         })
     };
 
@@ -3644,6 +3711,7 @@ fn epher_app() -> Html {
         let localizer = localizer.clone();
         let theme = theme.clone();
         let display_prefs = display_prefs.clone();
+        let recall = recall.clone();
         move |state: InitState| {
             let mut s = Session::with_history(state.history);
             for line in &state.replay {
@@ -3676,6 +3744,9 @@ fn epher_app() -> Html {
             s.set_display(display);
             session.set(s.clone());
             *session_live.borrow_mut() = s;
+            // The list was replaced (ADR-0025 opened history, or another
+            // frontend's write): a walk's row no longer names a line.
+            recall.set(None);
             if let Some(code) = state.language {
                 localizer.set(Localizer::resolve(Some(&code), &[]));
             }
@@ -4350,10 +4421,14 @@ fn epher_app() -> Html {
         let autocomplete = autocomplete.clone();
         let session_live = session_live.clone();
         let localizer = localizer.clone();
+        let recall = recall.clone();
         Callback::from(move |e: InputEvent| {
             let target = e.target_unchecked_into::<HtmlTextAreaElement>();
             let value = target.value();
             input.set(value.clone());
+            // Any typed change ends the history walk (ADR-0093), so the
+            // arrows are the caret's again and the list's highlight goes.
+            recall.set(None);
             let caret = target.selection_start().ok().flatten().unwrap_or(0) as usize;
             let next = {
                 let session = session_live.borrow();
@@ -4376,7 +4451,9 @@ fn epher_app() -> Html {
     // the arrows and Tab navigate/accept it first, and Enter accepts the
     // highlighted suggestion instead of submitting. F1 shows the function
     // help for the word under the cursor in the hint bar, and an operator
-    // typed into an empty entry auto-inserts `ans` (ADR-0042).
+    // typed into an empty entry auto-inserts `ans` (ADR-0042). The history
+    // walk (ADR-0093) takes Up/Down on an empty entry: Down recalls the
+    // newest line, the arrows then walk the list.
     let on_keydown = {
         let form_ref = form_ref.clone();
         let input = input.clone();
@@ -4384,6 +4461,9 @@ fn epher_app() -> Html {
         let autocomplete = autocomplete.clone();
         let key_hint_bar = key_hint_bar.clone();
         let localizer = localizer.clone();
+        let session_live = session_live.clone();
+        let recall = recall.clone();
+        let cursor_cell = cursor_cell.clone();
         Callback::from(move |e: web_sys::KeyboardEvent| {
             let key = e.key();
             if key == "F1" && !e.ctrl_key() && !e.alt_key() && !e.meta_key() {
@@ -4506,6 +4586,70 @@ fn epher_app() -> Html {
                     return;
                 }
             }
+            // The history walk (ADR-0093): on an empty entry, Down recalls
+            // the newest line and the arrows then walk the list, Down older
+            // and Up newer, the way the list renders (newest on top). The
+            // walk outlives the first recall: while the entry still shows
+            // the recalled text, Up/Down keep walking and the list keeps
+            // its highlight; any edit ends it (the text no longer matches).
+            // Shift+arrows keep the textarea's selection, and an IME's own
+            // arrow use (candidate lists) is left alone. While the walk is
+            // active the arrows are the list's even when there is nothing
+            // to step to, so the caret never slips a line inside a recalled
+            // multi-line script.
+            if matches!(key.as_str(), "ArrowDown" | "ArrowUp")
+                && !e.shift_key()
+                && !e.ctrl_key()
+                && !e.alt_key()
+                && !e.meta_key()
+                && !e.is_composing()
+                && (value.is_empty() || recalled_row(&recall, &value).is_some())
+            {
+                let walking = recalled_row(&recall, &value).is_some();
+                let dir = if key == "ArrowDown" { 1isize } else { -1 };
+                let (step, text) = {
+                    let session = session_live.borrow();
+                    let history = session.history();
+                    match epher_shell::history_step(
+                        history.len(),
+                        recalled_row(&recall, &value),
+                        dir,
+                    ) {
+                        epher_shell::HistoryStep::Row(row) => {
+                            let entry = &history[history.len() - 1 - row];
+                            (
+                                epher_shell::HistoryStep::Row(row),
+                                Some(history_expression(entry).to_string()),
+                            )
+                        }
+                        epher_shell::HistoryStep::Leave => {
+                            (epher_shell::HistoryStep::Leave, Some(String::new()))
+                        }
+                        epher_shell::HistoryStep::Stay => (epher_shell::HistoryStep::Stay, None),
+                    }
+                };
+                match (step, text) {
+                    (epher_shell::HistoryStep::Stay, _) if !walking => {}
+                    (epher_shell::HistoryStep::Stay, _) => e.prevent_default(),
+                    (_, Some(text)) => {
+                        e.prevent_default();
+                        let n = text.chars().count();
+                        input.set(text.clone());
+                        *cursor_cell.borrow_mut() = (n, n);
+                        if let Some(ta) = input_ref.cast::<HtmlTextAreaElement>() {
+                            ta.set_value(&text);
+                            ta.set_selection_start(Some(n as u32)).ok();
+                            ta.set_selection_end(Some(n as u32)).ok();
+                        }
+                        recall.set(match step {
+                            epher_shell::HistoryStep::Row(row) => Some((row, text)),
+                            _ => None,
+                        });
+                    }
+                    (_, None) => {}
+                }
+                return;
+            }
             if key == "Enter" && !e.shift_key() && !e.is_composing() {
                 e.prevent_default();
                 if let Some(form) = form_ref.cast::<web_sys::HtmlFormElement>() {
@@ -4539,6 +4683,7 @@ fn epher_app() -> Html {
         let session = session.clone();
         let session_live = session_live.clone();
         let input = input.clone();
+        let recall = recall.clone();
         let result = result.clone();
         let localizer = localizer.clone();
         let theme = theme.clone();
@@ -5167,6 +5312,8 @@ fn epher_app() -> Html {
             session.set(s.clone());
             *session_live.borrow_mut() = s.clone();
             input.set(String::new());
+            // The list grew: the walk, if any, is over.
+            recall.set(None);
             if cleared {
                 scroll_pane.emit("calc-pane");
             }
@@ -7859,7 +8006,12 @@ fn epher_app() -> Html {
                             <h2>{ localizer.lookup("history") }</h2>
                         </div>
                         <ul class="history">
-                            { for session.history().iter().rev().map(|h| {
+                            { for session.history().iter().rev().enumerate().map(|(display_idx, h)| {
+                                // The history walk (ADR-0093): the row the arrows
+                                // recalled wears the highlight, the list's
+                                // feedback while the entry is walked from the
+                                // keyboard; the highlight goes with the walk.
+                                let recalled = recalled_row(&recall, &input) == Some(display_idx);
                                 // Clickable history (ADR-0027): picking a
                                 // line loads it into the entry, replacing
                                 // whatever is there, for editing and
@@ -7903,7 +8055,10 @@ fn epher_app() -> Html {
                                 let on_share = on_share.clone();
                                 let line = h.clone();
                                 html! {
-                                    <li class="history-row">
+                                    <li
+                                        class={classes!("history-row", recalled.then_some("recalled"))}
+                                        aria-current={if recalled { "true" } else { "false" }}
+                                    >
                                         <button
                                             type="button"
                                             class="icon-btn share-btn"

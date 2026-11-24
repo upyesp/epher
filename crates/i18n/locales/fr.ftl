@@ -114,7 +114,8 @@ tune-rot-v = Vitesse de rotation verticale
 tune-zoom = Vitesse de zoom
 
 tui-hint-base-a = Enter évalue · Tab historique/pavé · F9 menu · ? aide des touches · Esc efface
-tui-hint-rotate =  · flèches pivoter
+tui-hint-rotate =  · ← → / Maj+↑ ↓ pivoter
+tui-hint-recall =  · ↑ ↓ historique
 tui-hint-play =  · espace animer
 tui-hint-base-b =  · Ctrl+K clavier · Ctrl+L effacer l'historique · Ctrl+C quitter · q quitter
 
