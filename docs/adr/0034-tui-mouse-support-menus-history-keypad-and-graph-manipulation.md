@@ -109,3 +109,31 @@ returns to is left in a mouse-reporting mode.
 - The guide (all eight locales) documents the mouse row in the TUI
   keybindings table; the accessibility notes record the pointer as the
   keyboard alternative's counterpart.
+
+## Amendment (2026-11-25): the keyboard can pan and zoom a 2D plot
+
+Every graph manipulation this ADR gave the TUI is pointer-only for 2D:
+drag pans, the wheel zooms, double-click resets. A keyboard audit of
+the 0.9.24 TUI found the consequence: with a 2D plot displayed and an
+empty entry, the plain Left/Right silently rotate the 3D camera, which
+nothing on screen is using, and Down recalls history (ADR-0093). A
+keyboard-only user has no way to move a 2D viewport at all, and every
+arrow press reads as the plot ignoring them.
+
+**Decision.** Shift+Arrow pans the 2D viewport (up, down, left, right
+by a fixed fraction of the window) and `+`/`-` zoom in and out, both
+on an empty entry, the same precondition as the 3D orbit. The view
+rule becomes universal and teachable: plain arrows belong to the
+history walk and the caret (ADR-0093, ADR-0035), Shift+arrows adjust
+the view, panning 2D and pitching 3D, the drag and the wheel keep
+their pointer meanings, and double-click keeps the reset. The hint
+line names the pan while a 2D plot is displayed, exactly as it names
+rotation for surfaces. The 3D orbit keys act only while 3D content is
+displayed; rotating a camera nothing is showing, leaving a surprise
+pose for the next surface, stops.
+
+Alternatives considered: handing the plain arrows to the 2D viewport
+whenever a plot is displayed (rejected: the arrows' meaning would flip
+the moment the first plot arrives, and it collides with ADR-0093's
+walk), and hjkl-style keys (rejected: they type letters into the
+entry).

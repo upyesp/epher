@@ -112,3 +112,22 @@ tooltip ("horizontal rotation speed", "vertical rotation speed",
 "zoom speed"). Spans, steps, and the reduced-motion behavior are
 unchanged; the strip is shared by surfaces and the solar system and
 wraps on phones.
+
+## Amendment (2026-11-25): the fine-control rows read as sliders
+
+The Settings popup hosts the TUI's 3D fine controls (item 5 above) as
+text rows ("Horizontal rotation  +0.0"), adjusted with Left and Right
+while highlighted, Enter inert. A keyboard audit of the 0.9.24 TUI
+found the affordance invisible: nothing on the row or in the popup
+says the arrows adjust it, and the Results rows directly above do
+activate on Enter, so two adjacent row kinds answer to different keys
+with no visual difference.
+
+**Decision.** The three fine-control rows render as slider rows: the
+label plus a `◀ value ▶` readout, and the popup's hint line names the
+gesture whenever a fine-control row can be highlighted. Enter stays
+inert on them; the plot behind the popup updating live stays the
+feedback, and the Results rows keep Enter toggling. A mouse click on a
+fine-control row adjusts and toggles nothing: the click mapping had
+shared the Results rows' item indices and silently flipped exact
+fractions or notation; the fix lands with this amendment.

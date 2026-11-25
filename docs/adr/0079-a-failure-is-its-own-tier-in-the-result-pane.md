@@ -57,3 +57,23 @@ Failures get their own presentation tier.
 - Tests: two contract tests (`error_lines_are_their_own_tier`,
   `an_error_line_never_takes_the_answer_emphasis`) and one terminal
   test (`a_failed_paste_renders_in_the_error_style`).
+
+## Amendment (2026-11-25): the tier covers the answer line, and action feedback gets a status tier
+
+A keyboard audit of the 0.9.24 TUI found this ADR's tier living only
+in the multi-line pane. An error that fits on the one-line answer
+(`error: division by zero`) rendered in the answer's green bold, and
+so did every action message: saved files, cleared graphs, the paste
+hint, the F1 function help. By style alone, the app's failure and its
+small talk were indistinguishable from its answers.
+
+**Decision.** The failure tier is presentation-wide: wherever a result
+renders, an `error: `/`warning: ` prefix selects the failure style,
+the one-line answer included, and the file-prompt failure messages
+join it. Action feedback that is not an evaluation gets its own
+status tier: copied, saved, cleared, restored, and hint texts render
+dimmer than any answer, in the hints' ink, so a status reads at a
+glance as "the app speaking", never as "the calculator answering".
+The status tier also carries the guards ADR-0094 adds (quit
+confirmation, history restore), which is what makes those guards
+visible without dialogs or modes.

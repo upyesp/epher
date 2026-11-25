@@ -8,8 +8,7 @@
 /// Where one step of the history walk lands.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HistoryStep {
-    /// Nothing moved: the history is empty, the step led away from a
-    /// fresh entry (Up before any recall), or past the oldest line
+    /// Nothing moved: the history is empty, or past the oldest line
     /// (Down at the end does not wrap, like a shell). The walk, if one
     /// is under way, stays where it was.
     Stay,
@@ -31,14 +30,20 @@ pub enum HistoryStep {
 /// ADR-0033 amendment), so the highlight moves the way the key points.
 /// Up from the newest line leaves the list (the entry is empty again);
 /// Down from the oldest stays put. The walk only starts from an empty
-/// entry: Up on a fresh entry has nothing newer to show.
+/// entry, and either arrow starts it (the ADR-0093 amendment): Up on a
+/// fresh entry recalls the newest line too, the gesture every shell
+/// teaches, instead of dying against a rule the on-screen hint
+/// (`↑ ↓ history`) contradicts.
 pub fn history_step(len: usize, position: Option<usize>, dir: isize) -> HistoryStep {
     if len == 0 {
         return HistoryStep::Stay;
     }
     match (position, dir) {
-        (None, d) if d > 0 => HistoryStep::Row(0),
-        (None, _) => HistoryStep::Stay,
+        // Either arrow starts the walk (the ADR-0093 amendment): the
+        // entry sits above the list, so the first step in either
+        // direction lands on the top row. Up is the gesture every shell
+        // teaches; leaving it dead was a purity the hint contradicted.
+        (None, _) => HistoryStep::Row(0),
         (Some(row), d) => {
             let next = row as isize + d;
             if next < 0 {
@@ -86,7 +91,13 @@ mod tests {
     }
 
     #[test]
-    fn up_on_a_fresh_entry_has_nothing_newer() {
-        assert_eq!(history_step(3, None, -1), HistoryStep::Stay);
+    fn either_arrow_starts_the_walk() {
+        // The ADR-0093 amendment: Up on a fresh entry recalls the newest
+        // line too, instead of dying against the spatial model.
+        assert_eq!(history_step(3, None, -1), HistoryStep::Row(0));
+        // From there the spatial rule governs: Up again leaves (empty
+        // entry), Down walks older.
+        assert_eq!(history_step(3, Some(0), -1), HistoryStep::Leave);
+        assert_eq!(history_step(3, Some(0), 1), HistoryStep::Row(1));
     }
 }

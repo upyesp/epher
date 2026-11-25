@@ -9836,6 +9836,13 @@ impl Session {
         self.history.clear();
     }
 
+    /// Put cleared entries back (ADR-0094's one-slot restore): the
+    /// entries return in their original order, the clear's undo, so a
+    /// second Ctrl+L in the TUI brings whole sessions of work back.
+    pub fn restore_history(&mut self, entries: Vec<String>) {
+        self.history.extend(entries);
+    }
+
     /// The environment, for frontends that need it (e.g. graphing).
     /// While a script scope is open this is the scope's environment, so
     /// a `graph` piece inside a submitted script sees the script's own

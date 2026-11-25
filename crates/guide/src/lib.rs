@@ -62,8 +62,9 @@ impl std::error::Error for GuideUnavailable {}
 /// 3. bundle-relative: `../Resources/guide/` (the macOS app bundle's
 ///    Contents/Resources) and `../lib/<name>/resources/guide/`
 ///    (the Linux resource dir next to /usr/bin)
-/// 4. the system data dirs `/usr/local/share/epher/guide/` and
-///    `/usr/share/epher/guide/` (the deb/rpm file maps)
+/// 4. the system data dirs `/opt/homebrew/share/epher/guide/` (the
+///    Homebrew formula's file map), `/usr/local/share/epher/guide/`,
+///    and `/usr/share/epher/guide/` (the deb/rpm file maps)
 /// 5. the user's data dir (`$XDG_DATA_HOME` or `~/.local/share`),
 ///    `epher/guide/` there, for installs without a package
 #[cfg(not(target_arch = "wasm32"))]
@@ -85,7 +86,14 @@ pub fn load(locale: &str) -> Result<String, GuideUnavailable> {
             return Ok(md);
         }
     }
-    if let Ok(exe) = std::env::current_exe() {
+    // The executable path resolves symlinks first (the Homebrew cask
+    // moves the app to /Applications/epher.app and symlinks the binary
+    // to /opt/homebrew/bin/epher; without the canonicalization the
+    // bundle-relative steps below would look next to the symlink, where
+    // no guide ever sits).
+    let exe = std::env::current_exe().ok();
+    let exe = exe.map(|p| p.canonicalize().unwrap_or_else(|_| p));
+    if let Some(exe) = exe {
         if let Some(parent) = exe.parent() {
             for rel in ["guide", "resources/guide", "../Resources/guide"] {
                 if let Some(md) = push(parent.join(rel), &mut tried) {
@@ -102,7 +110,11 @@ pub fn load(locale: &str) -> Result<String, GuideUnavailable> {
             }
         }
     }
-    for dir in ["/usr/local/share/epher/guide", "/usr/share/epher/guide"] {
+    for dir in [
+        "/opt/homebrew/share/epher/guide",
+        "/usr/local/share/epher/guide",
+        "/usr/share/epher/guide",
+    ] {
         if let Some(md) = push(std::path::PathBuf::from(dir), &mut tried) {
             return Ok(md);
         }

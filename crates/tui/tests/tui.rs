@@ -1061,26 +1061,41 @@ fn prompt_prefill_edits_at_the_caret() {
     // typed characters insert at it, Delete removes under it.
     let mut app = App::default();
     app.prompt_start(epher_tui::PromptKind::SaveScript);
-    assert_eq!(app.prompt_caret(), "epher-script.epher".len());
-    // Backspace at the end drops the trailing 'r'.
+    // The caret starts at HOME (the audit's prefill trap): the prefill
+    // stays fully editable, but a typed name lands in front of it
+    // where the eye is, instead of appending past an unnoticed
+    // `epher-script.epher`.
+    assert_eq!(app.prompt_caret(), 0);
+    // A typed character prefixes the prefill.
+    app.prompt_push('x');
+    assert_eq!(
+        app.prompt_active(),
+        Some((
+            epher_tui::PromptKind::SaveScript,
+            "xepher-script.epher"
+        ))
+    );
+    // Right moves through the prefill; Backspace deletes before the
+    // caret, Delete removes under it.
+    app.prompt_edge(1);
     app.prompt_pop();
     assert_eq!(
         app.prompt_active(),
-        Some((epher_tui::PromptKind::SaveScript, "epher-script.ephe"))
+        Some((epher_tui::PromptKind::SaveScript, "xepher-script.ephe"))
     );
     // Left, then a typed character inserts mid-word, not at the end.
     app.prompt_nudge(-1);
     app.prompt_push('H');
     assert_eq!(
         app.prompt_active(),
-        Some((epher_tui::PromptKind::SaveScript, "epher-script.ephHe"))
+        Some((epher_tui::PromptKind::SaveScript, "xepher-script.ephHe"))
     );
     // Home jumps to the start; typing prefixes the whole path.
     app.prompt_edge(-1);
     app.prompt_push('/');
     assert!(app
         .prompt_active()
-        .is_some_and(|(_, b)| b.starts_with("/epher-script.ephHe")));
+        .is_some_and(|(_, b)| b.starts_with("/xepher-script.ephHe")));
     // End, one step back, then Delete removes the character the caret
     // sits on (at the very end there is nothing under it).
     app.prompt_edge(1);
@@ -1090,13 +1105,13 @@ fn prompt_prefill_edits_at_the_caret() {
         .prompt_active()
         .is_some_and(|(_, b)| b.ends_with("ephH")));
     // A click (display column) places the caret, and Backspace deletes
-    // before it: the path now starts "/epher…", so a click on column 2
-    // (past the leading "/" and "e") drops the "e".
+    // before it: the path now starts "/xepher…", so a click on column 2
+    // (past the leading "/" and "x") drops the "x".
     app.prompt_click(2);
     app.prompt_pop();
     assert!(app
         .prompt_active()
-        .is_some_and(|(_, b)| b.starts_with("/pher-script.ephH")));
+        .is_some_and(|(_, b)| b.starts_with("/epher-script.ephH")));
 }
 
 #[test]
@@ -1115,8 +1130,10 @@ fn file_prompt_saves_and_opens() {
         app.prompt_active(),
         Some((epher_tui::PromptKind::SaveScript, "epher-script.epher"))
     );
+    // The caret starts at home (the audit's prefill fix), so the
+    // prefill clears under the caret: Delete, not Backspace.
     while app.prompt_active().is_some_and(|(_, b)| !b.is_empty()) {
-        app.prompt_pop();
+        app.prompt_delete();
     }
     for c in path.to_string_lossy().chars() {
         app.prompt_push(c);
@@ -1249,13 +1266,19 @@ fn history_focus_moves_and_picks_without_running() {
     app.history_open();
     assert!(app.history_focused());
     assert_eq!(app.history_sel(), 0);
-    // Display order is newest-first; Down wraps to the oldest line and
-    // Up wraps back around.
+    // Display order is newest-first; the selection clamps at its ends
+    // (the ADR-0033 amendment: focus selections stop at their ends
+    // instead of wrapping; menu popups and the bank-tab rows keep
+    // wrap, the rule menu bars use).
     app.history_move(-1);
+    assert_eq!(app.history_sel(), 0, "Up from the newest stops");
+    app.history_move(1);
+    assert_eq!(app.history_sel(), 1);
+    app.history_move(1);
     assert_eq!(app.history_sel(), 2);
     app.history_move(1);
-    assert_eq!(app.history_sel(), 0);
-    app.history_move(1);
+    assert_eq!(app.history_sel(), 2, "Down from the oldest stops");
+    app.history_move(-1);
     assert_eq!(app.history_sel(), 1);
     // Picking loads the line into the input (replacing), leaves focus,
     // and does NOT evaluate it.
@@ -1345,11 +1368,13 @@ fn history_pick_drops_the_answer_suffix() {
     assert_eq!(app.history_pick(), Some("graph x ^ 2".to_string()));
 }
 
-/// ADR-0093: on an empty entry, Down recalls the newest history line and
-/// the arrows then walk the list the way it renders (newest on top): Down
-/// older, Up newer. The recalled line is the expression only (a
-/// multi-line script `;`-joined like a pick), the walk's row is what the
-/// panel highlights, Up from the newest returns the entry to empty, and
+/// ADR-0093: on an empty entry, the arrows recall history lines and
+/// then walk the list the way it renders (newest on top): Down older,
+/// Up newer, and either arrow starts the walk (the 2026-11-25
+/// amendment: Up on a fresh entry recalls the newest line too). The
+/// recalled line is the expression only (a multi-line script
+/// `;`-joined like a pick), the walk's row is what the panel
+/// highlights, Up from the newest returns the entry to empty, and
 /// Down from the oldest stays put. Nothing runs.
 #[test]
 fn history_walk_recalls_lines_from_an_empty_entry_with_the_arrows() {
@@ -1361,9 +1386,16 @@ fn history_walk_recalls_lines_from_an_empty_entry_with_the_arrows() {
         "x = 10\nx + 5".to_string(),
     ]));
     assert_eq!(app.history_recall(), None);
-    // Up from a fresh entry has nothing newer to show.
-    assert!(!app.history_recall_step(-1));
+    // Either arrow starts the walk (the ADR-0093 amendment): Up from a
+    // fresh entry recalls the newest line too, the gesture every shell
+    // teaches.
+    assert!(app.history_recall_step(-1));
+    assert_eq!(app.input(), "x = 10; x + 5");
+    assert_eq!(app.history_recall(), Some(0));
+    // Up again leaves: the entry goes back to empty, the walk ends.
+    assert!(app.history_recall_step(-1));
     assert_eq!(app.input(), "");
+    assert_eq!(app.history_recall(), None);
     // Down recalls the newest line first, then walks older.
     assert!(app.history_recall_step(1));
     assert_eq!(app.input(), "x = 10; x + 5");
@@ -2197,4 +2229,138 @@ fn surface_play_keeps_its_historical_span() {
     assert!((play.hi - 3.0).abs() < 1e-9, "hi {}", play.hi);
     assert!((play.step - 0.1).abs() < 1e-9, "step {}", play.step);
     app.toggle_play();
+}
+
+/// ADR-0094: the clear-history guard. The first Ctrl+L (or trash
+/// click) clears and keeps the entries in a one-slot memory; a second
+/// press puts them back in order. The store stays truthful either way
+/// (the caller saves after both).
+#[test]
+fn clear_history_is_guarded_by_a_one_slot_restore() {
+    let mut app = App::with_session(Session::with_history(vec![
+        "1 + 1  = 2".to_string(),
+        "2 + 2  = 4".to_string(),
+    ]));
+    assert!(!app.history_restore_pending());
+    // The first clear: the history empties, the restore is on offer.
+    assert!(!app.clear_history_guarded(), "the first press clears");
+    assert!(app.history().is_empty());
+    assert!(app.history_restore_pending());
+    // The second press restores, in order, and the slot empties.
+    assert!(app.clear_history_guarded(), "the second press restores");
+    assert_eq!(app.history(), &["1 + 1  = 2", "2 + 2  = 4"]);
+    assert!(!app.history_restore_pending());
+    // A clear after a restore starts a fresh offer with what is there
+    // now.
+    assert!(!app.clear_history_guarded());
+    assert!(app.history_restore_pending());
+}
+
+/// ADR-0094: the quit guard lives on the App so the loop stays thin:
+/// arming explains in the status tier, disarming clears it, and the
+/// loop's pre-match check quits only on the armed second `q`.
+#[test]
+fn the_quit_guard_arms_and_disarms_with_its_status_line() {
+    let mut app = App::default();
+    assert!(!app.quit_armed());
+    let localizer = epher_i18n::Localizer::resolve(Some("en"), &[]);
+    app.arm_quit(&localizer.lookup("tui-quit-guard"));
+    assert!(app.quit_armed());
+    assert_eq!(app.status(), Some("Press q again to quit"));
+    // Any other key disarms and takes the guard's status line with it.
+    app.disarm_quit();
+    assert!(!app.quit_armed());
+    assert_eq!(app.status(), None);
+}
+
+/// The ADR-0034 amendment's view helpers: 2D plots and 3D content are
+/// what the Shift+arrows/zoom and orbit arms gate on, and the Shift
+/// spelling moves the 2D window in the direction the key points.
+#[test]
+fn the_view_keys_gate_on_the_displayed_pane_kind() {
+    let store = tui_store();
+    let localizer = epher_i18n::Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    assert!(!app.has_2d_plot());
+    assert!(!app.has_3d_view());
+    app.submit_line("graph x ^ 2", &store, &localizer);
+    assert!(app.has_2d_plot());
+    assert!(!app.has_3d_view(), "a 2D plot is not 3D content");
+    // The Shift+Left spelling moves the window toward smaller x (the
+    // view travels the way the key points); Shift+Right back.
+    let before = app.graph2d_effective().unwrap();
+    let (w, h) = (30usize, 10usize);
+    app.graph2d_pan(0.1 * w as f64, 0.0, w, h);
+    let left = app.graph2d_effective().unwrap();
+    assert!(left.0 < before.0, "Shift+Left moves the view left");
+    app.graph2d_pan(-0.2 * w as f64, 0.0, w, h);
+    let right = app.graph2d_effective().unwrap();
+    assert!(right.0 > before.0, "Shift+Right moves the view right");
+    // And the zoom keys narrow and widen the span around the center.
+    let mid = app.graph2d_effective().unwrap();
+    app.graph2d_zoom(0.8);
+    let zoomed = app.graph2d_effective().unwrap();
+    assert!(
+        zoomed.1 - zoomed.0 < mid.1 - mid.0,
+        "+ zooms in (a narrower window)"
+    );
+
+    let mut app3d = App::default();
+    app3d.submit_line("graph3d x ^ 2 - y ^ 2", &store, &localizer);
+    assert!(app3d.has_3d_view());
+    assert!(!app3d.has_2d_plot(), "the pane shows one kind at a time");
+}
+
+/// Issue #296 + the ADR-0031 amendment: a mouse click on a fine-control
+/// row selects it (the arrows adjust it) but activates nothing, so the
+/// old shared-indices bug can never flip exact fractions or notation
+/// again.
+#[test]
+fn a_click_on_a_fine_control_row_never_toggles_a_results_row() {
+    let store = tui_store();
+    let mut app = App::with_session(epher_core::Session::new());
+    app.submit_line(
+        "graph3d x ^ 2 - y ^ 2",
+        &store,
+        &epher_i18n::Localizer::resolve(Some("en"), &[]),
+    );
+    // The mouse spelling of clicking the third View row: the payload
+    // index is the row's own (15..=17), not the Results rows' 12..=14.
+    app.menu_select(4, 17);
+    assert_eq!(app.menu_view_item(), Some(17));
+    assert_eq!(app.menu_activate(), None, "the click adjusts nothing");
+    assert_eq!(
+        app.menu_active(),
+        Some((4, 17)),
+        "the menu stays open with the row highlighted"
+    );
+    // Enter on a Results row still toggles: the indices no longer
+    // collide.
+    app.menu_select(4, 12);
+    assert_eq!(
+        app.menu_activate(),
+        Some(epher_tui::MenuAction::ToggleExact)
+    );
+}
+
+/// Issue #296: the save prompt's success message quotes the path that
+/// was typed, and the status (not an evaluation) clears with the next
+/// submit, the ADR-0079 amendment's answer-line lifecycle.
+#[test]
+fn the_status_tier_clears_with_the_next_submission() {
+    let store = tui_store();
+    let localizer = epher_i18n::Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    app.set_status("saved epher-script.epher");
+    assert!(app.status().is_some());
+    app.submit_line("2 + 2", &store, &localizer);
+    assert_eq!(app.status(), None, "the evaluation replaces the line");
+    assert!(!app.result_failed());
+    assert_eq!(app.result(), "= 4");
+    // A prompt failure joins the failure tier by flag (no prefix).
+    app.set_failure("Could not write the file");
+    assert!(app.result_failed());
+    // And a plain result resets the flag.
+    app.set_result("= 5");
+    assert!(!app.result_failed());
 }

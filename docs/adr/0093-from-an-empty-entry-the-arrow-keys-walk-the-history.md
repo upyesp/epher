@@ -96,3 +96,27 @@ highlight, the same gesture it always was.
   back to the drag and the fine controls); ADR-0015 is annotated.
 - ADR-0086's behaviour is unchanged; its record points here for the
   apps' spelling.
+
+## Amendment (2026-11-25): either arrow starts the walk
+
+A keyboard audit of the 0.9.24 TUI found the walk's starting rule too
+pure. On an empty entry, Down recalls the newest line and Up is a
+silent no-op: there is no row above the newest, so the spatial model
+has no step there. But every shell, and the TUI's own footer hint
+(`↑ ↓ history`, shown exactly when the walk would start), promises
+more than silence, and Up is the gesture every read-eval-print loop
+teaches. A user reaching for it gets a dead key.
+
+**Either arrow starts the walk.** From an empty entry, Down recalls
+the newest line as before, and Up now recalls it too: the entry sits
+above the list, and the first step in either direction lands on the
+top row. From there the spatial rule governs unchanged, Down walks
+older, Up walks newer, and Up past the newest returns the entry to
+empty. `epher_shell::history_step` gains the same rule so the apps
+cannot drift; the REPL keeps rustyline's shell convention (ADR-0086,
+unchanged).
+
+Alternatives considered: adopting the shell's direction wholesale
+(rejected for the reasons the original decision records), and leaving
+Up dead while the hint explains why (rejected: a hint explaining a
+dead key is still a dead key).
