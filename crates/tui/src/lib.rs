@@ -236,6 +236,25 @@ pub struct App {
     /// entry holds text by then) and ends when the text changes: typing,
     /// deleting, a pick, a submit, or Esc.
     hist_recall: Option<usize>,
+    /// Action feedback (ADR-0079 amendment): "the app speaking" on the
+    /// answer line (saved, copied, cleared, restored, the ADR-0094
+    /// guards), rendered in the status tier's dim ink. The next
+    /// evaluation replaces the answer line; never persisted.
+    status: Option<String>,
+    /// The answer's last set was a failure without the `error: ` prefix
+    /// (ADR-0079 amendment): the file prompts' localized failure
+    /// messages join the failure tier by flag. Reset by set_result.
+    result_failed: bool,
+    /// The pending-quit guard (ADR-0094): the first `q` arms it and
+    /// explains in the status tier; a second `q` quits; any other key
+    /// disarms. Session state; never persisted.
+    quit_armed: bool,
+    /// The cleared-history restore slot (ADR-0094): the entries the
+    /// last Ctrl+L (or trash click) removed, kept in memory only; a
+    /// second Ctrl+L puts them back. One slot covers the real accident
+    /// ("I cleared everything") without generalizing into an undo
+    /// stack the store does not model.
+    cleared_history: Option<Vec<String>>,
     /// The in-app user guide view (ADR-0018): `Some(scroll)` when open,
     /// the offset counting wrapped rows from the top. `guide_chapters`
     /// holds the top-level chapter titles with their wrapped-row offsets
@@ -994,6 +1013,10 @@ impl App {
             hist_focus: false,
             hist_sel: 0,
             hist_rows: Vec::new(),
+            status: None,
+            result_failed: false,
+            quit_armed: false,
+            cleared_history: None,
             guide: None,
             guide_chapters: Vec::new(),
             guide_md: None,
@@ -1677,13 +1700,16 @@ impl App {
     /// Start a file prompt. Save prompts pre-fill the default file name
     /// (`epher-script.epher`, ADR-0027) so Enter saves to the current
     /// directory; the buffer stays fully editable, any extension the
-    /// user types wins. Open prompts start empty.
+    /// user types wins. Open prompts start empty. The caret starts at
+    /// the HOME position (the audit's prefill trap): typing lands in
+    /// front of the prefill where the eye is, instead of appending
+    /// past an unnoticed `epher-script.epher`.
     pub fn prompt_start(&mut self, kind: PromptKind) {
         let default = match kind {
             PromptKind::SaveScript => "epher-script.epher".to_string(),
             PromptKind::OpenScript => String::new(),
         };
-        self.prompt_cursor = default.len();
+        self.prompt_cursor = 0;
         self.prompt = Some((kind, default));
         self.keypad = false;
         self.kp_tab_active = false;
@@ -1716,14 +1742,18 @@ impl App {
         self.hist_focus = false;
     }
 
-    /// Move the selection toward older (+1) or newer (-1), wrapping.
-    /// The display renders newest on top, so +1 steps down the screen.
+    /// Move the selection toward older (+1) or newer (-1), stopping at
+    /// the ends (the ADR-0033 amendment: focus selections clamp where
+    /// they read as lists; menu popups and the bank-tab rows keep
+    /// wrap, the rule menu bars use). The display renders newest on
+    /// top, so +1 steps down the screen.
     pub fn history_move(&mut self, dir: isize) {
-        let len = self.session.history().len() as isize;
+        let len = self.session.history().len();
         if len == 0 {
             return;
         }
-        self.hist_sel = (self.hist_sel as isize + dir).rem_euclid(len) as usize;
+        let next = self.hist_sel as isize + dir;
+        self.hist_sel = next.clamp(0, len as isize - 1) as usize;
     }
 
     /// Load the selected line into the input (replacing whatever is
@@ -1840,6 +1870,71 @@ impl App {
 
     pub fn set_result(&mut self, result: &str) {
         self.result = result.to_string();
+        self.result_failed = false;
+    }
+
+    /// The app speaking (ADR-0079 amendment): action feedback lands in
+    /// the status tier, dimmer than any answer, on the answer line. A
+    /// submission replaces it.
+    pub fn set_status(&mut self, msg: &str) {
+        self.status = Some(msg.to_string());
+    }
+
+    pub fn status(&self) -> Option<&str> {
+        self.status.as_deref()
+    }
+
+    /// A failure whose localized text carries no `error: ` prefix (the
+    /// ADR-0079 amendment): the file prompts' failure messages join the
+    /// failure tier by flag.
+    pub fn set_failure(&mut self, msg: &str) {
+        self.result = msg.to_string();
+        self.result_failed = true;
+    }
+
+    pub fn result_failed(&self) -> bool {
+        self.result_failed
+    }
+
+    /// Arm the quit guard (ADR-0094): the first `q` explains in the
+    /// status tier and waits for the second.
+    pub fn arm_quit(&mut self, msg: &str) {
+        self.quit_armed = true;
+        self.status = Some(msg.to_string());
+    }
+
+    /// Any other key cancelled the pending quit (ADR-0094); the
+    /// guard's status line goes with it.
+    pub fn disarm_quit(&mut self) {
+        self.quit_armed = false;
+        self.status = None;
+    }
+
+    pub fn quit_armed(&self) -> bool {
+        self.quit_armed
+    }
+
+    /// Clear the history with the guard (ADR-0094): the first press
+    /// clears and remembers (the cleared list still saves to the
+    /// shared store, which stays truthful); a second press while a
+    /// restore is pending puts the entries back. Returns true when
+    /// entries were restored, false when the history was cleared.
+    pub fn clear_history_guarded(&mut self) -> bool {
+        if let Some(entries) = self.cleared_history.take() {
+            self.session.restore_history(entries);
+            self.hist_recall = None;
+            true
+        } else {
+            self.cleared_history = Some(self.session.history().to_vec());
+            self.session.clear_history();
+            self.hist_recall = None;
+            false
+        }
+    }
+
+    /// Whether a cleared-history restore is on offer (ADR-0094).
+    pub fn history_restore_pending(&self) -> bool {
+        self.cleared_history.is_some()
     }
 
     /// Re-open a prompt with its previously typed path (after a failed
@@ -2239,6 +2334,8 @@ impl App {
     /// returns the whole transcript, newline-joined.
     pub fn submit(&mut self) {
         let input = self.input.clone();
+        self.status = None;
+        self.result_failed = false;
         self.result = self.session.submit_entry(&input);
         self.clear_input();
     }
@@ -2271,6 +2368,10 @@ impl App {
         if pieces.is_empty() {
             return None;
         }
+        // An evaluation replaces the answer line wholesale: the status
+        // tier's message (ADR-0079 amendment) goes with it.
+        self.status = None;
+        self.result_failed = false;
         let single = pieces.len() == 1;
         // A multi-statement submission is a script scope (ADR-0012
         // amendment): its definitions are its own, so re-running an
@@ -2736,6 +2837,20 @@ impl App {
             }
             _ => None,
         }
+    }
+
+    /// Whether 3D content is displayed (the ADR-0034 amendment): the
+    /// orbit keys act only while something 3D is on the pane.
+    /// Rotating a camera nothing is showing left a surprise pose for
+    /// the next surface.
+    pub fn has_3d_view(&self) -> bool {
+        !self.surface.is_empty() || !self.curve3d.is_empty() || self.solar.is_some()
+    }
+
+    /// Whether a 2D plot is displayed (the ADR-0034 amendment): the
+    /// Shift+arrow pan and the + / - zoom act on it.
+    pub fn has_2d_plot(&self) -> bool {
+        !self.graph.is_empty()
     }
 
     /// Orbit the 3D view by the given yaw/pitch deltas (radians).
@@ -3505,14 +3620,24 @@ pub fn run() -> std::io::Result<()> {
     // Event::Paste instead of a burst of keystrokes; terminals without
     // support keep delivering keystrokes, which the key arm still
     // accepts (the Ctrl+J convention below).
+    // Keyboard enhancement flags (issue #296): terminals that speak
+    // the kitty protocol then distinguish Shift+Enter from Enter (the
+    // ADR-0035 amendment's gesture finally arrives on them); terminals
+    // that do not ignore the request and keep the legacy spellings,
+    // which every arm still accepts, so this is progressive
+    // enhancement only.
     let _ = execute!(
         std::io::stdout(),
         crossterm::event::EnableMouseCapture,
-        crossterm::event::EnableBracketedPaste
+        crossterm::event::EnableBracketedPaste,
+        crossterm::event::PushKeyboardEnhancementFlags(
+            crossterm::event::KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES,
+        )
     );
     let result = run_loop(&mut terminal);
     let _ = execute!(
         std::io::stdout(),
+        crossterm::event::PopKeyboardEnhancementFlags,
         crossterm::event::DisableMouseCapture,
         crossterm::event::DisableBracketedPaste
     );
@@ -3644,6 +3769,28 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
             }
             Some(Event::Key(key)) => {
                 if key.kind == KeyEventKind::Press {
+                    // The quit guard (ADR-0094): the second `q` quits; any
+                    // other key disarms first, so a pending quit never
+                    // survives unnoticed. The modal overlays (guide,
+                    // key help) cannot be open while the guard is armed:
+                    // every key that opens one passes through here and
+                    // disarms first.
+                    if app.quit_armed() {
+                        let guard_q = key.code == KeyCode::Char('q')
+                            && !key.modifiers.intersects(
+                                KeyModifiers::CONTROL
+                                    | KeyModifiers::ALT
+                                    | KeyModifiers::SHIFT,
+                            )
+                            && app.input().is_empty()
+                            && !app.keypad_focused()
+                            && app.prompt_active().is_none()
+                            && app.menu_active().is_none();
+                        if guard_q {
+                            return Ok(());
+                        }
+                        app.disarm_quit();
+                    }
                     // The user guide view (ADR-0018) is modal: only scrolling
                     // and closing keys act; nothing reaches the calculator.
                     // Number keys jump the table of contents (ADR-0018
@@ -3840,12 +3987,35 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                             app.keypad_toggle();
                         }
                         KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                            app.clear_history();
+                            // The clear is guarded (ADR-0094): the first
+                            // Ctrl+L clears and the status tier offers the
+                            // restore; a second Ctrl+L puts the entries
+                            // back. Both propagate to the shared store
+                            // immediately, so it stays truthful either way.
+                            let restored = app.clear_history_guarded();
+                            let msg = if restored {
+                                localizer.lookup("tui-history-restored")
+                            } else {
+                                localizer.lookup("tui-history-cleared")
+                            };
+                            app.set_status(&msg);
                             let _ = save_history(&store, app.history());
                             let _ = save_session(&store, app.bindings());
                         }
-                        KeyCode::Char('q') if app.input().is_empty() && !app.keypad_focused() => {
-                            return Ok(());
+                        // The quit guard (ADR-0094): `q` on an empty entry
+                        // arms instead of quitting; the status line
+                        // explains, a second `q` quits, any other key
+                        // cancels. Prompt and menu states type into the
+                        // path or the menu instead of ever reaching this
+                        // arm (they did not quit before the guard either,
+                        // once their arms landed first).
+                        KeyCode::Char('q')
+                            if app.input().is_empty()
+                                && !app.keypad_focused()
+                                && app.prompt_active().is_none()
+                                && app.menu_active().is_none() =>
+                        {
+                            app.arm_quit(&localizer.lookup("tui-quit-guard"));
                         }
                         // The key-help overlay (ADR-0039): ? opens it when
                         // nothing else owns the key; the entry is empty
@@ -3899,21 +4069,46 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         KeyCode::Up if app.history_focused() => app.history_move(-1),
                         KeyCode::Down if app.history_focused() => app.history_move(1),
                         KeyCode::Esc if app.history_focused() => app.history_close(),
-                        // 3D pitch on an empty entry (ADR-0015, amended by
-                        // ADR-0093): Shift+Up/Down orbit while the plain
+                        // 3D pitch and 2D pan on an empty entry (ADR-0015,
+                        // amended by ADR-0093 and the ADR-0034 amendment):
+                        // Shift+Up/Down orbit while 3D content is displayed
+                        // and pan the 2D viewport while a plot is; the plain
                         // Up/Down below walk the history. These arms come
                         // first so the shift is read before the walk.
                         KeyCode::Up
                             if key.modifiers.contains(KeyModifiers::SHIFT)
-                                && app.input().is_empty() =>
+                                && app.input().is_empty()
+                                && app.has_3d_view() =>
                         {
                             app.rotate_view(0.0, 0.15)
                         }
                         KeyCode::Down
                             if key.modifiers.contains(KeyModifiers::SHIFT)
-                                && app.input().is_empty() =>
+                                && app.input().is_empty()
+                                && app.has_3d_view() =>
                         {
                             app.rotate_view(0.0, -0.15)
+                        }
+                        // The 2D pan (the ADR-0034 amendment): Shift+arrows
+                        // move the viewport a tenth of a window per press,
+                        // the keyboard spelling of the drag; the hint line
+                        // names it while a 2D plot is displayed. Right and
+                        // Up move the view toward greater x and y.
+                        KeyCode::Left
+                            if key.modifiers.contains(KeyModifiers::SHIFT)
+                                && app.input().is_empty()
+                                && app.has_2d_plot() =>
+                        {
+                            let (w, h) = graph_dims(app.areas.graph);
+                            app.graph2d_pan(0.1 * w as f64, 0.0, w, h);
+                        }
+                        KeyCode::Right
+                            if key.modifiers.contains(KeyModifiers::SHIFT)
+                                && app.input().is_empty()
+                                && app.has_2d_plot() =>
+                        {
+                            let (w, h) = graph_dims(app.areas.graph);
+                            app.graph2d_pan(-0.1 * w as f64, 0.0, w, h);
                         }
                         // The history walk (ADR-0093): on an empty entry,
                         // Down recalls the newest line and the arrows then
@@ -4009,16 +4204,46 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                             app.push_char('\n')
                         }
                         // 3D yaw on an empty entry (ADR-0015, amended by
-                        // ADR-0093): Left/Right rotate; the plain Up/Down
-                        // above walk the history now, Shift+Up/Down the pitch.
-                        // The mouse drag (ADR-0034) and the Settings fine
-                        // controls (ADR-0031) remain the other two paths to
-                        // the same pose.
-                        KeyCode::Left if app.input().is_empty() => app.rotate_view(-0.15, 0.0),
-                        KeyCode::Right if app.input().is_empty() => app.rotate_view(0.15, 0.0),
-                        // Space starts/stops the parameter animation (ADR-0015).
+                        // ADR-0093 and the ADR-0034 amendment): Left/Right
+                        // rotate while 3D content is displayed only; with
+                        // a 2D plot the Shift+Left/Right arms above pan it
+                        // instead, and the plain arrows stay with the
+                        // history walk. The mouse drag (ADR-0034) and the
+                        // Settings fine controls (ADR-0031) remain the
+                        // other two paths to the same pose.
+                        KeyCode::Left if app.input().is_empty() && app.has_3d_view() => {
+                            app.rotate_view(-0.15, 0.0)
+                        }
+                        KeyCode::Right if app.input().is_empty() && app.has_3d_view() => {
+                            app.rotate_view(0.15, 0.0)
+                        }
+                        // The 2D zoom keys (the ADR-0034 amendment): +
+                        // zooms in, - zooms out, a fifth of the span per
+                        // press, the keyboard spelling of the wheel. `=`
+                        // counts as + (the unshifted key on most layouts).
+                        KeyCode::Char('+') | KeyCode::Char('=')
+                            if app.input().is_empty() && app.has_2d_plot() =>
+                        {
+                            app.graph2d_zoom(0.8);
+                        }
+                        KeyCode::Char('-')
+                            if app.input().is_empty() && app.has_2d_plot() =>
+                        {
+                            app.graph2d_zoom(1.25);
+                        }
+                        // Space starts/stops the parameter animation
+                        // (ADR-0015). With nothing animatable, the dead
+                        // key explains itself in the status tier (the
+                        // ADR-0079 amendment's "the app speaking") instead
+                        // of staying silent; the pane title's ▶ shows
+                        // playback while it runs.
                         KeyCode::Char(' ') if app.input().is_empty() => {
-                            app.toggle_play();
+                            if app.play().is_some() {
+                                app.toggle_play();
+                            } else if !app.toggle_play() {
+                                let msg = localizer.lookup("tui-play-need-const");
+                                app.set_status(&msg);
+                            }
                         }
                         // Any typed character leaves keypad/history focus
                         // first, typing is the other spelling of the same
@@ -4045,10 +4270,13 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                             let word = app.word_before_cursor().to_string();
                             let hint_key = format!("key-hint-{word}");
                             let hint = localizer.lookup(&hint_key);
+                            // F1 help is a hint, not an answer (the
+                            // ADR-0079 amendment): the status tier keeps
+                            // "the app speaking" off the answer's ink.
                             if word.is_empty() || hint == hint_key {
-                                app.set_result(&localizer.lookup("help-no-description"));
+                                app.set_status(&localizer.lookup("help-no-description"));
                             } else {
-                                app.set_result(&format!("{word}: {hint}"));
+                                app.set_status(&format!("{word}: {hint}"));
                             }
                         }
                         KeyCode::Esc => app.clear_input(),
@@ -4075,17 +4303,27 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                                 } else {
                                     localizer.lookup("tui-save-failed")
                                 };
-                                app.set_result(&msg);
+                                // The prompt's failures join the failure
+                                // tier (the ADR-0079 amendment): their
+                                // localized text has no `error: ` prefix,
+                                // so the flag carries the tier.
+                                app.set_failure(&msg);
                             }
                             None => {
                                 let msg = match kind {
                                     Some(PromptKind::OpenScript) => {
                                         Some(localizer.lookup("menu-loaded"))
                                     }
-                                    _ => Some(localizer.lookup_args("saved", &[("name", &path)])),
+                                    _ => Some(localizer.lookup_args(
+                                        "saved",
+                                        &[("name", &path)],
+                                    )),
                                 };
                                 if let Some(msg) = msg {
-                                    app.set_result(&msg);
+                                    // Saved/loaded are action feedback,
+                                    // not answers (the ADR-0079
+                                    // amendment): the status tier.
+                                    app.set_status(&msg);
                                 }
                             }
                         }
@@ -4178,6 +4416,11 @@ fn perform_menu_action(
             if !app.input().is_empty() {
                 osc52_copy(app.input());
                 app.clear_input();
+                // Action feedback speaks in the status tier (the
+                // ADR-0079 amendment); the neighbors confirmed, Cut
+                // stayed silent.
+                let msg = localizer.lookup("tui-cut");
+                app.set_status(&msg);
             }
         }
         MenuAction::Copy => {
@@ -4188,13 +4431,15 @@ fn perform_menu_action(
             };
             if !text.is_empty() {
                 osc52_copy(&text);
+                let msg = localizer.lookup("tui-copied");
+                app.set_status(&msg);
             }
         }
         // Terminals have no read-side clipboard API: paste stays with
         // the terminal itself.
         MenuAction::Paste => {
             let hint = localizer.lookup("tui-paste-hint");
-            app.set_result(&hint);
+            app.set_status(&hint);
         }
         MenuAction::SetTheme(name) => {
             app.set_theme(Theme::from_str(name).unwrap_or(Theme::Dark));
@@ -4228,7 +4473,7 @@ fn perform_menu_action(
         MenuAction::ClearGraph => {
             app.clear_graph();
             let msg = localizer.lookup("graph-cleared");
-            app.set_result(&msg);
+            app.set_status(&msg);
         }
         MenuAction::CopyPois => {
             let text = app
@@ -4238,12 +4483,14 @@ fn perform_menu_action(
                 .collect::<Vec<_>>()
                 .join("\n");
             if text.is_empty() {
-                let msg = localizer.lookup("guide-no-results");
-                app.set_result(&msg);
+                // Copy-POIs' empty state is its own wording, not the
+                // guide search's "No matches" (issue #296).
+                let msg = localizer.lookup("poi-none");
+                app.set_status(&msg);
             } else {
                 osc52_copy(&text);
                 let msg = localizer.lookup("poi-copied");
-                app.set_result(&msg);
+                app.set_status(&msg);
             }
         }
         MenuAction::OpenGuide => {
@@ -4425,7 +4672,19 @@ fn handle_mouse(
                     && col >= areas.history_trash_col
                     && col < areas.history_trash_col + 2
                 {
-                    app.clear_history();
+                    // The trash shares Ctrl+L's guard (ADR-0094): the
+                    // first click clears and offers the restore; the
+                    // next Ctrl+L puts the entries back. The cleared
+                    // list still reaches the shared store.
+                    let restored = app.clear_history_guarded();
+                    let msg = if restored {
+                        localizer.lookup("tui-history-restored")
+                    } else {
+                        localizer.lookup("tui-history-cleared")
+                    };
+                    app.set_status(&msg);
+                    let _ = save_history(store, app.history());
+                    let _ = save_session(store, app.bindings());
                     return false;
                 }
                 let content_row = row.saturating_sub(areas.history.y.saturating_add(1)) as usize;
@@ -4605,6 +4864,10 @@ fn handle_mouse(
 enum PopupRow {
     Item(usize, String),
     Rule(String),
+    /// A dim, non-selectable hint line (the ADR-0031 amendment's
+    /// fine-control gesture hint): it renders under the items and a
+    /// click on it does nothing.
+    Hint(String),
 }
 
 /// The open menu's rows: plain items plus labeled section rules.
@@ -4699,24 +4962,38 @@ fn menu_rows(app: &App, localizer: &Localizer) -> Vec<PopupRow> {
                     on_off(app.display.separators)
                 ),
             ));
-            // The 3D fine controls (ADR-0031) join the menu only while
-            // surfaces are displayed, mirroring the web's sliders; their
-            // rows show the live value.
+            // The 3D fine controls (ADR-0031, amended 2026-11-25) join
+            // the menu only while surfaces are displayed, mirroring the
+            // web's sliders; their rows read as sliders (`◀ value ▶`),
+            // and a click on one adjusts and toggles nothing (their
+            // item indices are their own, so they can no longer collide
+            // with the Results rows').
             if !app.surfaces().is_empty() {
                 rows.push(PopupRow::Rule(localizer.lookup("tui-settings-view")));
                 let (h, vv, z) = app.view_offsets();
                 rows.push(PopupRow::Item(
-                    12,
-                    format!("{}  {h:+.1}", localizer.lookup("view-horizontal")),
+                    15,
+                    format!(
+                        "{}  ◀ {h:+.1} ▶",
+                        localizer.lookup("view-horizontal")
+                    ),
                 ));
                 rows.push(PopupRow::Item(
-                    13,
-                    format!("{}  {vv:+.1}", localizer.lookup("view-vertical")),
+                    16,
+                    format!(
+                        "{}  ◀ {vv:+.1} ▶",
+                        localizer.lookup("view-vertical")
+                    ),
                 ));
                 rows.push(PopupRow::Item(
-                    14,
-                    format!("{}  {z:+.1}", localizer.lookup("view-zoom")),
+                    17,
+                    format!("{}  ◀ {z:+.1} ▶", localizer.lookup("view-zoom")),
                 ));
+                // The gesture names itself (the ADR-0031 amendment):
+                // the hint rides under the rows whenever one can be
+                // highlighted, because nothing else on the popup says
+                // the arrows adjust anything.
+                rows.push(PopupRow::Hint(localizer.lookup("tui-view-hint")));
             }
         }
     }
@@ -4958,7 +5235,17 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                 }
                 let shown = match value {
                     Some(v) => {
-                        epher_core::format_value(&epher_core::Value::float(*v), &app.display)
+                        // The catalog shows raw magnitudes honestly
+                        // (issue #296): where fixed point would sprawl
+                        // (the Planck constant's 36 characters), Auto
+                        // reads scientific instead; explicit prefs win
+                        // as anywhere else.
+                        let extreme = *v != 0.0 && !(1e-6..1e12).contains(&v.abs());
+                        if extreme {
+                            format!("{v:e}")
+                        } else {
+                            epher_core::format_value(&epher_core::Value::float(*v), &app.display)
+                        }
                     }
                     None => String::new(),
                 };
@@ -5093,8 +5380,12 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         // The guide text (ADR-0053): loaded from the installed files at
         // open; when the install has none, the pager says where it
         // looked instead of a blank page.
-        let (chapters, guide_lines) = match app.guide_md.as_ref().map(|(_, md)| md) {
-            Some(Ok(md)) => (epher_guide::chapters(md), epher_guide::render_text(md)),
+        let (chapters, guide_lines, has_guide) = match app.guide_md.as_ref().map(|(_, md)| md) {
+            Some(Ok(md)) => (
+                epher_guide::chapters(md),
+                epher_guide::render_text(md),
+                true,
+            ),
             _ => {
                 let tried = app
                     .guide_md
@@ -5111,7 +5402,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                 }
                 lines.push(epher_guide::TLine::Blank);
                 lines.push(epher_guide::TLine::Text("https://epher.org/guide/".into()));
-                (Vec::new(), lines)
+                (Vec::new(), lines, false)
             }
         };
         let toc_len = chapters.len().min(12);
@@ -5132,8 +5423,12 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                 " {title}  /{}  {hits}  Enter=next  Esc=back ",
                 app.guide_query()
             )
-        } else {
+        } else if has_guide {
             format!(" {title}  (/ searches) ")
+        } else {
+            // No guide installed: the title stops advertising search
+            // (issue #296) and the footer keeps only the close key.
+            format!(" {title} ")
         };
         frame.render_widget(
             Paragraph::new(Line::from(Span::styled(
@@ -5236,7 +5531,14 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         );
         frame.render_widget(
             Paragraph::new(Line::from(Span::styled(
-                localizer.lookup("guide-hint"),
+                // With no guide loaded the footer stops advertising
+                // scrolling and chapter jumps (issue #296): only Esc
+                // close remains true.
+                if has_guide {
+                    localizer.lookup("guide-hint")
+                } else {
+                    localizer.lookup("guide-hint-close")
+                },
                 hints_style,
             ))),
             rows[3],
@@ -5317,15 +5619,24 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // current plot does not offer.
     let has_surface = !app.surfaces().is_empty();
     let animatable_2d = !app.graph().is_empty() && app.curve_animated_constant().is_some();
+    // The pan hint names the Shift+arrows/+/ - keys while a 2D plot is
+    // displayed (the ADR-0034 amendment), the same truthfulness rule
+    // as the rotate hint.
+    let pan_2d = !app.graph().is_empty();
     // The walk hint shows exactly when the arrows would recall (ADR-0093):
     // the entry is empty (or already walking) and the history has a line.
     let recallable =
         !app.history().is_empty() && (app.input().is_empty() || app.history_recall().is_some());
     let hint_text = format!(
-        "{}{}{}{}{}",
+        "{}{}{}{}{}{}",
         localizer.lookup("tui-hint-base-a"),
         if has_surface {
             localizer.lookup("tui-hint-rotate")
+        } else {
+            String::new()
+        },
+        if pan_2d {
+            localizer.lookup("tui-hint-pan")
         } else {
             String::new()
         },
@@ -5362,7 +5673,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // keeps one row while its text is away in the pane, so the layout
     // does not jump when a long answer arrives; the pane now carries
     // ADR-0052's every-answer-visible contract for transcripts.
-    let long_answer = !answer_fits(app.result(), wide);
+    let long_answer = app.status().is_none() && !answer_fits(app.result(), wide);
     let result_rows = if long_answer {
         1
     } else {
@@ -5449,13 +5760,29 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     frame.render_widget(input, input_area);
 
     // A long answer empties the answer line; its transcript renders in
-    // the result pane instead (ADR-0056).
-    let answer_line = if long_answer {
-        String::new()
-    } else {
-        app.result().to_string()
+    // the result pane instead (ADR-0056). The line carries one of
+    // three tiers (the ADR-0079 amendment): the status tier (action
+    // feedback, the app speaking, the hints' ink), the failure tier
+    // (an `error: `/`warning: ` prefix, or the file prompts' prefix-less
+    // failures), or the answer itself.
+    let status_line = if long_answer { None } else { app.status().map(str::to_string) };
+    let answer_line = match &status_line {
+        Some(text) => text.clone(),
+        None if long_answer => String::new(),
+        None => app.result().to_string(),
     };
-    let result = Paragraph::new(answer_line).style(result_style);
+    let failure = !long_answer
+        && status_line.is_none()
+        && (app.result_failed()
+            || epher_core::pane::line_kind(app.result()) == epher_core::pane::LineKind::Error);
+    let answer_style = if status_line.is_some() {
+        hints_style
+    } else if failure {
+        error_style
+    } else {
+        result_style
+    };
+    let result = Paragraph::new(answer_line).style(answer_style);
     frame.render_widget(result, result_area);
 
     // History (ADR-0027): entries render newest first, one row per line
@@ -5479,8 +5806,14 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         // list is visible while the entry is walked from the keyboard.
         let selected = (app.history_focused() && display_idx == app.history_sel())
             || app.history_recall() == Some(display_idx);
+        // A row wider than the panel clips with an ellipsis (issue
+        // #296): the cut lands on a character boundary, so `10^100`'s
+        // hundred digits end in a visible mark instead of vanishing
+        // mid-digit at the column edge.
+        let row_width = history_area.width.saturating_sub(2) as usize;
         for row in h.split('\n') {
-            let line = Line::from(row.to_string());
+            let row = clip_ellipsis(row, row_width);
+            let line = Line::from(row);
             // History focus (ADR-0027): every row of the selected entry
             // is highlighted with the theme's selection colors.
             history_lines.push(if selected {
@@ -5605,12 +5938,25 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                         height: 1,
                     };
                     bx += text.chars().count() as u16;
-                    let selected = if tab_focus {
-                        tab_row == r && tab_col == c
-                    } else {
-                        b == app.keypad_bank_index()
-                    };
-                    let style = if selected {
+                    // The bank tabs (the ADR-0033 amendment): the
+                    // arrows' tab cursor takes the selection style; the
+                    // active bank keeps a dimmer marker (bold, no fill)
+                    // so entering the zone and wrapping inside it are
+                    // both visible. Without the cursor (anywhere else
+                    // in the cycle) the active bank stays the one lit
+                    // tab, the keypad's at-rest state.
+                    let style = if tab_focus {
+                        if tab_row == r && tab_col == c {
+                            Style::default()
+                                .bg(sel_bg)
+                                .fg(sel_fg)
+                                .add_modifier(Modifier::BOLD)
+                        } else if b == app.keypad_bank_index() {
+                            Style::default().fg(fg).add_modifier(Modifier::BOLD)
+                        } else {
+                            Style::default().fg(fg)
+                        }
+                    } else if b == app.keypad_bank_index() {
                         Style::default()
                             .bg(sel_bg)
                             .fg(sel_fg)
@@ -5633,7 +5979,16 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                         .iter()
                         .enumerate()
                         .map(|(c, (disp, _))| {
-                            let selected = r == app.keypad_row() && c == app.keypad_col();
+                    // The key highlight belongs to focus (the ADR-0033
+                    // amendment): an unfocused keypad highlights only
+                    // the active bank tab, the way the history panel
+                    // shows its selection only while focused; and while
+                    // the arrows sit in the tab zone the cursor is the
+                    // one thing lit, so no key cell glows alongside it.
+                    let selected = app.keypad_focused()
+                        && !app.keypad_tab_active()
+                        && r == app.keypad_row()
+                        && c == app.keypad_col();
                             let style = if selected {
                                 Style::default()
                                     .bg(sel_bg)
@@ -5653,7 +6008,13 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             let keypad = Paragraph::new(Text::from(grid))
                 .style(Style::default().fg(fg))
                 .block(block(
-                    if app.keypad_focused() {
+                    // Three titles (the ADR-0033 amendment): the tab
+                    // zone announces itself so climbing to the tabs is
+                    // never invisible; keypad focus keeps its own
+                    // title; at rest the panel says just Keypad.
+                    if app.keypad_tab_active() {
+                        localizer.lookup("tui-keypad-tabs")
+                    } else if app.keypad_focused() {
                         localizer.lookup("tui-keypad-active")
                     } else {
                         localizer.lookup("tui-keypad")
@@ -5692,7 +6053,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             // shows, so the affordance reads as the same thing. A dot
             // yields to a title character: the ADR-0033 amendment's
             // focused title reaches the center, and words beat dots.
-            let title_len = if app.keypad_focused() {
+            let title_len = if app.keypad_tab_active() {
+                localizer.lookup("tui-keypad-tabs").chars().count() as i16
+            } else if app.keypad_focused() {
                 localizer.lookup("tui-keypad-active").chars().count() as i16
             } else {
                 localizer.lookup("tui-keypad").chars().count() as i16
@@ -5817,7 +6180,15 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             .collect();
         if !poi_lines.is_empty() && app.poi_list() {
             graph_text.push('\n');
-            graph_text.push_str(&poi_lines.join("   "));
+            // Two points on one row only when they fit (issue #296):
+            // at 80 columns the joined footer clipped mid-parenthesis;
+            // a pane too narrow for both stacks them instead.
+            let joined = poi_lines.join("   ");
+            if joined.chars().count() <= w {
+                graph_text.push_str(&joined);
+            } else {
+                graph_text.push_str(&poi_lines.join("\n"));
+            }
         }
     }
     // The plot pane shares the web app's pane name (ADR-0056): the
@@ -5839,6 +6210,14 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         format!("{} · {}", localizer.lookup("result-pane"), count)
     } else {
         localizer.lookup("result-pane")
+    };
+    // Playback shows in the pane title (issue #296's invisible play):
+    // while the animation runs, a ▶ rides the localized name, so the
+    // moving plot explains itself. Space stops it again.
+    let pane_title = if app.play().is_some() {
+        format!("{pane_title} \u{25b6}")
+    } else {
+        pane_title
     };
     // A fresh session has nothing to show yet: the pane carries the
     // welcome hint instead of blank space (ADR-0077). The count comes
@@ -5872,7 +6251,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         let w = 26u16.max(
             rows.iter()
                 .map(|r| match r {
-                    PopupRow::Item(_, s) | PopupRow::Rule(s) => s.chars().count() as u16 + 5,
+                    PopupRow::Item(_, s) | PopupRow::Rule(s) | PopupRow::Hint(s) => {
+                        s.chars().count() as u16 + 5
+                    }
                 })
                 .max()
                 .unwrap_or(10),
@@ -5895,10 +6276,14 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                     ]));
                 }
                 PopupRow::Item(i, label) => {
-                    let checked = menu == 3 && item_checked(app, *i, localizer.locale());
+                    // Checkmarks belong to the Settings menu (menu 4;
+                    // the audit's gate-on-Help bug): item 0 is the POI
+                    // checkbox, 1-3 the theme radios, 4-11 the language
+                    // radios. Help has no state to show.
+                    let checked = menu == 4 && item_checked(app, *i, localizer.locale());
                     let mark = match (checked, menu) {
                         (true, _) => "\u{2713} ",
-                        (false, 3) => "  ",
+                        (false, 4) => "  ",
                         _ => "",
                     };
                     let text = format!("{mark}{label}");
@@ -5910,6 +6295,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                     } else {
                         lines.push(Line::from(Span::styled(text, Style::default().fg(fg))));
                     }
+                }
+                PopupRow::Hint(text) => {
+                    lines.push(Line::from(Span::styled(text.clone(), hints_style)));
                 }
             }
         }
@@ -6061,6 +6449,29 @@ fn graph_dims(graph_area: ratatui::layout::Rect) -> (usize, usize) {
     (w.max(20), h.max(3))
 }
 
+/// Clip a display row to `width` columns with an ellipsis (issue
+/// #296): history rows used to vanish mid-digit at the panel edge.
+/// The cut respects character widths, so wide glyphs never straddle
+/// the boundary.
+fn clip_ellipsis(row: &str, width: usize) -> String {
+    if <str as UnicodeWidthStr>::width(row) <= width {
+        return row.to_string();
+    }
+    let budget = width.saturating_sub(1);
+    let mut out = String::new();
+    let mut used = 0usize;
+    for c in row.chars() {
+        let cw = <str as UnicodeWidthStr>::width(c.to_string().as_str());
+        if used + cw > budget {
+            break;
+        }
+        out.push(c);
+        used += cw;
+    }
+    out.push('\u{2026}');
+    out
+}
+
 /// Which Settings radio is checked: the theme item index (0 light,
 /// 1 dark, 2 night); languages are items 3..10 and map through
 /// SUPPORTED_LOCALES.
@@ -6086,11 +6497,11 @@ fn item_checked(app: &App, item: usize, locale: &str) -> bool {
 }
 
 /// Which fine-control axis a Settings-menu row highlights (ADR-0031):
-/// rows 12–14 are horizontal rotation, vertical rotation, zoom.
+/// rows 15-17 are horizontal rotation, vertical rotation, zoom.
 fn view_axis_of(item: usize) -> ViewAxis {
     match item {
-        13 => ViewAxis::Vertical,
-        14 => ViewAxis::Zoom,
+        16 => ViewAxis::Vertical,
+        17 => ViewAxis::Zoom,
         _ => ViewAxis::Horizontal,
     }
 }
@@ -6460,8 +6871,165 @@ mod draw_tests {
         assert_ne!(style.fg, Some(Color::DarkGray), "never dimmed as setup");
     }
 
+    /// ADR-0079 amendment: a short one-line error (the failure lives
+    /// on the answer line) wears the failure tier there too, not the
+    /// answer's green bold. The tier is presentation-wide.
+    #[test]
+    fn a_short_error_on_the_answer_line_wears_the_failure_tier() {
+        let mut app = App::default();
+        app.set_result("error: division by zero");
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut style = None;
+        for y in 1..24 {
+            let mut calc_row = String::new();
+            for x in 0..46 {
+                calc_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            if calc_row.contains("division by zero") {
+                style = Some(buffer.cell((1, y)).unwrap().style());
+            }
+        }
+        let style = style.expect("the error must render on the answer line");
+        assert_eq!(style.fg, Some(Color::LightRed));
+        assert!(style.add_modifier.contains(Modifier::BOLD));
+    }
+
+    /// ADR-0079 amendment: action feedback ("the app speaking") wears
+    /// the status tier on the answer line, the hints' dim ink, never
+    /// the answer's green bold.
+    #[test]
+    fn action_feedback_renders_in_the_status_tier() {
+        let mut app = App::default();
+        app.set_status("saved epher-script.epher");
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut style = None;
+        for y in 1..24 {
+            let mut calc_row = String::new();
+            for x in 0..46 {
+                calc_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            if calc_row.contains("saved epher-script.epher") {
+                style = Some(buffer.cell((1, y)).unwrap().style());
+            }
+        }
+        let style = style.expect("the status must render on the answer line");
+        assert_eq!(style.fg, Some(Color::DarkGray), "the hints' dim ink");
+        assert!(!style.add_modifier.contains(Modifier::BOLD), "never bold");
+    }
+
+    /// ADR-0033 amendment: at rest the keypad lights only its active
+    /// bank tab, no key cell, the way the history panel shows its
+    /// selection only while focused.
+    #[test]
+    fn an_unfocused_keypad_lights_only_its_bank_tab() {
+        let mut app = App::default();
+        assert!(!app.keypad_focused());
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut lit: Vec<(u16, u16)> = Vec::new();
+        for y in 0..24 {
+            for x in 0..80 {
+                if buffer.cell((x, y)).unwrap().style().bg == Some(theme_sel_bg(&app)) {
+                    lit.push((x, y));
+                }
+            }
+        }
+        assert!(!lit.is_empty(), "the active bank tab is lit");
+        let ys: Vec<u16> = lit.iter().map(|(_, y)| *y).collect();
+        assert!(
+            ys.iter().all(|y| *y == ys[0]),
+            "every lit cell sits on one row (the tab row), got {ys:?}"
+        );
+        assert_eq!(lit.len(), 5, "exactly the ` 123 ` tab is lit, got {lit:?}");
+    }
+
+    /// ADR-0033 amendment: climbing to the bank-tab zone retitles the
+    /// panel, and the tab cursor (selection fill) sits apart from the
+    /// active bank's dimmer marker (bold, no fill).
+    #[test]
+    fn the_tab_zone_retitles_the_panel_and_shows_a_distinct_cursor() {
+        let mut app = App::default();
+        app.keypad_open();
+        app.keypad_select_bank(7); // a bank on the tabs' second row
+        app.keypad_navigate(-1, 0); // Up climbs to the tab zone
+        assert!(app.keypad_tab_active());
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut title_row = String::new();
+        let mut lit: Vec<(u16, u16)> = Vec::new();
+        let mut dimmer_marker = false;
+        for y in 0..24 {
+            let mut row = String::new();
+            for x in 0..46 {
+                let st = buffer.cell((x, y)).unwrap().style();
+                row.push_str(buffer.cell((x, y)).unwrap().symbol());
+                if st.bg == Some(theme_sel_bg(&app)) {
+                    lit.push((x, y));
+                } else if y >= 14 && y <= 15 && st.add_modifier.contains(Modifier::BOLD) {
+                    // On the tab rows only the active bank wears bold
+                    // without the fill (the panel title's own bold sits
+                    // on the border row above).
+                    dimmer_marker = true;
+                }
+            }
+            if row.contains("bank tabs") {
+                title_row = row;
+            }
+        }
+        assert!(!title_row.is_empty(), "the panel retitles in the tab zone");
+        let ys: Vec<u16> = lit.iter().map(|(_, y)| *y).collect();
+        assert!(!lit.is_empty() && ys.iter().all(|y| *y == ys[0]),
+            "the cursor is the only filled element, one row, got {lit:?}");
+        assert!(
+            dimmer_marker,
+            "the active bank keeps its dimmer bold marker"
+        );
+    }
+
+    /// The lib tests' palette access: the selection background for the
+    /// current theme, so the lit-cell scans above can find it. Draw
+    /// computes the full tuple inline; these are the same values (a
+    /// drift fails loudly here).
+    fn theme_sel_bg(app: &App) -> Color {
+        match app.theme() {
+            Theme::Dark => Color::Cyan,
+            Theme::Light => Color::Rgb(0, 110, 110),
+            Theme::Night => Color::Rgb(255, 107, 90),
+        }
+    }
+
     /// ADR-0078: a line's matrix renders as a padded, right-aligned
-    /// grid — rows on separate pane rows, cells whole — where the flat
+    /// grid, rows on separate pane rows, cells whole, where the flat
     /// wall used to wrap arbitrarily.
     #[test]
     fn a_matrix_renders_as_a_grid_one_row_per_line() {

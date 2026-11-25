@@ -79,7 +79,13 @@ check('no row is highlighted while idle', (await recalled()) === null);
 
 await press('ArrowUp');
 check(
-  'Up on a fresh entry recalls nothing',
+  'Up on a fresh entry recalls the newest line too (either arrow starts the walk, the ADR-0093 amendment)',
+  (await entry()) === '3 + 3' && (await recalled()) === '3 + 3',
+  `entry "${await entry()}"`,
+);
+await press('ArrowUp');
+check(
+  'Up again returns the entry to empty',
   (await entry()) === '' && (await recalled()) === null,
 );
 
