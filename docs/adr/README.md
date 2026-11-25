@@ -55,17 +55,17 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0028 | Unfiltered open dialogs, 0.1 floor for line width, light installer theme with logo | 2026-08-24 | accepted |
 | 0029 | Auto-slide to the graph pane after drawing on mobile | 2026-08-24 | superseded by 0035 (absorbed; the focus consequence was reversed by 0030) |
 | 0030 | Five frontends everywhere, mobile blur after the auto-slide, scripts as one history entry, and a rotating 3D hero | 2026-08-24 | accepted (the blur decision is carried by 0035) |
-| 0031 | Dark Windows launch, mobile width range, device file pickers, 3D fine controls, and expression-only history picks (Windows launch superseded by 0032) | 2026-08-25 | accepted |
+| 0031 | Dark Windows launch, mobile width range, device file pickers, 3D fine controls, and expression-only history picks (Windows launch superseded by 0032; amended 2026-11-25: the fine-control rows read as sliders) | 2026-08-25 | accepted |
 | 0032 | Dark Windows launch, slider ends, 3D spin controls, vertical icon rail, and the bare hero command | 2026-08-25 | accepted |
-| 0033 | TUI layout fits 80×24, always-visible keypad, wrapped hints, and sectioned settings | 2026-08-25 | accepted |
-| 0034 | TUI mouse support, menus, history, keypad, and graph manipulation | 2026-08-25 | accepted |
+| 0033 | TUI layout fits 80×24, always-visible keypad, wrapped hints, and sectioned settings (amended 2026-11-25: the keypad shows where the focus is) | 2026-08-25 | accepted |
+| 0034 | TUI mouse support, menus, history, keypad, and graph manipulation (amended 2026-11-25: the keyboard can pan and zoom a 2D plot) | 2026-08-25 | accepted |
 | 0035 | Mobile PWA usability; the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) (amended 2026-08-26, 2026-08-27, 2026-08-28: touch no-arrow hints, per-kind sliders, examples tap-to-stage, visible-space fitting) | 2026-08-25 (amended 2026-08-26, 2026-08-27) | accepted |
 | 0036 | The website Examples page, copyable code for every frontend (amended 2026-08-27: the app section leads, four CLI examples moved into it, touch taps stage examples in the app; amended 2026-08-28: base-conversion example in the app section, the REPL section last) | 2026-08-27 (amended 2026-08-27, 2026-08-28) | accepted |
 | 0037 | Astronomy units, constants, time functions, and ephemeris: unit-suffix literals, the solar-ephemeris facade, accessor functions, and solar3d | 2026-08-29 | accepted |
 | 0038 | Zoom on every tile, the solar legend, guide search, shareable history, and the keypad's dead keys | 2026-08-30 | accepted |
 | 0039 | A fixed-height keypad with scrolling, and a meaning for every key | 2026-08-30 | accepted |
 | 0040 | PHP-style comments, a roomier graph, script files for the CLI and REPL, a fuller share, and a legend that never leaves | 2026-08-31 | accepted |
-| 0041 | The history trash, tuning strips above the plot, and a frame that holds still | 2026-08-31 | accepted |
+| 0041 | The history trash, tuning strips above the plot, and a frame that holds still | 2026-08-31 | accepted (the trash clear is guarded by 0094) |
 | 0042 | Percent, the constants catalog, number theory, suggestions with F1, and PNG export | 2026-08-31 | accepted |
 | 0043 | Complex numbers, equation solving, numeric calculus, exact fraction display, and result formats | 2026-08-31 | accepted |
 | 0044 | Lists, statistics, linear regression, distributions, tests, data plots, and table upgrades | 2026-09-01 | accepted |
@@ -103,7 +103,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0076 | macOS offers three install paths, and none of them needs an approval | 2026-10-20 | accepted |
 | 0077 | The apps open the bundled examples from a menu browser | 2026-10-26 | accepted |
 | 0078 | The result pane re-renders what it receives | 2026-10-28 | accepted |
-| 0079 | A failure is its own tier in the result pane | 2026-10-28 | accepted |
+| 0079 | A failure is its own tier in the result pane (amended 2026-11-25: the tier covers the answer line, and action feedback gets a status tier) | 2026-10-28 | accepted |
 | 0080 | A constant definition is silent | 2026-10-28 | accepted |
 | 0081 | No em-dashes anywhere in the project | 2026-11-02 | accepted |
 | 0082 | The macOS build runs when the Linux and Windows builds run | 2026-11-10 | accepted (supersedes 0075) |
@@ -169,7 +169,9 @@ at the end of the chain.
   Help above Settings, TUI guide search and POI copy)**. → **0041 (listeners follow the replaced
   SVG node; the 3D and solar frames fit the bounding sphere and never
   resize while moving)** → **0055 (wheel zoom moves the zoom slider on
-  every kind; data plots zoom; 3D zoom lives in the slider)**.
+  every kind; data plots zoom; 3D zoom lives in the slider)** →
+  **0034 amendment (2026-11-25: Shift+arrows pan 2D, `+`/`-` zooms,
+  and the orbit keys act only while 3D content is displayed)**.
 - **Solar system** - **0037** → **0038 (per-body legend checkboxes on
   the solar pane)**. → **0040 (hiding every body leaves an
   empty framed plot with the legend intact)** → **0090 (the

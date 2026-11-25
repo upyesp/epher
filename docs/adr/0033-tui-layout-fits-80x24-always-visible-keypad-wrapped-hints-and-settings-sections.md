@@ -161,3 +161,34 @@ panel's scroll-into-view actually follows the selection, whose scan
 had stopped at the first rule row and read every deeper selection as
 row zero, leaving the highlight below the fold while the keys kept
 moving it: the history seemed to stop answering.
+
+## Amendment (2026-11-25): the keypad shows where the focus is
+
+A keyboard audit of the 0.9.24 TUI found three places where the
+always-visible keypad, this ADR's core decision, blurs the "where am
+I?" answer the focus-cycle amendment is supposed to give:
+
+1. **At rest the keypad wears a selection.** With focus on the entry,
+   the `123` bank tab and the `C` key both render highlighted: two lit
+   elements competing with the focused panel's accent border. The
+   history panel shows its selection only while focused; the keypad
+   should be as restrained.
+2. **Climbing to the bank-tab row is invisible.** Up from the top key
+   row moves the arrows onto the tabs with no visual change: the tab
+   cursor lands on the active bank, which is already highlighted, so
+   the screen does not change and the user cannot tell the arrows
+   left the keys.
+3. **The first Left teleports.** In the tab zone Left and Right wrap,
+   so the first press from `123` jumps the highlight across the row to
+   `astro`. Wrapping is right for a menu-bar-like row, but combined
+   with the invisible entry it reads as the keys ignoring the user.
+
+**Decisions.** The key highlight belongs to focus: an unfocused
+keypad highlights only the active bank tab and no key cell. Entering
+the bank-tab zone retitles the panel, the way keypad focus already
+retitles it, and renders the tab cursor distinct from the active bank
+(the cursor takes the selection style; the active bank keeps a dimmer
+marker), so entering the zone and wrapping within it are both visible.
+Focus selections clamp where they read as lists: the history panel's
+selection stops at its ends instead of wrapping. Menu popups and the
+bank-tab rows keep wrap, the rule menu bars use.
