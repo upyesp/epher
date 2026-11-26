@@ -44,6 +44,7 @@ window.EPHER_I18N["de"] = {
   "theme-dark": "Dunkles Design verwenden",
   "lang-label": "Sprache",
   "tagline": "Ein skriptfähiger Grafikrechner, gebaut für blinde Astronomen und offen für alle",
+  "hero-shot-alt": "Screenshots der fünf epher-Oberflächen: die Kommandozeile, das REPL und die TUI hinter der Desktop-App, die dieselbe quadratische Funktion zeichnet, davor die mobile Web-App.",
   "lede-a": "epher ist…",
   "lede-app": " für Ihr Gerät",
   "lede-app-link": "App",

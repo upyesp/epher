@@ -57,3 +57,16 @@ record stands.
 - **Landing weight drops on the critical path**: the webp is 41 KB
   against hundreds of KB of per-frame canvas churn; the PNG fallback
   only serves engines without WebP.
+
+## Amendment 2026-11-26: the hero alt text describes the capture, localized
+
+The decision's placeholder alt text ("epher screen shot") named the
+image instead of describing it, and it shipped English-only on a site
+with eight interface languages. The `<img>` alt now describes the
+capture ("Screenshots of epher's five surfaces: the CLI, the REPL, and
+the TUI behind the desktop app graphing the same quadratic, with the
+mobile web app in front") and carries `data-i18n-alt="hero-shot-alt"`;
+`site/app.js` gained a `data-i18n-alt` handler beside its text and
+aria-label handlers, and all eight catalogs in `site/i18n/` translate
+the key. The static English alt stays as the no-JavaScript fallback.
+Everything else in this ADR stands.

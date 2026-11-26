@@ -44,6 +44,7 @@ window.EPHER_I18N["zh-CN"] = {
   "theme-dark": "使用深色主题",
   "lang-label": "语言",
   "tagline": "一个可编写脚本的图形计算器，为盲人天文学家而建，向所有人开放",
+  "hero-shot-alt": "epher 五种使用方式的截图：命令行、REPL 和 TUI 叠在后方，桌面应用绘制同一条二次函数图像，移动版 Web 应用在最前面。",
   "lede-a": "epher 是…",
   "lede-app": "",
   "lede-app-link": "应用",

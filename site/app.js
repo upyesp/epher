@@ -4,7 +4,8 @@
  * a stored user preference, English fallback. The catalogs live in
  * i18n/<lang>.js (loaded before this file as plain scripts; no fetch, so
  * the page also works offline from any mount point); this file applies
- * them by data-i18n / data-i18n-aria / data-i18n-href attributes.
+ * them by data-i18n / data-i18n-aria / data-i18n-alt / data-i18n-href
+ * attributes.
  *
  * Theme: light/dark, defaults to prefers-color-scheme, toggle persisted in
  * localStorage ("epher-theme"). Language preference: "epher-lang".
@@ -56,6 +57,10 @@ function applyLang(lang) {
   document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
     const key = el.getAttribute("data-i18n-aria");
     if (dict[key]) el.setAttribute("aria-label", dict[key]);
+  });
+  document.querySelectorAll("[data-i18n-alt]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-alt");
+    if (dict[key]) el.setAttribute("alt", dict[key]);
   });
   // links whose target depends on the active locale (the user guide).
   // Swap ONLY the locale segment, keeping the original depth prefix:

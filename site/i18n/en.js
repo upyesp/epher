@@ -44,6 +44,7 @@ window.EPHER_I18N["en"] = {
   "theme-dark": "Use dark theme",
   "lang-label": "Language",
   "tagline": "a scriptable, graphing calculator, built for blind astronomers and open to everyone",
+  "hero-shot-alt": "Screenshots of epher's five surfaces: the CLI, the REPL, and the TUI behind the desktop app graphing the same quadratic, with the mobile web app in front.",
   "lede-a": "epher is…",
   "lede-app": " for your device",
   "lede-app-link": "app",

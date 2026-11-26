@@ -138,7 +138,10 @@ links never need a version number.
   (`site/img/hero.webp`, PNG fallback, ADR-0083) of all five surfaces
   answering one equation: the CLI, the REPL, and the TUI stacked behind
   the desktop app graphing that same quadratic, with the mobile web app
-  in front. The image is dark in both themes, like the terminal card
+  in front. The alt text describes the capture and is localized
+  through the site i18n catalogs (`data-i18n-alt`, key
+  `hero-shot-alt`), with the static English string as the no-JS
+  fallback. The image is dark in both themes, like the terminal card
   above it. The terminal card stages copy-pasteable example commands
   (ADR-0032); the header nav (landing, privacy, guide pages) carries an
   App link to `/pwa/` in all eight locales.
