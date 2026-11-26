@@ -2702,7 +2702,11 @@ puedas desplazarte hacia atrás y ver lo que hiciste. Las entradas más
 recientes aparecen arriba, y el icono de la papelera a la izquierda del título
 **Historial** la vacía (en el terminal, Ctrl+L o una pulsación en el
 mismo icono). El historial se conserva mientras la página está
-abierta.
+abierta. Ejecutar de nuevo la misma línea seguida no añade una segunda
+copia, y la lista conserva las 1.000 líneas más recientes. Para vaciarlo
+desde el teclado en cualquier superficie, escribe `clear history`; tus
+funciones, constantes y variables se quedan (eso es lo que `reset` olvida,
+y `reset` conserva el historial).
 
 Cada entrada queda entre reglas finas: una expresión de una línea es una fila, y un script de varias líneas es una entrada que muestra todas sus líneas. Haz clic en una entrada para volver a cargarla en el campo de entrada y ejecutarla de nuevo.
 
@@ -3181,8 +3185,10 @@ epher> x ^ 2
 El prompt se edita como una shell: las flechas izquierda y derecha se
 mueven dentro de la línea, arriba y abajo recorren las líneas
 anteriores (las sesiones comparten un historial: las líneas de ayer
-están a un pulso de flecha arriba), Ctrl-C abandona la línea actual
-para un prompt nuevo, y Ctrl-D termina la sesión.
+están a un pulso de flecha arriba, cada línea se recupera como la
+expresión que escribiste, lista para editar y volver a ejecutar), Ctrl-C
+abandona la línea actual para un prompt nuevo, Ctrl-L vacía el historial,
+y Ctrl-D termina la sesión.
 
 El comando `table` (sección 2.4.2) también imprime aquí una tabla de
 valores:
@@ -3213,7 +3219,8 @@ epher> quit
 ```
 
 Tu historial se recuerda: la próxima vez que ejecutes `epher repl`, las
-líneas de la sesión anterior siguen ahí.
+líneas de la sesión anterior siguen ahí. `clear history` lo vacía (Ctrl-L
+hace lo mismo) sin tocar tus funciones, constantes o variables guardadas.
 
 
 La orden `load` ejecuta un script (una ruta de archivo o el nombre de un script guardado con `save script`) línea a línea, exactamente como si lo hubieras escrito tú:

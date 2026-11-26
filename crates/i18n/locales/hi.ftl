@@ -3,6 +3,7 @@ prompt = epher>
 saved = { $name } सहेजा गया
 saved-script = स्क्रिप्ट { $name } सहेजी गई
 reset-ok = सत्र रीसेट किया गया (परिभाषाएँ भूल गए, इतिहास सुरक्षित)
+history-cleared = इतिहास साफ़ हो गया (परिभाषाएँ सुरक्षित)
 nothing-to-save = सहेजने के लिए कुछ नहीं (पिछली कोई स्क्रिप्ट पंक्ति नहीं)
 no-definition = इस सत्र में { $name } की कोई परिभाषा नहीं
 language-set = भाषा { $code } पर सेट हो गई

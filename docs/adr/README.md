@@ -117,6 +117,10 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0090 | The solar time knob spans a month and every play cycle lasts ~24 seconds | 2026-11-22 | accepted (the span rule superseded by 0091) |
 | 0091 | The solar knob spans the outermost displayed orbit, and a legend toggle re-spans it and refits the frame | 2026-11-22 | accepted (supersedes the 0090 span) |
 | 0092 | The repo keeps the latest release and the two before it | 2026-11-23 | accepted |
+| 0093 | On an empty entry, the arrow keys walk the history in the TUI, desktop app, and PWA | 2026-11-24 | accepted |
+| 0094 | Destructive keys are guarded | 2026-11-25 | accepted |
+| 0096 | History is capped, consecutive repeats collapse, and the REPL can clear it | 2026-11-26 | accepted (implemented the same day) |
+| 0097 | A history entry records what was typed and what came back, not a display string | 2026-11-26 | accepted (implemented the same day) |
 
 ## Decision chains
 
@@ -189,7 +193,10 @@ at the end of the chain.
   keypad keys finally run)**. → **0042 (auto-ans on an empty entry)**
   → **0093 (on an empty entry, ↑ ↓ walk the history in the TUI, desktop,
   and PWA, the list highlighting the recalled row; the REPL's spelling
-  is 0086)**.
+  is 0086)** → **0096 (the list is capped at 1,000, consecutive repeats
+  collapse, and `clear history` works on every surface)** → **0097
+  (an entry is a record of `expr` and `out`; the display string is
+  derived, and legacy strings parse once at load)**.
 - **Calculations** - 0005 (float default) → 0022 (number bases) → 0042 (percent,
   primes) → **0043 (complex values, numeric solve, calculus, exact fractions,
   engineering/scientific/grouped formats)** → **0044 (lists, elementwise

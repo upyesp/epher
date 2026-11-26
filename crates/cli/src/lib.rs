@@ -23,6 +23,8 @@ pub mod help;
 pub mod term;
 
 use std::io::{self, BufRead, IsTerminal, Write};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use rustyline::error::ReadlineError;
 
@@ -289,12 +291,48 @@ fn repl_line(
     Ok(false)
 }
 
+/// The lines the REPL's editor recalls (ADR-0086, amended 2026-11-26):
+/// the persisted history as expressions, oldest first, exactly as the
+/// TUI, the desktop app, and the PWA recall them. One door for every
+/// surface ([`Session::history_expressions`]), so the editor is never
+/// seeded with a display transcript: `2 + 2  = 4` on the Up arrow is a
+/// parse error waiting to be recorded back into the store.
+fn repl_history_lines(session: &Session) -> Vec<String> {
+    session.history_expressions().collect()
+}
+
+/// The Ctrl-L key handler (ADR-0096): raises the flag the REPL loop
+/// acts on, and ends the `readline` call at once with `AcceptLine` so
+/// the clear happens on the key press, not on some later Enter. The
+/// loop discards the buffer `AcceptLine` hands back: Ctrl-L clears the
+/// history, it never submits whatever was half-typed. rustyline only
+/// accepts `ConditionalEventHandler` as a custom binding, so the flag
+/// lives on a struct rather than a closure.
+struct ClearHistoryKey {
+    requested: Arc<AtomicBool>,
+}
+
+impl rustyline::ConditionalEventHandler for ClearHistoryKey {
+    fn handle(
+        &self,
+        _evt: &rustyline::Event,
+        _n: rustyline::RepeatCount,
+        _positive: bool,
+        _ctx: &rustyline::EventContext<'_>,
+    ) -> Option<rustyline::Cmd> {
+        self.requested.store(true, Ordering::SeqCst);
+        Some(rustyline::Cmd::AcceptLine)
+    }
+}
+
 /// The terminal reader (ADR-0086): rustyline owns line editing and the
 /// in-session history. Arrow keys move in the line, up and down walk
 /// the history; the shared store seeds it at startup and receives every
 /// line, so recall reaches previous sessions without a history file
 /// (ADR-0027 amendment). Ctrl-C abandons the current line for a fresh
-/// prompt; Ctrl-D (EOF) ends the session.
+/// prompt; Ctrl-D (EOF) ends the session; Ctrl-L clears the history
+/// (ADR-0096), the TUI's gesture, through the same `clear history`
+/// path.
 fn run_repl_interactive(
     store: &DocStore<FsStore>,
     session: &mut Session,
@@ -304,22 +342,61 @@ fn run_repl_interactive(
     let mut rl =
         rustyline::DefaultEditor::new().map_err(|e| EpherError::Io(e.to_string()))?;
     // Previous sessions are one up-press away: seed the editor from the
-    // persisted history (in-memory only; the store is the archive).
-    for entry in session.history() {
+    // persisted history (in-memory only; the store is the archive), as
+    // expressions, the same text the other frontends load into their
+    // entry.
+    for entry in repl_history_lines(session) {
         let _ = rl.add_history_entry(entry);
     }
+    // Ctrl-L clears the history (ADR-0096), on the key press. rustyline
+    // runs the key handler inside its editor, where the session is not
+    // reachable: the handler raises a flag and ends the read, and the
+    // loop acts on the flag right here, where the session and the store
+    // are in reach.
+    let clear_requested = Arc::new(AtomicBool::new(false));
+    // No blanket `From<Box<T>>` exists for a conditional handler: build
+    // the enum variant directly.
+    rl.bind_sequence(
+        rustyline::KeyEvent::ctrl('l'),
+        rustyline::EventHandler::Conditional(Box::new(ClearHistoryKey {
+            requested: Arc::clone(&clear_requested),
+        })),
+    );
     loop {
         let prompt = format!("{} ", localizer.lookup("prompt"));
-        match rl.readline(&prompt) {
-            Ok(line) => {
-                let _ = rl.add_history_entry(line.trim());
-                if repl_line(&line, store, session, localizer, plots)? {
-                    break;
-                }
-            }
-            Err(ReadlineError::Interrupted) => continue, // Ctrl-C: fresh prompt
-            Err(ReadlineError::Eof) => break,            // Ctrl-D: quit
+        let read = match rl.readline(&prompt) {
+            Ok(line) => Some(line),
+            Err(ReadlineError::Interrupted) => None, // Ctrl-C: fresh prompt
+            Err(ReadlineError::Eof) => break,        // Ctrl-D: quit
             Err(e) => return Err(EpherError::Io(e.to_string())),
+        };
+        // The flag means Ctrl-L ended the read: clear both lists (the
+        // editor's in place, so the arrows stop recalling at once; the
+        // session's, persisted to the store) and drop the half-typed
+        // buffer. The line is never submitted.
+        if clear_requested.swap(false, Ordering::SeqCst) {
+            let _ = rl.clear_history();
+            session.clear_history();
+            let _ = save_history(store, session.history());
+            // The confirmation goes to stdout like `reset`'s does.
+            println!("{}", localizer.lookup("history-cleared"));
+            continue;
+        }
+        let Some(line) = read else {
+            continue;
+        };
+        if line.trim().is_empty() {
+            continue;
+        }
+        // The typed line joins the editor's list as the user
+        // typed it. A line recalled from the list is already an
+        // expression, so re-submitting it never compounds a
+        // second answer suffix; the editor also skips a line
+        // identical to the previous one (rustyline's default),
+        // which keeps a re-run from doubling the walk's length.
+        let _ = rl.add_history_entry(line.trim());
+        if repl_line(&line, store, session, localizer, plots)? {
+            break;
         }
     }
     Ok(())
@@ -509,5 +586,57 @@ fn load_script_text(store: &DocStore<FsStore>, arg: &str) -> Result<String, Stri
     match store.get_script(arg) {
         Ok(Some(doc)) => Ok(doc.source),
         _ => Err(format!("error: no such file or saved script: {arg}")),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // The REPL's recall is rustyline's, which a pipe cannot drive, so
+    // the seed policy is tested here as a pure function: this is the
+    // case the piped `repl_persists_*` test could never see (ADR-0086
+    // amendment, 2026-11-26). The editor must recall expressions, the
+    // same text the TUI and the desktop app load into their entry.
+    #[test]
+    fn repl_recall_seeds_the_editor_with_expressions_not_the_transcript() {
+        let mut session = Session::default();
+        session.submit("6+3");
+        session.record("graph x ^ 2");
+        session.submit("1/0");
+        session.submit("x = 10; x + 5");
+        assert_eq!(
+            session.history(),
+            [
+                "6+3  = 9",
+                "graph x ^ 2",
+                "1/0  error: division by zero",
+                "x = 10; x + 5  = 15",
+            ],
+            "the transcript keeps the suffixes for display"
+        );
+        assert_eq!(
+            repl_history_lines(&session),
+            ["6+3", "graph x ^ 2", "1/0", "x = 10; x + 5"],
+            "every recalled line re-runs as recorded; no answer suffix"
+        );
+    }
+
+    // The bug this replaces: a raw seed put `6+3  = 9` on the Up arrow,
+    // Enter made it a parse error, and `repl_line` saved that error line
+    // back into the shared history, where every other surface then saw
+    // it. The seed must never carry the suffix forward.
+    #[test]
+    fn a_recalled_line_resubmitted_never_compounds_the_suffix() {
+        let mut session = Session::default();
+        session.submit("6+3");
+        let recalled = repl_history_lines(&session).pop().unwrap();
+        assert_eq!(recalled, "6+3");
+        // What Enter does with the recalled line: evaluates cleanly, and
+        // the transcript never gains an error line. Under ADR-0096 the
+        // identical re-run collapses to the one entry it already had,
+        // which is the better outcome this test was really after.
+        assert_eq!(session.submit(&recalled), "= 9");
+        assert_eq!(session.history(), ["6+3  = 9"]);
     }
 }

@@ -4,7 +4,7 @@
 //! backend.
 
 use crate::{ConstantDoc, DocStore, FunctionDoc, ScriptDoc, Storage, StoreError, StoreResult};
-use epher_core::Session;
+use epher_core::{HistoryEntry, Session};
 
 pub const HISTORY_SETTING: &str = "history";
 /// The user's language override (ADR-0008): detection is the default, this
@@ -66,7 +66,12 @@ pub fn load_session<S: Storage>(store: &DocStore<S>) -> StoreResult<Session> {
     Ok(session)
 }
 
-pub fn history<S: Storage>(store: &DocStore<S>) -> StoreResult<Vec<String>> {
+/// The history list (ADR-0097): an array of records, `{"expr", "out"}`
+/// with `out` omitted when absent. A list of plain strings, written
+/// before the ADR, reads too: each string is a display spelling and is
+/// parsed once, here on the way in, so the next `save_history` writes
+/// records and the legacy form never returns.
+pub fn history<S: Storage>(store: &DocStore<S>) -> StoreResult<Vec<HistoryEntry>> {
     match store.get_setting(HISTORY_SETTING)? {
         Some(value) => {
             serde_json::from_value(value).map_err(|e| StoreError::Serialize(e.to_string()))
@@ -75,7 +80,7 @@ pub fn history<S: Storage>(store: &DocStore<S>) -> StoreResult<Vec<String>> {
     }
 }
 
-pub fn save_history<S: Storage>(store: &DocStore<S>, history: &[String]) -> StoreResult<()> {
+pub fn save_history<S: Storage>(store: &DocStore<S>, history: &[HistoryEntry]) -> StoreResult<()> {
     let value = serde_json::to_value(history).map_err(|e| StoreError::Serialize(e.to_string()))?;
     store.set_setting(HISTORY_SETTING, value)
 }

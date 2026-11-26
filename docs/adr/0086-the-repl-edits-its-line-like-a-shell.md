@@ -78,3 +78,35 @@ from an empty entry. There Down walks older and Up newer, because those
 frontends show the list newest on top and the highlight moves the way
 the key points; the REPL keeps rustyline's shell convention (Up is
 older) because it shows no list.
+
+## Amendment 2026-11-26: the editor is seeded with expressions, never the transcript
+
+The decision seeded rustyline "from the session history in the shared
+store" without saying which text: the seed loop passed the raw entries,
+so Up recalled `2 + 2  = 4`, the display transcript, and Enter made it
+`error: parse error: expected ';' or a newline between statements`,
+which `repl_line` then saved back into the shared store for every other
+surface to see. One inspected store held
+`6+3  = 9  error: parse error: …` as its fourth entry. The TUI, the
+desktop app, and the PWA never had the problem because each of their
+recall sites strips the suffix through `epher_core::history_expression`;
+the REPL was the one surface that forgot, and the piped REPL tests
+could not see it because a pipe never enters raw mode.
+
+- `Session::history_expressions()` is now the one recall door: the
+  history with `history_expression` applied to every entry, multi-line
+  scripts joined with `; `. The REPL seeds its editor from it
+  (`repl_history_lines`), and the other surfaces' recall sites are the
+  same text by construction.
+- A line typed in the session joins the editor as typed; a line recalled
+  from the editor is already an expression, so resubmitting it never
+  compounds a second suffix. rustyline's default skip of a line equal to
+  the previous one keeps a re-run from doubling the walk.
+- Two unit tests cover the seed as a pure function, the case the pipe
+  cannot drive; the fix was also verified on a pty against the real
+  editor (Up recalls `6+3`, Enter yields `= 9`, the store gains
+  `6+3  = 9`).
+
+The REPL still has no way to clear a damaged history; ADR-0096 adds
+`clear history` as a shell command on every surface. Everything else in
+this ADR stands.

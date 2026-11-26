@@ -173,6 +173,36 @@ fn run_command_persists_language_and_answers() {
     );
 }
 
+// ADR-0096: `clear history` is a shell command, spelled exactly (the
+// TUI's bare `clear` is the graph, not the history), and it empties the
+// transcript while the definitions stay: `reset`'s mirror image.
+#[test]
+fn clear_history_classifies_exactly_and_empties_only_the_history() {
+    assert_eq!(classify("clear history"), Some(Command::ClearHistory));
+    assert_eq!(classify("  clear history  "), Some(Command::ClearHistory));
+    // Not the command: the graph `clear`, or a history with anything else.
+    assert_eq!(classify("clear"), None);
+    assert_eq!(classify("clear history now"), None);
+    assert_eq!(classify("clearhistory"), None);
+
+    let mut s = Session::new();
+    s.submit("6+3");
+    s.submit("def f(x) = x * 2");
+    s.record("graph x ^ 2");
+    assert_eq!(s.history().len(), 3);
+    let store = DocStore::new(MemoryStore::default());
+    let handled = run_command(&Command::ClearHistory, &mut s, &store, &en());
+    assert!(!handled.error);
+    assert_eq!(plain(handled.message), "history cleared (definitions kept)");
+    assert!(s.history().is_empty(), "the transcript is gone");
+    assert_eq!(s.submit("f(4)"), "= 8", "the definition survived");
+    // Contrast: reset forgets the definition and keeps the history.
+    let handled = run_command(&Command::Reset, &mut s, &store, &en());
+    assert!(!handled.error);
+    assert_eq!(s.history(), ["f(4)  = 8"], "reset keeps history");
+    assert!(s.submit("f(4)").starts_with("error:"), "reset forgot f");
+}
+
 #[test]
 fn run_command_surfaces_prepare_errors_without_persisting() {
     let mut s = Session::new();

@@ -2723,6 +2723,11 @@ vous puissiez remonter et voir ce que vous avez fait. Les entrées les plus
 récentes apparaissent en haut, et l'icône de corbeille à gauche du
 titre **Historique** la vide (dans le terminal, Ctrl+L ou un clic sur la
 même icône). L'historique est conservé tant que la page est ouverte.
+Relancer la même ligne à la suite n'ajoute pas de seconde copie, et la
+liste garde les 1 000 lignes les plus récentes. Pour la vider au clavier
+sur toute surface, tapez `clear history` ; vos fonctions, constantes et
+variables restent (c'est ce que `reset` oublie, et `reset` garde
+l'historique).
 
 Chaque entrée est délimitée par de fines règles : une expression sur une ligne occupe une ligne, et un script multi-lignes est une entrée qui affiche toutes ses lignes. Cliquez sur une entrée pour la recharger dans le champ de saisie et la réexécuter.
 
@@ -3213,8 +3218,10 @@ epher> x ^ 2
 L'invite s'édite comme un shell : les flèches gauche et droite se
 déplacent dans la ligne, haut et bas parcourent les lignes antérieures
 (les sessions partagent un historique, les lignes d'hier sont à une
-pression de flèche vers le haut), Ctrl-C abandonne la ligne en cours
-pour une invite neuve, et Ctrl-D termine la session.
+pression de flèche vers le haut, chaque ligne revient comme l'expression
+que vous avez tapée, prête à être modifiée et relancée), Ctrl-C abandonne
+la ligne en cours pour une invite neuve, Ctrl-L vide l'historique, et
+Ctrl-D termine la session.
 
 La commande `table` (section 2.4.2) affiche ici aussi un tableau de
 valeurs :
@@ -3246,6 +3253,8 @@ epher> quit
 
 Votre historique est mémorisé : la prochaine fois que vous lancez
 `epher repl`, les lignes de la session précédente sont toujours là.
+`clear history` le vide (Ctrl-L fait de même) sans toucher à vos
+fonctions, constantes ou variables enregistrées.
 
 
 La commande `load` exécute un script - un chemin de fichier ou le nom d'un script enregistré avec `save script` - ligne par ligne, exactement comme si vous veniez de le taper :

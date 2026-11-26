@@ -3,6 +3,7 @@ prompt = epher>
 saved = 已保存 { $name }
 saved-script = 已保存脚本 { $name }
 reset-ok = 会话已重置（定义已清除，历史记录保留）
+history-cleared = 历史记录已清空（定义保留）
 nothing-to-save = 没有可保存的内容（前面没有脚本行）
 no-definition = 此会话中没有 { $name } 的定义
 language-set = 语言已设置为 { $code }

@@ -3,6 +3,7 @@ prompt = epher>
 saved = تم حفظ { $name }
 saved-script = تم حفظ النص البرمجي { $name }
 reset-ok = تمت إعادة تعيين الجلسة (نُسيت التعريفات واحُفظ السجل)
+history-cleared = تم مسح السجل (التعريفات محفوظة)
 nothing-to-save = لا شيء للحفظ (لا يوجد سطر نص برمجي سابق)
 no-definition = لا تعريف لـ { $name } في هذه الجلسة
 language-set = تم ضبط اللغة على { $code }

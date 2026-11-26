@@ -14,7 +14,7 @@ use wasm_bindgen_futures::{spawn_local, JsFuture};
 /// `persist::load_session` would use natively.
 #[derive(Debug, Default, Deserialize)]
 pub struct InitState {
-    pub history: Vec<String>,
+    pub history: Vec<epher_core::HistoryEntry>,
     pub replay: Vec<String>,
     pub language: Option<String>,
     pub theme: Option<String>,
@@ -178,7 +178,7 @@ impl Bridge {
         self.spawn("save_script", args);
     }
 
-    pub fn save_history(self, history: &[String]) {
+    pub fn save_history(self, history: &[epher_core::HistoryEntry]) {
         let args =
             serde_wasm_bindgen::to_value(&HistoryArgs { history }).unwrap_or(JsValue::UNDEFINED);
         self.spawn("save_history", args);
@@ -393,7 +393,7 @@ struct SessionArgs {
 
 #[derive(serde::Serialize)]
 struct HistoryArgs<'a> {
-    history: &'a [String],
+    history: &'a [epher_core::HistoryEntry],
 }
 
 #[derive(serde::Serialize)]

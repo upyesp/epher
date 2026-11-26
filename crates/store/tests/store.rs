@@ -116,15 +116,16 @@ mod fs_tests {
 
 mod persist_tests {
     use super::*;
-    use epher_core::Session;
+    use epher_core::HistoryEntry;
     use epher_store::persist::{
         load_language, load_session, save_function, save_history, save_language, save_script,
+        HISTORY_SETTING,
     };
 
     #[test]
     fn load_session_restores_history_and_functions() {
         let store = DocStore::new(MemoryStore::default());
-        save_history(&store, &["x = 1  = 1".to_string()]).unwrap();
+        save_history(&store, &[HistoryEntry::from("x = 1  = 1")]).unwrap();
         save_function(&store, "f", "def f(x) = x ^ 2").unwrap();
         save_script(&store, "setup", "y = 10").unwrap();
         let mut session = load_session(&store).unwrap();
@@ -134,14 +135,68 @@ mod persist_tests {
         assert_eq!(session.submit("y + 1"), "= 11");
     }
 
+    // ADR-0097: the stored form is an array of records, `out` omitted
+    // when absent, and the list round-trips as records, not strings.
     #[test]
     fn history_saves_and_restores_round_trip() {
         let store = DocStore::new(MemoryStore::default());
-        save_history(&store, &["a  = 1".to_string(), "b  = 2".to_string()]).unwrap();
-        let session: Session = load_session(&store).unwrap();
+        save_history(
+            &store,
+            &[
+                HistoryEntry::new("a", Some("= 1".to_string())),
+                HistoryEntry::new("graph x ^ 2", None),
+            ],
+        )
+        .unwrap();
         assert_eq!(
-            session.history(),
-            &["a  = 1".to_string(), "b  = 2".to_string()]
+            store.get_setting(HISTORY_SETTING).unwrap(),
+            Some(serde_json::json!([
+                {"expr": "a", "out": "= 1"},
+                {"expr": "graph x ^ 2"}
+            ])),
+            "records, not display strings; no answer, no `out` key"
+        );
+        let session = load_session(&store).unwrap();
+        let history = session.history();
+        assert_eq!(history[0].expr, "a");
+        assert_eq!(history[0].out.as_deref(), Some("= 1"));
+        assert_eq!(history[1].out, None);
+        // The rows still read as the transcript did.
+        assert_eq!(history, ["a  = 1", "graph x ^ 2"]);
+    }
+
+    // ADR-0097: a list written before the ADR (plain display strings)
+    // loads, each string parsed once at the door, and the next save
+    // writes records, so the legacy form never returns.
+    #[test]
+    fn a_legacy_list_loads_and_the_next_save_writes_records() {
+        let store = DocStore::new(MemoryStore::default());
+        store
+            .set_setting(
+                HISTORY_SETTING,
+                serde_json::json!(["a  = 1", "x = 10\ny  =  x + 5", "graph x ^ 2"]),
+            )
+            .unwrap();
+        let session = load_session(&store).unwrap();
+        let history = session.history();
+        assert_eq!(history[0].expr, "a");
+        assert_eq!(history[0].out.as_deref(), Some("= 1"));
+        assert_eq!(
+            history[1].expr, "x = 10\ny  =  x + 5",
+            "a multi-line legacy entry stays whole, answerless (the old stripper's edge, once)"
+        );
+        assert_eq!(history[1].out, None);
+        assert_eq!(history[2].out, None);
+        assert_eq!(history, ["a  = 1", "x = 10\ny  =  x + 5", "graph x ^ 2"]);
+        save_history(&store, session.history()).unwrap();
+        assert_eq!(
+            store.get_setting(HISTORY_SETTING).unwrap(),
+            Some(serde_json::json!([
+                {"expr": "a", "out": "= 1"},
+                {"expr": "x = 10\ny  =  x + 5"},
+                {"expr": "graph x ^ 2"}
+            ])),
+            "the next save migrates the file; no string survives"
         );
     }
 
