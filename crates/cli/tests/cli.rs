@@ -504,16 +504,64 @@ fn one_shot_records_its_command_in_the_shared_history() {
         .unwrap();
     assert!(out.status.success());
 
-    // the command joined the store's history setting, alongside the
-    // REPL's entries, and the bindings snapshot exists
+    // the record carries the answer in the session's spelling
+    // (ADR-0097), even though stdout printed the bare `4`
     let raw = std::fs::read_to_string(dir.path().join("setting/history.json")).unwrap();
-    assert!(raw.contains("2 + 2"), "history was: {raw}");
+    assert!(
+        raw.contains(r#"{"expr":"2 + 2","out":"= 4"}"#),
+        "history was: {raw}"
+    );
     assert!(dir.path().join("setting/session.json").exists());
 
     // a later REPL sees the entry in its history (it is display-only,
     // but the entries count as loaded)
     let out2 = repl_output(path, "quit\n");
     assert!(out2.contains("epher>"), "stdout was: {out2}");
+}
+
+#[test]
+fn a_failing_one_shot_still_records_its_line() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+
+    let out = epher_bin()
+        .arg("1/0")
+        .env("EPHER_STORE_DIR", path)
+        .output()
+        .unwrap();
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stderr).contains("error: division by zero"));
+
+    // the failure joins the shared history in the REPL's spelling, so
+    // the TUI and GUI recall it the same way they recall their own
+    let raw = std::fs::read_to_string(dir.path().join("setting/history.json")).unwrap();
+    assert!(
+        raw.contains(r#"{"expr":"1/0","out":"error: division by zero"}"#),
+        "history was: {raw}"
+    );
+}
+
+#[test]
+fn one_shot_records_the_last_answer_of_a_multi_statement_line() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+
+    let out = epher_bin()
+        .arg("x = 1; y = 2")
+        .env("EPHER_STORE_DIR", path)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "1\n2");
+
+    // one command, one entry, the last answer (what `ans` holds after
+    // the run), the same contract the REPL applies to a one-line
+    // multi-statement input
+    let raw = std::fs::read_to_string(dir.path().join("setting/history.json")).unwrap();
+    assert!(
+        raw.contains(r#"{"expr":"x = 1; y = 2","out":"= 2"}"#),
+        "history was: {raw}"
+    );
 }
 
 #[test]

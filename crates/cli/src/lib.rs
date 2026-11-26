@@ -174,31 +174,54 @@ pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
     // separators: `;` inside a string literal or a comment is text, not
     // a separator (a pasted print("a; b") used to fragment and error).
     session.begin_script();
-    for piece in epher_shell::split_statements(expr) {
-        if let Some(out) = graph_line(piece, &mut plots, session.env(), &localizer) {
-            if out.error {
-                term::error(out.output.as_deref().unwrap_or("error"));
-                std::process::exit(1);
+    // The entry records what came back (ADR-0097): the last value the
+    // run produced, spelled the session's way (`= 5`, `display()`),
+    // even though the piped stdout keeps the bare form (ADR-0001). A
+    // multi-statement invocation is one command, so the entry carries
+    // the last answer, the value `ans` holds after the run.
+    let mut last_output = String::new();
+    let outcome = (|| -> Result<(), EpherError> {
+        for piece in epher_shell::split_statements(expr) {
+            if let Some(out) = graph_line(piece, &mut plots, session.env(), &localizer) {
+                if out.error {
+                    // A graph failure records too, exactly like an
+                    // engine failure; its message already carries the
+                    // `error: ` voice (step_from).
+                    let line = out.output.unwrap_or_else(|| "error".to_string());
+                    session.record_with_output(expr.trim(), &line);
+                    let _ = save_history(&store, session.history());
+                    let _ = save_session(&store, session.bindings());
+                    term::error(&line);
+                    std::process::exit(1);
+                }
+                print_step(&out);
+                continue;
             }
-            print_step(&out);
-            continue;
+            let script = epher_core::parse_script(piece)?;
+            for value in epher_core::run_all(&script, session.env_mut())? {
+                println!(
+                    "{}",
+                    epher_core::format_value(&value, &epher_core::DisplayPrefs::default())
+                );
+                last_output =
+                    format!("= {}", epher_core::format_value(&value, &session.display()));
+            }
         }
-        let script = epher_core::parse_script(piece)?;
-        for value in epher_core::run_all(&script, session.env_mut())? {
-            println!(
-                "{}",
-                epher_core::format_value(&value, &epher_core::DisplayPrefs::default())
-            );
-        }
-    }
+        Ok(())
+    })();
     session.end_script();
-    // The command joins the shared history and its bindings (`ans` and
-    // any assignments) join the shared session snapshot, best effort,
-    // exactly like the REPL's per-line saves.
-    session.record(expr.trim());
+    // The command joins the shared history with what came back, a
+    // failure included (`error: ...`, the REPL's spelling), and its
+    // bindings (`ans` and any assignments) join the shared session
+    // snapshot, best effort, exactly like the REPL's per-line saves.
+    let spoken = match &outcome {
+        Ok(()) => last_output.clone(),
+        Err(e) => format!("error: {e}"),
+    };
+    session.record_with_output(expr.trim(), &spoken);
     let _ = save_history(&store, session.history());
     let _ = save_session(&store, session.bindings());
-    Ok(())
+    outcome
 }
 
 /// Interactive REPL: scripts run against a persistent environment; history,

@@ -183,3 +183,13 @@ came back.** The display string is derived, never stored.
   migrated file printed `warning: could not load saved data
   (serialization error: invalid type: map, expected a string); starting
   fresh`, the cost this ADR accepts, observed.
+- The one-shot CLI joined later the same day, after the release
+  surfaced it: it had been the one surface still writing half-entries
+  (`out: None`) because its stdout prints the bare piped form.
+  `run_one_shot` now records through `record_with_output` like every
+  other surface: the last value the run produced, spelled by the
+  session's own `display()` prefs (`= 5`), so a multi-statement
+  invocation carries the answer `ans` ends with, and a failure records
+  `error: ...` and still persists, the REPL's contract. stdout is
+  unchanged (ADR-0001's bare piped form); script-file runs stay silent
+  (the `load` precedent, ADR-0040).
