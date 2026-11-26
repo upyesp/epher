@@ -2708,7 +2708,11 @@ damit du zurückscrollen und sehen kannst, was du gemacht hast. Die neuesten
 Einträge erscheinen oben, und das Mülleimer-Symbol links von der
 Überschrift **Verlauf** leert sie (im Terminal: Strg+L oder ein Klick
 auf dasselbe Symbol). Der Verlauf bleibt erhalten, solange die Seite offen
-ist.
+ist. Dieselbe Zeile direkt nochmals auszuführen fügt keine zweite Kopie
+hinzu, und die Liste behält die letzten 1.000 Zeilen. Um sie auf jeder
+Oberfläche per Tastatur zu leeren, tippe `clear history`; deine Funktionen,
+Konstanten und Variablen bleiben (genau das vergisst `reset`, und `reset`
+behält den Verlauf).
 
 Jeder Eintrag liegt zwischen dünnen Trennlinien: ein einzeiliger Ausdruck ist eine Zeile, und ein mehrzeiliges Skript ist ein Eintrag, der alle seine Zeilen zeigt. Klicke einen Eintrag an, um ihn zurück ins Eingabefeld zu laden und erneut auszuführen.
 
@@ -3189,8 +3193,10 @@ epher> x ^ 2
 Der Prompt bearbeitet wie eine Shell: Die Pfeile links und rechts
 bewegen sich in der Zeile, hinauf und hinunter gehen durch frühere
 Zeilen (die Sitzungen teilen eine Geschichte, Zeilen von gestern sind
-ein Tastendruck auf ↑ entfernt), Strg-C verlässt die aktuelle Zeile für
-einen frischen Prompt, und Strg-D beendet die Sitzung.
+ein Tastendruck auf ↑ entfernt, jede Zeile kommt als der Ausdruck zurück,
+den du getippt hast, bereit zum Bearbeiten und erneuten Ausführen), Strg-C
+verlässt die aktuelle Zeile für einen frischen Prompt, Strg-L leert den
+Verlauf, und Strg-D beendet die Sitzung.
 
 Der Befehl `table` (Abschnitt 2.4.2) druckt auch hier eine Wertetabelle:
 
@@ -3220,7 +3226,9 @@ epher> quit
 ```
 
 Dein Verlauf wird gemerkt: Wenn du das nächste Mal `epher repl` ausführst,
-sind die Zeilen der vorherigen Sitzung noch da.
+sind die Zeilen der vorherigen Sitzung noch da. `clear history` leert ihn
+(Strg-L tut dasselbe), ohne deine gespeicherten Funktionen, Konstanten oder
+Variablen anzufassen.
 
 
 Der Befehl `load` führt ein Skript aus - einen Dateipfad oder den Namen eines mit `save script` gespeicherten Skripts - Zeile für Zeile, genau als hättest du es eingetippt:

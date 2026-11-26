@@ -18,7 +18,7 @@ use epher_core::graph::{
     DataPlot, InterestPoint, SampledCurve,
 };
 use epher_core::{
-    history_expression, CatalogKind, DisplayPrefs, Env, Notation, Session, Value,
+    CatalogKind, DisplayPrefs, Env, HistoryEntry, Notation, Session, Value,
 };
 use epher_i18n::Localizer;
 use epher_shell::{classify, message, prepare};
@@ -3900,10 +3900,12 @@ fn epher_app() -> Html {
                     // The PWA's recent activity (ADR-0057): history, the
                     // session bindings (`ans` and every assignment), and the
                     // answer on screen, reopening shows where the user left
-                    // off instead of a blank slate.
+                    // off instead of a blank slate. A list written before
+                    // ADR-0097 (plain strings) reads too: each is parsed
+                    // once here, at the load door.
                     let mut restored: Option<Session> = None;
                     if let Ok(Some(json)) = store.get_item("epher-history") {
-                        if let Ok(hist) = serde_json::from_str::<Vec<String>>(&json) {
+                        if let Ok(hist) = serde_json::from_str::<Vec<HistoryEntry>>(&json) {
                             let mut s = Session::with_history(hist);
                             if let Ok(Some(json)) = store.get_item("epher-bindings") {
                                 if let Ok(bindings) = serde_json::from_str::<
@@ -4619,7 +4621,7 @@ fn epher_app() -> Html {
                             let entry = &history[history.len() - 1 - row];
                             (
                                 epher_shell::HistoryStep::Row(row),
-                                Some(history_expression(entry).to_string()),
+                                Some(entry.expr.clone()),
                             )
                         }
                         epher_shell::HistoryStep::Leave => {
@@ -5129,6 +5131,28 @@ fn epher_app() -> Html {
                     if matches!(cmd, epher_shell::Command::Table { .. }) && single && !multiline {
                         s.record(piece);
                     }
+                    // `clear history` (ADR-0096), the typed spelling of the
+                    // clear button: the same session mutation and the same
+                    // persistence, handle for handle. The arm ends in
+                    // `continue` past the epilogue that publishes and saves
+                    // per line, so the cleared state is published here, the
+                    // way `on_clear_history` does; definitions, constants,
+                    // and plotted curves stay untouched.
+                    if matches!(cmd, epher_shell::Command::ClearHistory) {
+                        s.clear_history();
+                        session.set(s.clone());
+                        bridge.save_history(&[]);
+                        if let Some(store) = web_sys::window()
+                            .and_then(|w| w.local_storage().ok().flatten())
+                        {
+                            let _ = store.set_item("epher-history", "[]");
+                            let _ = store.remove_item("epher-result");
+                        }
+                        result.set(localizer.lookup("history-cleared"));
+                        input.set(String::new());
+                        recall.set(None);
+                        continue;
+                    }
                     match bridge {
                         Bridge::Tauri => match prepare(&cmd, &s, &localizer) {
                             Ok(prepared) => {
@@ -5219,12 +5243,12 @@ fn epher_app() -> Html {
             if !multiline && !single {
                 // One history entry for the whole script: the line as
                 // typed, semicolons intact, with the last answer
-                // appended exactly as single statements record theirs.
-                let entry = match &last_eval_output {
-                    Some(out) if !out.is_empty() => format!("{line}  {out}"),
-                    _ => line.clone(),
-                };
-                s.record(&entry);
+                // appended exactly as single statements record theirs
+                // (`record_with_output` owns the spelling).
+                match &last_eval_output {
+                    Some(out) => s.record_with_output(&line, out),
+                    None => s.record(&line),
+                }
                 // `save script` persists the whole script the user
                 // entered, not just its last statement.
                 s.set_last_line(&line);
@@ -6421,7 +6445,7 @@ fn epher_app() -> Html {
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |line: String| {
-            let expr = history_expression(&line).to_string();
+            let expr = line;
             let link = share_link(&expr);
             // The share reads as three lines: the message, the
             // expression, the link (ADR-0040). The sheet keeps the link
@@ -8021,14 +8045,15 @@ fn epher_app() -> Html {
                                     let input = input.clone();
                                     let input_ref = input_ref.clone();
                                     let cursor_cell = cursor_cell.clone();
-                                    let line = h.clone();
+                                    let line = h.expr.clone();
                                     Callback::from(move |_| {
                                         // ADR-0031: the pick loads the
                                         // expression, the recorded
-                                        // answer suffix stays out of the
+                                        // answer stays out of the
                                         // input so the user can edit and
-                                        // re-run it.
-                                        let expr = history_expression(&line).to_string();
+                                        // re-run it; the record keeps
+                                        // the two apart (ADR-0097).
+                                        let expr = line.clone();
                                         input.set(expr.clone());
                                         // The load puts the cursor at the
                                         // end of the expression (ADR-0035).
@@ -8053,7 +8078,7 @@ fn epher_app() -> Html {
                                 // expression - the same contents a pick
                                 // loads. The icon sits left of the item.
                                 let on_share = on_share.clone();
-                                let line = h.clone();
+                                let line = h.expr.clone();
                                 html! {
                                     <li
                                         class={classes!("history-row", recalled.then_some("recalled"))}
@@ -8068,7 +8093,7 @@ fn epher_app() -> Html {
                                         >
                                             { share_icon() }
                                         </button>
-                                        <button type="button" class="history-item" onclick={on_pick}>{ h.clone() }</button>
+                                        <button type="button" class="history-item" onclick={on_pick}>{ h.display() }</button>
                                     </li>
                                 }
                             }) }

@@ -2689,7 +2689,11 @@ Cada cálculo é adicionado à lista de histórico por baixo do resultado, para
 poder recuar e ver o que fez. As entradas mais recentes aparecem no topo,
 e o ícone do cesto de papel à esquerda do título **Histórico** esvazia-a
 (no terminal, Ctrl+L ou um clique no mesmo ícone). O histórico é
-mantido enquanto a página estiver aberta.
+mantido enquanto a página estiver aberta. Executar novamente a mesma linha
+seguida não adiciona uma segunda cópia, e a lista mantém as 1.000 linhas
+mais recentes. Para esvaziá-lo pelo teclado em qualquer superfície, escreva
+`clear history`; as suas funções, constantes e variáveis ficam (é isso que
+`reset` esquece, e `reset` mantém o histórico).
 
 Cada entrada fica entre linhas finas: uma expressão de uma linha é uma fila, e um script de várias linhas é uma entrada que mostra todas as suas linhas. Clique numa entrada para a voltar a carregar no campo de entrada e executá-la de novo.
 
@@ -3170,8 +3174,9 @@ epher> x ^ 2
 O prompt edita-se como uma shell: as setas esquerda e direita movem-se
 dentro da linha, cima e baixo percorrem as linhas anteriores (as
 sessões partilham um histórico, as linhas de ontem estão a um toque da
-seta para cima), Ctrl-C abandona a linha atual para um prompt novo, e
-Ctrl-D termina a sessão.
+seta para cima, cada linha volta como a expressão que escreveu, pronta a
+editar e a executar de novo), Ctrl-C abandona a linha atual para um prompt
+novo, Ctrl-L esvazia o histórico, e Ctrl-D termina a sessão.
 
 O comando `table` (secção 2.4.2) também imprime aqui uma tabela de
 valores:
@@ -3202,7 +3207,8 @@ epher> quit
 ```
 
 O seu histórico é lembrado: da próxima vez que executar `epher repl`, as
-linhas da sessão anterior ainda lá estão.
+linhas da sessão anterior ainda lá estão. `clear history` esvazia-o
+(Ctrl-L faz o mesmo) sem tocar nas suas funções, constantes ou variáveis guardadas.
 
 
 O comando `load` executa um script - um caminho de arquivo ou o nome de um script salvo com `save script` - linha por linha, exatamente como se você o tivesse digitado:

@@ -46,6 +46,12 @@ pub enum Command {
     /// history (the transcript) is kept. The escape hatch the
     /// definition errors name.
     Reset,
+    /// `clear history` (ADR-0096): empty the session's history and
+    /// persist the empty list, the clear-history control every frontend
+    /// has, spelled as a command so the REPL has it too. The definitions
+    /// and constants stay: `reset` forgets those and keeps history, the
+    /// two names are the pair they read as.
+    ClearHistory,
 }
 
 /// A command resolved against the session, ready to persist.
@@ -238,6 +244,9 @@ pub fn classify(line: &str) -> Option<Command> {
     if line == "reset" {
         return Some(Command::Reset);
     }
+    if line == "clear history" {
+        return Some(Command::ClearHistory);
+    }
     None
 }
 
@@ -362,6 +371,9 @@ pub fn prepare(
         // `&mut` prepare does not have). This arm only keeps the match
         // exhaustive.
         Command::Reset => Err(localizer.lookup("reset-ok")),
+        // `clear history` never reaches prepare either: run_command
+        // handles it before the resolve/persist path (ADR-0096).
+        Command::ClearHistory => Err(localizer.lookup("history-cleared")),
     }
 }
 
@@ -504,6 +516,14 @@ pub fn run_command<S: Storage>(
     if matches!(cmd, Command::Reset) {
         session.reset();
         return Handled::ok(localizer.lookup("reset-ok"));
+    }
+    // `clear history` is the same kind of session mutation (ADR-0096):
+    // empty the transcript here; the frontend's per-line save persists
+    // it (the TUI and the web save explicitly after this call, the REPL
+    // and CLI save at the end of every line).
+    if matches!(cmd, Command::ClearHistory) {
+        session.clear_history();
+        return Handled::ok(localizer.lookup("history-cleared"));
     }
     let prepared = match prepare(cmd, session, localizer) {
         Ok(p) => p,

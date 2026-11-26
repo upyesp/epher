@@ -1,7 +1,8 @@
 use bigdecimal::BigDecimal;
 use epher_core::{
     catalog, eval, evaluate, parse, parse_latex, parse_script, run, run_all, sample,
-    sample_parametric, sample_polar, Env, Sample, Session, Value,
+    sample_parametric, sample_polar, Env, HistoryEntry, HistoryKind, Sample, Session, Value,
+    HISTORY_MAX,
 };
 use num_rational::BigRational;
 use rust_decimal::Decimal;
@@ -310,7 +311,11 @@ fn session_submits_and_keeps_history() {
 fn session_def_only_line_produces_no_output_and_records_source() {
     let mut session = Session::new();
     assert_eq!(session.submit("def f(x) = x ^ 2"), "");
-    assert!(!session.history().iter().any(|h| h.contains("error")));
+    assert_eq!(
+        session.history()[0].kind(),
+        HistoryKind::Silent,
+        "the def line recorded without an answer, and without an error"
+    );
     assert_eq!(
         session.def_sources().get("f").map(String::as_str),
         Some("def f(x) = x ^ 2")
@@ -323,6 +328,113 @@ fn session_with_history_seeds_and_submit_appends() {
     assert_eq!(session.history().len(), 1);
     assert_eq!(session.submit("1 + 1"), "= 2");
     assert_eq!(session.history().len(), 2);
+}
+
+// ADR-0096: re-running a line appends no second copy. The comparison is
+// the whole display string, so a changed answer (after a definition
+// changed) is a new entry, and non-adjacent repeats are kept: they are
+// a real record of what the user did.
+#[test]
+fn consecutive_repeats_collapse_but_changed_answers_and_returned_lines_stay() {
+    let mut s = Session::default();
+    s.submit("6+3");
+    s.submit("6+3");
+    s.submit("6+3");
+    assert_eq!(s.history(), ["6+3  = 9"], "three runs, one entry");
+    s.record("graph x ^ 2");
+    s.record("graph x ^ 2");
+    assert_eq!(s.history(), ["6+3  = 9", "graph x ^ 2"], "record dedups too");
+    // A non-adjacent repeat is history: it stays.
+    s.submit("1+1");
+    s.submit("6+3");
+    assert_eq!(s.history(), ["6+3  = 9", "graph x ^ 2", "1+1  = 2", "6+3  = 9"]);
+    // The same expression with a different answer is not a repeat:
+    // assignments record their value, queries record theirs.
+    s.submit("x = 10");
+    s.submit("x");
+    s.submit("x = 11");
+    s.submit("x");
+    assert_eq!(
+        &s.history()[4..],
+        ["x = 10  = 10", "x  = 10", "x = 11  = 11", "x  = 11"],
+        "a changed answer is a new entry, every time"
+    );
+    // A multi-statement entry collapses on its combined form too.
+    s.submit_entry("y = 2; y * 3");
+    s.submit_entry("y = 2; y * 3");
+    assert_eq!(s.history().last().unwrap(), "y = 2; y * 3  = 6");
+    assert_eq!(
+        s.history().iter().filter(|e| *e == "y = 2; y * 3  = 6").count(),
+        1
+    );
+}
+
+// ADR-0096 / the assessment's #5, now ADR-0097: `record_with_output`
+// is the one door an entry with an answer goes through, and the entry
+// keeps the two halves apart. The display spelling is derived, and the
+// three frontends that assemble multi-statement entries call the door
+// instead of formatting anything themselves.
+#[test]
+fn record_with_output_owns_the_entry_spelling_display_repeats_it() {
+    let mut s = Session::default();
+    s.record_with_output("x = 10; x + 5", "= 15");
+    s.record_with_output("  1/0  ", "error: division by zero");
+    s.record_with_output("def f(x) = x", "");
+    let history = s.history();
+    assert_eq!(
+        history
+            .iter()
+            .map(|e| (e.expr.as_str(), e.out.as_deref()))
+            .collect::<Vec<_>>(),
+        [
+            ("x = 10; x + 5", Some("= 15")),
+            ("1/0", Some("error: division by zero")),
+            ("def f(x) = x", None),
+        ],
+        "what was typed, and what came back; the line trimmed; an empty answer is no answer"
+    );
+    assert_eq!(
+        history.iter().map(HistoryEntry::display).collect::<Vec<_>>(),
+        ["x = 10; x + 5  = 15", "1/0  error: division by zero", "def f(x) = x"],
+        "two spaces before the answer; the row reads as the transcript did"
+    );
+    assert_eq!(
+        s.history_expressions().collect::<Vec<_>>(),
+        ["x = 10; x + 5", "1/0", "def f(x) = x"],
+        "recall reads the expression, never the row"
+    );
+}
+
+// ADR-0096: the list never exceeds HISTORY_MAX; the oldest go first.
+#[test]
+fn history_is_capped_at_the_ceiling_dropping_the_oldest() {
+    let mut s = Session::default();
+    for i in 0..(HISTORY_MAX + 25) {
+        s.record(&format!("line {i}"));
+    }
+    assert_eq!(s.history().len(), HISTORY_MAX);
+    assert_eq!(s.history()[0], "line 25", "the first 25 were dropped");
+    assert_eq!(s.history().last().unwrap(), &format!("line {}", HISTORY_MAX + 24));
+    // The cap holds through the restore path as well (ADR-0094's undo
+    // cannot exceed it).
+    s.clear_history();
+    let many: Vec<String> = (0..(HISTORY_MAX + 5)).map(|i| format!("r {i}")).collect();
+    s.restore_history(many);
+    assert_eq!(s.history().len(), HISTORY_MAX);
+    assert_eq!(s.history()[0], "r 5");
+}
+
+// ADR-0096: a store written before the cap existed may hold more than
+// HISTORY_MAX entries; loading it trims to the cap on the way in.
+#[test]
+fn with_history_trims_an_oversized_seed_on_load() {
+    let seed: Vec<String> = (0..(HISTORY_MAX + 40)).map(|i| format!("old {i}")).collect();
+    let s = Session::with_history(seed);
+    assert_eq!(s.history().len(), HISTORY_MAX);
+    assert_eq!(s.history()[0], "old 40");
+    // At or under the cap, the seed is untouched.
+    let s = Session::with_history(vec!["a  = 1", "b  = 2"]);
+    assert_eq!(s.history(), ["a  = 1", "b  = 2"]);
 }
 
 #[test]
@@ -967,27 +1079,76 @@ fn ans_holds_a_converted_string_like_any_value() {
     );
 }
 
-/// ADR-0031: a history pick loads the expression, everything before the
-/// last recorded answer suffix, so the user can edit and re-run it.
+/// ADR-0097: a display string written before the ADR parses into a
+/// record once, at the load door (`HistoryEntry::from_legacy`, which the
+/// `Deserialize` impl and the `From<String>`/`From<&str>` seeds go
+/// through). The old stripper's rules (ADR-0031) are kept for those
+/// entries, and the answer keeps its prefix so `display()` reproduces
+/// the string exactly.
 #[test]
-fn history_expression_strips_the_answer_suffix() {
-    use epher_core::history_expression;
-    assert_eq!(history_expression("2 + 2  = 4"), "2 + 2");
-    assert_eq!(history_expression("x = 10; x + 5  = 15"), "x = 10; x + 5");
+fn a_legacy_display_string_parses_once_at_the_load_door() {
+    let e = HistoryEntry::from("2 + 2  = 4");
+    assert_eq!((e.expr.as_str(), e.out.as_deref()), ("2 + 2", Some("= 4")));
+    assert_eq!(e.kind(), HistoryKind::Answer);
+    assert_eq!(HistoryEntry::from("x = 10; x + 5  = 15").expr, "x = 10; x + 5");
     // The last suffix wins: single-space `=` in the expression itself
     // (assignments) is never mistaken for the double-space record marker.
-    assert_eq!(history_expression("x  = 10  = 15"), "x  = 10");
-    // Errors and warnings carry their own suffixes.
-    assert_eq!(history_expression("1/0  error: division by zero"), "1/0");
-    assert_eq!(history_expression("1/0  warning: unstable"), "1/0");
-    // Entries without an answer suffix pass through untouched.
-    assert_eq!(history_expression("graph x ^ 2"), "graph x ^ 2");
-    assert_eq!(history_expression("def f(x) = x * x"), "def f(x) = x * x");
-    assert_eq!(history_expression("2 + 2"), "2 + 2");
-    // Multi-line script entries are verbatim: never suffix-stripped, even
-    // when a line inside carries the double-space marker (ADR-0027).
+    let e = HistoryEntry::from("x  = 10  = 15");
+    assert_eq!((e.expr.as_str(), e.out.as_deref()), ("x  = 10", Some("= 15")));
+    // Errors and warnings carry their own prefixes, and the kind reads them.
+    let e = HistoryEntry::from("1/0  error: division by zero");
+    assert_eq!(
+        (e.expr.as_str(), e.out.as_deref()),
+        ("1/0", Some("error: division by zero"))
+    );
+    assert_eq!(e.kind(), HistoryKind::Error);
+    assert_eq!(
+        HistoryEntry::from("1/0  warning: unstable").kind(),
+        HistoryKind::Warning
+    );
+    // Entries without an answer are bare, and silent.
+    let e = HistoryEntry::from("graph x ^ 2");
+    assert_eq!((e.expr.as_str(), e.out.as_deref()), ("graph x ^ 2", None));
+    assert_eq!(e.kind(), HistoryKind::Silent);
+    assert_eq!(HistoryEntry::from("def f(x) = x * x").expr, "def f(x) = x * x");
+    assert_eq!(HistoryEntry::from("2 + 2").out, None);
+    // Multi-line script entries are verbatim: never split, even when a
+    // line inside carries the double-space marker (ADR-0027).
     let script = "x = 10\ny  =  x + 5";
-    assert_eq!(history_expression(script), script);
+    let e = HistoryEntry::from(script);
+    assert_eq!((e.expr.as_str(), e.out.as_deref()), (script, None));
+    // What the door writes, `display()` reads back exactly: the legacy
+    // string and the record it parsed into spell the same row.
+    for line in [
+        "2 + 2  = 4",
+        "x  = 10  = 15",
+        "1/0  error: division by zero",
+        "graph x ^ 2",
+        script,
+    ] {
+        assert_eq!(HistoryEntry::from(line).display(), line);
+    }
+}
+
+// The recall door (ADR-0010 amendment, 2026-11-26; ADR-0097): every
+// surface reads the `expr` field through `history_expressions` or
+// directly, so there is no suffix to forget. Oldest first, like the
+// transcript.
+#[test]
+fn history_expressions_reads_the_expr_field_in_order() {
+    let mut session = Session::default();
+    session.submit("6+3");
+    session.record("graph x ^ 2");
+    session.submit("1/0");
+    session.submit("x = 10; y = x + 5; y");
+    assert_eq!(
+        session.history_expressions().collect::<Vec<_>>(),
+        ["6+3", "graph x ^ 2", "1/0", "x = 10; y = x + 5; y"]
+    );
+    // The transcript the frontends display carries the answers, and the
+    // failure is its own kind (ADR-0079's tier reads the same prefix).
+    assert_eq!(session.history().len(), 4);
+    assert_eq!(session.history()[2].kind(), HistoryKind::Error);
 }
 
 /// ADR-0031: the fine-control offsets, 0 leaves the pose unchanged; the

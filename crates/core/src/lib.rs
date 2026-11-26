@@ -9631,6 +9631,184 @@ fn run_for(
     Ok(Flow::Normal(Some(Value::List(collected))))
 }
 
+/// The most history entries a session keeps (ADR-0096): bash's default
+/// `HISTSIZE`. The oldest entries are dropped past it, on write, in
+/// `Session`, so every surface inherits the ceiling and the store file
+/// never grows past it. A constant, not a setting.
+pub const HISTORY_MAX: usize = 1_000;
+
+/// One history entry (ADR-0097): what the user typed and what came
+/// back, as two fields. The string a list shows (`2 + 2  = 4`) is
+/// derived by [`HistoryEntry::display`] and never stored, so recall
+/// reads `expr` directly and nothing has to undo a format: the REPL bug
+/// of the ADR-0086 amendment (a recalled transcript line put back
+/// through the parser, answer and all) is unrepresentable rather than
+/// fixed.
+///
+/// The stored form is an object, `{"expr": "...", "out": "..."}`, with
+/// `out` omitted when absent. A plain string is an entry written before
+/// this ADR (its display spelling); the type reads both, parsing a
+/// legacy string once, at the load door, by the old stripper's markers
+/// ([`HistoryEntry::from_legacy`]). After the next save the file holds
+/// objects and the legacy form never returns.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct HistoryEntry {
+    /// The line exactly as typed, newlines intact: runnable verbatim.
+    pub expr: String,
+    /// The answer as the surface showed it, keeping its leading `= `,
+    /// `error: `, or `warning: ` (the result-pane tiers of ADR-0079 key
+    /// on that prefix). `None` for a line that produced no answer: a
+    /// `graph`, `def`, or `const` line, a table, or a multi-line script
+    /// recorded before ADR-0097.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub out: Option<String>,
+}
+
+/// The two spellings the store may hold (ADR-0097): a record, or a
+/// display string written before the ADR. Untagged, so either reads.
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum HistoryEntryRepr {
+    Record {
+        expr: String,
+        #[serde(default)]
+        out: Option<String>,
+    },
+    Legacy(String),
+}
+
+impl<'de> Deserialize<'de> for HistoryEntry {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        Ok(match HistoryEntryRepr::deserialize(d)? {
+            HistoryEntryRepr::Record { expr, out } => HistoryEntry { expr, out },
+            HistoryEntryRepr::Legacy(line) => HistoryEntry::from_legacy(line),
+        })
+    }
+}
+
+/// What came back for a history entry (ADR-0097): derived from the
+/// answer's prefix, never stored, so it cannot disagree with the
+/// result-pane tiers (ADR-0079), which key on the same prefix.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HistoryKind {
+    /// No answer: a `graph`, `def`, or `const` line, a table.
+    Silent,
+    /// An answer (`= …`).
+    Answer,
+    /// A failure (`error: …`).
+    Error,
+    /// A warning (`warning: …`).
+    Warning,
+}
+
+impl HistoryEntry {
+    /// An entry from its two parts. The frontends record through
+    /// [`Session::record`] and [`Session::record_with_output`] instead;
+    /// this is for code that already holds both halves.
+    pub fn new(expr: impl Into<String>, out: Option<String>) -> Self {
+        HistoryEntry {
+            expr: expr.into(),
+            out,
+        }
+    }
+
+    /// A display string written before ADR-0097, parsed into a record.
+    /// This is the legacy door: every load path (`persist::history`, the
+    /// desktop `init`, the PWA's localStorage restore, and the `From`
+    /// impls on `String` and `&str`) goes through here, once per legacy
+    /// entry, and never again once the next save has written records.
+    /// The old stripper's edges are kept for those entries: a multi-line
+    /// entry stays whole and answerless, and an answer that itself
+    /// contains a marker is cut where the stripper would have cut it.
+    pub fn from_legacy(line: impl Into<String>) -> Self {
+        let line = line.into();
+        let (expr, out) = split_legacy(&line);
+        HistoryEntry {
+            expr: expr.to_string(),
+            out: out.map(str::to_string),
+        }
+    }
+
+    /// The one spelling of a list row: `expr`, two spaces, `out`; `expr`
+    /// alone when `out` is `None`. The list renderers call this, so rows
+    /// read exactly as they did when the string was the entry.
+    pub fn display(&self) -> String {
+        match &self.out {
+            Some(out) => format!("{}  {}", self.expr, out),
+            None => self.expr.clone(),
+        }
+    }
+
+    /// What came back, read off the answer's prefix ([`HistoryKind`]).
+    pub fn kind(&self) -> HistoryKind {
+        match self.out.as_deref() {
+            None => HistoryKind::Silent,
+            Some(out) if out.starts_with("error:") => HistoryKind::Error,
+            Some(out) if out.starts_with("warning:") => HistoryKind::Warning,
+            Some(_) => HistoryKind::Answer,
+        }
+    }
+}
+
+/// A `String` is a legacy display string (ADR-0097); the parse happens
+/// here, once, on the way into a session.
+impl From<String> for HistoryEntry {
+    fn from(line: String) -> Self {
+        HistoryEntry::from_legacy(line)
+    }
+}
+
+/// A `&str` is a legacy display string (ADR-0097), the spelling a seed or
+/// a test writes; see [`HistoryEntry::from_legacy`].
+impl From<&str> for HistoryEntry {
+    fn from(line: &str) -> Self {
+        HistoryEntry::from_legacy(line)
+    }
+}
+
+/// An entry equals the string that spells it, its [`HistoryEntry::display`]:
+/// the form the list shows and the form the store held before ADR-0097,
+/// so a history assertion reads as a transcript. (Struct equality, the
+/// derived `PartialEq`, compares `expr` and `out`; the ADR-0096 collapse
+/// rule uses that one.)
+impl PartialEq<str> for HistoryEntry {
+    fn eq(&self, other: &str) -> bool {
+        self.display() == other
+    }
+}
+
+impl PartialEq<&str> for HistoryEntry {
+    fn eq(&self, other: &&str) -> bool {
+        self.display() == *other
+    }
+}
+
+impl PartialEq<String> for HistoryEntry {
+    fn eq(&self, other: &String) -> bool {
+        self.display() == other.as_str()
+    }
+}
+
+/// The legacy parse, the old `history_expression` (ADR-0031, ADR-0097):
+/// a display string becomes `(expr, Some(answer))` at the last answer
+/// marker, with the answer keeping its prefix so `display()` reproduces
+/// the string exactly; a multi-line entry (ADR-0027 amendment) was
+/// recorded without an answer, and the scan must not fire inside one (an
+/// assignment line like `y  =  x + 5` contains the marker). Runs once
+/// per legacy entry, at the load door; nothing on the recall path calls
+/// it.
+fn split_legacy(entry: &str) -> (&str, Option<&str>) {
+    if entry.contains('\n') {
+        return (entry, None);
+    }
+    for suffix in ["  = ", "  error:", "  warning:"] {
+        if let Some(pos) = entry.rfind(suffix) {
+            return (&entry[..pos], Some(&entry[pos + 2..]));
+        }
+    }
+    (entry, None)
+}
+
 /// An interactive session: a persistent [`Env`] plus history, the shared
 /// "submit a line" logic for the CLI REPL, TUI, and web frontends, so it
 /// exists once. Also records the source of each `def` and `const` line so
@@ -9638,7 +9816,7 @@ fn run_for(
 #[derive(Debug, Clone, Default)]
 pub struct Session {
     env: Env,
-    history: Vec<String>,
+    history: Vec<HistoryEntry>,
     defs: HashMap<String, String>,
     consts: HashMap<String, String>,
     last_line: Option<String>,
@@ -9677,10 +9855,49 @@ impl Session {
     }
 
     /// A session pre-seeded with history (e.g. loaded from the store).
-    pub fn with_history(history: Vec<String>) -> Self {
+    /// This is the load door every read path goes through (ADR-0097): a
+    /// seed of records passes as is, a seed of legacy display strings
+    /// (a store or a localStorage written before the ADR) is parsed here,
+    /// once, through [`HistoryEntry::from_legacy`]. The seed is trimmed
+    /// to [`HISTORY_MAX`] (ADR-0096): a store written before the cap
+    /// existed may hold more, and nothing is lost that the cap would not
+    /// have dropped on the next push anyway.
+    pub fn with_history<I, T>(history: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<HistoryEntry>,
+    {
+        let mut history: Vec<HistoryEntry> = history.into_iter().map(Into::into).collect();
+        if history.len() > HISTORY_MAX {
+            let excess = history.len() - HISTORY_MAX;
+            history.drain(..excess);
+        }
         Self {
             history,
             ..Self::default()
+        }
+    }
+
+    /// Record one entry in the history under the two rules of ADR-0096,
+    /// the only door every push goes through (submit, submit_all, record,
+    /// restore):
+    /// - **Consecutive repeats collapse.** An entry equal to the last one
+    ///   is not appended again: the existing entry simply stays, which is
+    ///   the same recency position a move-to-end would give it, and the
+    ///   list stays a transcript of *what the user did*, not how many
+    ///   times. The comparison is the whole record, both `expr` and `out`
+    ///   (ADR-0097), so `2 + 2  = 4` twice collapses but `2 + 2  = 4` then
+    ///   `2 + 2  = 5` (after a definition changed) does not. Non-adjacent
+    ///   repeats stay.
+    /// - **The cap.** Past [`HISTORY_MAX`] entries the oldest is dropped.
+    fn push_history(&mut self, entry: HistoryEntry) {
+        if self.history.last() == Some(&entry) {
+            return;
+        }
+        self.history.push(entry);
+        let excess = self.history.len().saturating_sub(HISTORY_MAX);
+        if excess > 0 {
+            self.history.drain(..excess);
         }
     }
 
@@ -9717,9 +9934,9 @@ impl Session {
             Err(e) => format!("error: {e}"),
         };
         if output.is_empty() {
-            self.history.push(line.clone());
+            self.record(&line);
         } else {
-            self.history.push(format!("{line}  {output}"));
+            self.record_with_output(&line, &output);
         }
         self.last_line = Some(line.clone());
         if !self.in_script() {
@@ -9789,12 +10006,9 @@ impl Session {
             Err(e) => format!("error: {e}"),
         };
         if joined.is_empty() {
-            self.history.push(line.clone());
+            self.record(&line);
         } else {
-            self.history.push(format!(
-                "{line}  {}",
-                joined.lines().last().unwrap_or_default()
-            ));
+            self.record_with_output(&line, joined.lines().last().unwrap_or_default());
         }
         self.last_line = Some(line.clone());
         if !self.in_script() {
@@ -9808,18 +10022,58 @@ impl Session {
         joined
     }
 
-    pub fn history(&self) -> &[String] {
+    /// The transcript, oldest first: one [`HistoryEntry`] per submitted
+    /// line, what was typed and what came back (ADR-0097). A list
+    /// renderer shows each entry's [`HistoryEntry::display`]; recall
+    /// reads `expr`.
+    pub fn history(&self) -> &[HistoryEntry] {
         &self.history
+    }
+
+    /// The history as recallable expressions, oldest first: every
+    /// entry's `expr`, multi-line scripts joined with `; ` so each comes
+    /// back as one line that re-runs as recorded. This is the REPL's
+    /// seed (ADR-0086): its editor is one row, so the join is the
+    /// editor's choice. There is nothing to strip any more (ADR-0097):
+    /// the expression is a field, not a string to be undone, so a
+    /// frontend cannot forget the strip the way the REPL once did.
+    pub fn history_expressions(&self) -> impl Iterator<Item = String> + '_ {
+        self.history
+            .iter()
+            .map(|entry| entry.expr.replace('\n', "; "))
     }
 
     /// Record a submitted line in the history without evaluating it, for
     /// frontend-dispatched commands (`graph x^2`, `graph3d …`, and their
     /// `clear`) whose output is rendered rather than computed here. The
-    /// command belongs in the same history as every other submitted line.
+    /// command belongs in the same history as every other submitted line,
+    /// as an entry with no answer.
     pub fn record(&mut self, line: &str) {
         let line = line.trim().to_string();
         if !line.is_empty() {
-            self.history.push(line);
+            self.push_history(HistoryEntry {
+                expr: line,
+                out: None,
+            });
+        }
+    }
+
+    /// Record a line with its answer: the one door an entry with an
+    /// answer goes through, the two halves kept apart (ADR-0097). Every
+    /// frontend that assembles a multi-statement entry itself (the TUI,
+    /// the desktop app, the PWA) records through here, so the answer's
+    /// spelling (`= …`, `error: …`, `warning: …`, the prefix the
+    /// result-pane tiers key on) lives in one place. An empty answer
+    /// records the bare line, like `record`.
+    pub fn record_with_output(&mut self, line: &str, output: &str) {
+        let line = line.trim();
+        if output.is_empty() {
+            self.record(line);
+        } else {
+            self.push_history(HistoryEntry {
+                expr: line.to_string(),
+                out: Some(output.to_string()),
+            });
         }
     }
 
@@ -9838,9 +10092,18 @@ impl Session {
 
     /// Put cleared entries back (ADR-0094's one-slot restore): the
     /// entries return in their original order, the clear's undo, so a
-    /// second Ctrl+L in the TUI brings whole sessions of work back.
-    pub fn restore_history(&mut self, entries: Vec<String>) {
-        self.history.extend(entries);
+    /// second Ctrl+L in the TUI brings whole sessions of work back. The
+    /// cap and the repeat rule (ADR-0096) apply here too, so a restore
+    /// cannot exceed the ceiling. Records come back as they were; a
+    /// legacy display string is parsed at the door, like a seed.
+    pub fn restore_history<I, T>(&mut self, entries: I)
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<HistoryEntry>,
+    {
+        for entry in entries {
+            self.push_history(entry.into());
+        }
     }
 
     /// The environment, for frontends that need it (e.g. graphing).
@@ -10097,30 +10360,6 @@ fn const_name(line: &str) -> Option<String> {
     } else {
         Some(name)
     }
-}
-
-/// The expression part of a recorded history entry (ADR-0031).
-/// Evaluations are recorded as `"{line}  {output}"`, the line the user
-/// entered, then the answer (`= …`) or the failure (`error: …` /
-/// `warning: …`). A history pick loads everything before the last such
-/// suffix, so the user can edit the expression and re-run it (amending
-/// ADR-0027's verbatim picks: the `  ` separator makes the suffix
-/// structurally unambiguous, not a heuristic). Entries without an answer
-/// suffix, graph commands, definitions, return unchanged.
-pub fn history_expression(entry: &str) -> &str {
-    // Multi-line script entries (ADR-0027 amendment) are recorded
-    // verbatim; no answer suffix, and the suffix scan must not fire
-    // inside one: an assignment line like `x = 2 + 2` contains the
-    // marker and would be cut short.
-    if entry.contains('\n') {
-        return entry;
-    }
-    for suffix in ["  = ", "  error:", "  warning:"] {
-        if let Some(pos) = entry.rfind(suffix) {
-            return &entry[..pos];
-        }
-    }
-    entry
 }
 
 /// A binary arithmetic operator, dispatched per number layer (ADR-0005).

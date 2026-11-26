@@ -254,7 +254,7 @@ pub struct App {
     /// second Ctrl+L puts them back. One slot covers the real accident
     /// ("I cleared everything") without generalizing into an undo
     /// stack the store does not model.
-    cleared_history: Option<Vec<String>>,
+    cleared_history: Option<Vec<epher_core::HistoryEntry>>,
     /// The in-app user guide view (ADR-0018): `Some(scroll)` when open,
     /// the offset counting wrapped rows from the top. `guide_chapters`
     /// holds the top-level chapter titles with their wrapped-row offsets
@@ -1774,22 +1774,19 @@ impl App {
 
     /// The expression of the entry shown at `display_idx` (0 = newest on
     /// top), the text a pick or a recall (ADR-0093) loads: the recorded
-    /// answer suffix (`  = …`, `  error: …`, `  warning: …`) stays out
-    /// so the user can edit and re-run it (ADR-0031), and a multi-line
-    /// script entry (ADR-0027 amendment) comes back as one `; `-joined
-    /// line: `;` is the same separator, so the script re-runs exactly as
-    /// recorded. `None` when the history is empty or the row is out of
-    /// range.
+    /// answer (`= …`, `error: …`, `warning: …`) stays out so the user can
+    /// edit and re-run it (ADR-0031; it is a separate field, ADR-0097,
+    /// not a suffix to undo), and a multi-line script entry (ADR-0027
+    /// amendment) comes back as one `; `-joined line: `;` is the same
+    /// separator, so the script re-runs exactly as recorded. `None` when
+    /// the history is empty or the row is out of range.
     fn history_text(&self, display_idx: usize) -> Option<String> {
         let len = self.session.history().len();
         if display_idx >= len {
             return None;
         }
         let entry = &self.session.history()[len - 1 - display_idx];
-        Some(
-            epher_core::history_expression(entry)
-                .replace('\n', "; "),
-        )
+        Some(entry.expr.replace('\n', "; "))
     }
 
     /// Step the history walk from the entry (ADR-0093): `dir` > 0 is
@@ -2036,7 +2033,7 @@ impl App {
         &self.result
     }
 
-    pub fn history(&self) -> &[String] {
+    pub fn history(&self) -> &[epher_core::HistoryEntry] {
         self.session.history()
     }
 
@@ -2414,12 +2411,11 @@ impl App {
             }
             // One history entry for the whole script: the line as typed,
             // with the last answer appended exactly as single statements
-            // record theirs.
-            let entry = match &last_eval_output {
-                Some(out) if !out.is_empty() => format!("{}  {out}", line.trim()),
-                _ => line.trim().to_string(),
-            };
-            self.session.record(&entry);
+            // record theirs (`record_with_output` owns the spelling).
+            match &last_eval_output {
+                Some(out) => self.session.record_with_output(line, out),
+                None => self.session.record(line),
+            }
             // `save script` persists the whole script the user entered,
             // not just its last statement.
             self.session.set_last_line(line.trim());
@@ -2535,6 +2531,15 @@ impl App {
                 self.session.record(piece);
                 let _ = save_history(store, self.history());
                 let _ = save_session(store, self.bindings());
+            }
+            // `clear history` emptied the transcript in the session
+            // (run_command's ClearHistory arm, ADR-0096); the empty
+            // list must reach the shared store too, or the cleared
+            // entries resurrect on the next launch. The walk stops
+            // here as well: there is nothing left to recall.
+            if matches!(cmd, epher_shell::Command::ClearHistory) {
+                self.hist_recall = None;
+                let _ = save_history(store, self.history());
             }
             self.clear_input();
             // The `theme` command persists through run_command (the shell
@@ -5811,7 +5816,11 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         // hundred digits end in a visible mark instead of vanishing
         // mid-digit at the column edge.
         let row_width = history_area.width.saturating_sub(2) as usize;
-        for row in h.split('\n') {
+        // The row is the entry's display spelling (ADR-0097): the line,
+        // two spaces, its answer; the list looks exactly as it did when
+        // the string was the entry.
+        let text = h.display();
+        for row in text.split('\n') {
             let row = clip_ellipsis(row, row_width);
             let line = Line::from(row);
             // History focus (ADR-0027): every row of the selected entry

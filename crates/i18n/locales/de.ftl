@@ -3,6 +3,7 @@ prompt = epher>
 saved = { $name } gespeichert
 saved-script = Skript { $name } gespeichert
 reset-ok = Sitzung zurückgesetzt (Definitionen vergessen, Verlauf behalten)
+history-cleared = Verlauf geleert (Definitionen behalten)
 nothing-to-save = nichts zu speichern (keine vorhergehende Skriptzeile)
 no-definition = keine Definition für { $name } in dieser Sitzung
 language-set = Sprache auf { $code } gesetzt

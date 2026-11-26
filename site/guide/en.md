@@ -2767,7 +2767,11 @@ Every calculation is added to the history list beneath the result, so you
 can scroll back and see what you did. Newest entries appear at the top, and
 the trash icon to the left of the **History** heading empties it (in the
 terminal, Ctrl+L, or a click on the same icon). The history is kept while
-the page is open.
+the page is open. Running the same line again in a row does not add a second
+copy, and the list keeps the most recent 1,000 lines. To empty it from the
+keyboard on any surface, type `clear history`; your functions, constants,
+and variables stay (that is what `reset` forgets, and `reset` keeps the
+history).
 
 Each entry sits between thin rules: a single-line expression is one row,
 and a multi-line script is one entry showing all of its lines. Click an
@@ -3241,9 +3245,10 @@ epher> x ^ 2
 
 The prompt edits like a shell: the left and right arrows move inside the
 line, up and down walk through earlier lines (the sessions share one
-history, so lines from yesterday are one up-press away), Ctrl-C
-abandons the current line for a fresh prompt, and Ctrl-D ends the
-session.
+history, so lines from yesterday are one up-press away, each recalled as
+the expression you typed, ready to edit and run again), Ctrl-C
+abandons the current line for a fresh prompt, Ctrl-L clears the history,
+and Ctrl-D ends the session.
 
 The `table` command (section 2.4.2) prints a table of values here too:
 
@@ -3271,7 +3276,8 @@ epher> quit
 ```
 
 Your history is remembered: the next time you run `epher repl`, the previous
-session's lines are still there.
+session's lines are still there. `clear history` empties it (Ctrl-L does
+the same) without touching your saved functions, constants, or variables.
 
 
 The `load` command runs a script - a file path, or the name of a script you saved with `save script` - line by line, exactly as if you had typed it:

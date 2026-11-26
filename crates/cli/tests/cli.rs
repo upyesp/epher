@@ -119,6 +119,52 @@ fn repl_save_requires_a_definition_in_session() {
     assert!(!out.contains("no definition"), "stdout was: {out}");
 }
 
+// ADR-0096: `clear history` through the real REPL path (piped reader,
+// `repl_line`'s per-line save) empties the store file, keeps the saved
+// definitions, and a restart sees the empty history. The REPL finally
+// has the gesture the TUI, the desktop app, and the PWA have.
+#[test]
+fn repl_clear_history_empties_the_store_and_keeps_definitions() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+
+    // `save f` is what carries a function across restarts (ADR-0040);
+    // the clear must not touch that side of the store.
+    let out1 = repl_output(path, "6+3\ndef f(x) = x * 2\nsave f\ngraph x ^ 2\nquit\n");
+    assert!(out1.contains("saved f"), "stdout was: {out1}");
+    assert!(out1.contains("= 9"), "stdout was: {out1}");
+    let history_file = dir.path().join("setting/history.json");
+    let stored = std::fs::read_to_string(&history_file).unwrap();
+    // ADR-0097: the store holds records, the line and its answer apart.
+    assert!(
+        stored.contains("{\"expr\":\"6+3\",\"out\":\"= 9\"}"),
+        "history.json was: {stored}"
+    );
+
+    let out2 = repl_output(path, "clear history\nquit\n");
+    assert!(
+        out2.contains("history cleared (definitions kept)"),
+        "stdout was: {out2}"
+    );
+    let stored = std::fs::read_to_string(&history_file).unwrap();
+    assert!(
+        stored.contains("\"value\":[]"),
+        "the store holds an empty history after the clear: {stored}"
+    );
+    assert!(dir.path().join("function/f.json").exists(), "f is still saved");
+
+    // A restart sees the empty history, the saved function still
+    // answers, and the next line starts a fresh transcript.
+    let out3 = repl_output(path, "f(4)\nquit\n");
+    assert!(out3.contains("= 8"), "the saved function survived: {out3}");
+    let stored = std::fs::read_to_string(&history_file).unwrap();
+    assert_eq!(
+        stored,
+        "{\"key\":\"history\",\"value\":[{\"expr\":\"f(4)\",\"out\":\"= 8\"}]}",
+        "a fresh transcript: only the new line, none of the cleared ones, as a record"
+    );
+}
+
 #[test]
 fn repl_records_a_table_in_history() {
     let dir = tempfile::tempdir().unwrap();

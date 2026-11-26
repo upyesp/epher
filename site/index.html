@@ -173,13 +173,18 @@
         <!-- A real capture of all five surfaces (ADR-0083): the CLI, the
              REPL, and the TUI behind the desktop app graphing the same
              quadratic, with the mobile web app in front. Dark in both
-             themes, like the terminal card above it. -->
+             themes, like the terminal card above it. The alt text
+             describes the capture for screen readers and is localized:
+             the static English string is the no-JS fallback, and
+             app.js swaps in the active locale's hero-shot-alt via
+             data-i18n-alt (ADR-0083 amendment, 2026-11-26). -->
         <picture>
           <source type="image/webp" srcset="img/hero.webp?v=1" />
           <img
             class="hero-shot"
             src="img/hero.png?v=1"
-            alt="epher screen shot"
+            alt="Screenshots of epher's five surfaces: the CLI, the REPL, and the TUI behind the desktop app graphing the same quadratic, with the mobile web app in front."
+            data-i18n-alt="hero-shot-alt"
             width="1600"
             height="900"
             decoding="async"

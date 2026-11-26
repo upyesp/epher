@@ -44,6 +44,7 @@ window.EPHER_I18N["es"] = {
   "theme-dark": "Usar tema oscuro",
   "lang-label": "Idioma",
   "tagline": "Una calculadora gráfica con scripts, hecha para astrónomos ciegos y abierta a todo el mundo",
+  "hero-shot-alt": "Capturas de pantalla de las cinco superficies de epher: la línea de comandos, el REPL y la TUI detrás de la aplicación de escritorio que grafica la misma ecuación de segundo grado, con la aplicación web para móviles delante.",
   "lede-a": "epher es…",
   "lede-app": " de calculadora accesible para tu dispositivo",
   "lede-app-link": "aplicación",

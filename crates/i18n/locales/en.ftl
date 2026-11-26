@@ -3,6 +3,7 @@ prompt = epher>
 saved = saved { $name }
 saved-script = saved script { $name }
 reset-ok = session reset (definitions forgotten, history kept)
+history-cleared = history cleared (definitions kept)
 nothing-to-save = nothing to save (no preceding script line)
 no-definition = no definition for { $name } in this session
 language-set = language set to { $code }

@@ -67,7 +67,7 @@ impl DesktopStore {
         persist::save_script(&self.store, name, source)
     }
 
-    pub fn save_history(&self, history: &[String]) -> epher_store::StoreResult<()> {
+    pub fn save_history(&self, history: &[epher_core::HistoryEntry]) -> epher_store::StoreResult<()> {
         persist::save_history(&self.store, history)
     }
 
@@ -103,7 +103,9 @@ impl DesktopStore {
 /// can rebuild its Session exactly like `load_session` does natively.
 #[derive(Debug, Serialize)]
 pub struct InitState {
-    pub history: Vec<String>,
+    /// The transcript as records (ADR-0097); the webview's `InitState`
+    /// reads them, and a legacy list of strings if one is still on disk.
+    pub history: Vec<epher_core::HistoryEntry>,
     pub replay: Vec<String>,
     pub language: Option<String>,
     /// The theme preference (light/dark/night), if the user set one.
@@ -151,7 +153,7 @@ fn save_script(state: State<DesktopStore>, name: String, source: String) -> Resu
 }
 
 #[tauri::command]
-fn save_history(state: State<DesktopStore>, history: Vec<String>) -> Result<(), String> {
+fn save_history(state: State<DesktopStore>, history: Vec<epher_core::HistoryEntry>) -> Result<(), String> {
     state.save_history(&history).map_err(|e| e.to_string())
 }
 
@@ -834,7 +836,9 @@ mod tests {
         desktop
             .save_script("count", "x = 0; while x < 5 do x = x + 1; x")
             .unwrap();
-        desktop.save_history(&["2 + 3  = 5".to_string()]).unwrap();
+        desktop
+            .save_history(&[epher_core::HistoryEntry::from("2 + 3  = 5")])
+            .unwrap();
         desktop.save_language("fr").unwrap();
 
         let state = desktop.init().unwrap();
