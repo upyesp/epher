@@ -110,3 +110,23 @@ could not see it because a pipe never enters raw mode.
 The REPL still has no way to clear a damaged history; ADR-0096 adds
 `clear history` as a shell command on every surface. Everything else in
 this ADR stands.
+
+## Amendment 2026-11-27: foreign writes reload at the line boundary, and Up ends a stale read
+
+The editor was seeded once, so recall froze at startup: entries other
+frontends wrote while the REPL was open were unreachable by the
+arrows, and the stale view's next per-line save erased them from the
+store (ADR-0010 amendment, 2026-11-27, has the pub/sub contract and
+the audit that found it). The reader now reloads the store's session
+at every line boundary and rebuilds the recall list through the one
+door (`repl_history_lines`), so the seed policy above governs every
+reload, not just startup. Because rustyline cannot reload while a read
+is in flight, Up ends a stale read: with a foreign write pending, an
+Up key handler (the Ctrl-L `ConditionalEventHandler` pattern) ends the
+readline, the loop reloads and restores the half-typed buffer
+(`readline_with_initial`), and the very next Up walks the fresh list.
+The Ctrl-L clear and Ctrl-C fresh-prompt semantics are unchanged; a
+piped session reloads silently between lines, keeping transcripts
+byte-identical. Interactive recall is pty-verified
+(`scripts/repl-pubsub-harness.py`); a pipe still cannot enter raw
+mode.

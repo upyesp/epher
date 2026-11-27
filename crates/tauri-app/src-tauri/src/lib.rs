@@ -7,6 +7,7 @@
 //! evaluation itself stays in the webview on the wasm core.
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
 use clap::Parser;
@@ -33,12 +34,44 @@ pub struct OpenFile {
 /// every command.
 pub struct DesktopStore {
     store: DocStore<FsStore>,
+    /// The save gate (ADR-0010 amendment, 2026-11-27): the webview is
+    /// the only side that knows whether the store's data parsed into
+    /// this app's types: the shell's own `init` can succeed while the
+    /// webview's deserialize of the same state fails (a web build from
+    /// an older data format). Until the webview confirms a loaded
+    /// store, every save command refuses: a frontend that could not
+    /// read the store must not write one, or its fresh in-memory view
+    /// would overwrite real history and bindings. The confirmation
+    /// arrives again with every applied `store-changed` state, and a
+    /// failed `init` revokes it.
+    webview_confirmed: AtomicBool,
 }
 
 impl DesktopStore {
     pub fn with_dir(dir: impl Into<PathBuf>) -> Self {
         Self {
             store: DocStore::new(FsStore::new(dir)),
+            webview_confirmed: AtomicBool::new(false),
+        }
+    }
+
+    /// The webview reports whether the state it just applied parsed
+    /// into this app's types (the `confirm_init` command).
+    pub fn set_webview_confirmed(&self, confirmed: bool) {
+        self.webview_confirmed.store(confirmed, Ordering::SeqCst);
+    }
+
+    /// The save gate: writes flow only after the webview confirmed a
+    /// loaded store.
+    fn guard(&self) -> epher_store::StoreResult<()> {
+        if self.webview_confirmed.load(Ordering::SeqCst) {
+            Ok(())
+        } else {
+            Err(epher_store::StoreError::Storage(
+                "the store was not loaded (or could not be read), so nothing was written; \
+                 reload the app, or fix or remove the store files and start it again"
+                    .into(),
+            ))
         }
     }
 
@@ -46,6 +79,18 @@ impl DesktopStore {
     /// (functions, then constants, then scripts), the language preference,
     /// and the shared session snapshot (ADR-0010 amendment).
     pub fn init(&self) -> epher_store::StoreResult<InitState> {
+        match self.build_init_state() {
+            Ok(state) => Ok(state),
+            Err(e) => {
+                // A load that fails closes the save gate (if it was
+                // open): the shell cannot know what the webview holds.
+                self.set_webview_confirmed(false);
+                Err(e)
+            }
+        }
+    }
+
+    fn build_init_state(&self) -> epher_store::StoreResult<InitState> {
         Ok(InitState {
             history: persist::history(&self.store)?,
             replay: persist::replay_lines(&self.store)?,
@@ -56,18 +101,22 @@ impl DesktopStore {
     }
 
     pub fn save_function(&self, name: &str, source: &str) -> epher_store::StoreResult<()> {
+        self.guard()?;
         persist::save_function(&self.store, name, source)
     }
 
     pub fn save_constant(&self, name: &str, source: &str) -> epher_store::StoreResult<()> {
+        self.guard()?;
         persist::save_constant(&self.store, name, source)
     }
 
     pub fn save_script(&self, name: &str, source: &str) -> epher_store::StoreResult<()> {
+        self.guard()?;
         persist::save_script(&self.store, name, source)
     }
 
     pub fn save_history(&self, history: &[epher_core::HistoryEntry]) -> epher_store::StoreResult<()> {
+        self.guard()?;
         persist::save_history(&self.store, history)
     }
 
@@ -75,26 +124,32 @@ impl DesktopStore {
         &self,
         bindings: &std::collections::HashMap<String, epher_core::Value>,
     ) -> epher_store::StoreResult<()> {
+        self.guard()?;
         persist::save_session(&self.store, bindings)
     }
 
     pub fn save_language(&self, language: &str) -> epher_store::StoreResult<()> {
+        self.guard()?;
         persist::save_language(&self.store, language)
     }
 
     pub fn save_theme(&self, theme: &str) -> epher_store::StoreResult<()> {
+        self.guard()?;
         persist::save_theme(&self.store, theme)
     }
 
     pub fn save_exact(&self, exact: bool) -> epher_store::StoreResult<()> {
+        self.guard()?;
         persist::save_exact(&self.store, exact)
     }
 
     pub fn save_format(&self, format: &str) -> epher_store::StoreResult<()> {
+        self.guard()?;
         persist::save_format(&self.store, format)
     }
 
     pub fn save_separators(&self, separators: bool) -> epher_store::StoreResult<()> {
+        self.guard()?;
         persist::save_separators(&self.store, separators)
     }
 }
@@ -131,6 +186,15 @@ fn init(state: State<DesktopStore>, window: tauri::WebviewWindow) -> Result<Init
     #[cfg(not(target_os = "windows"))]
     let _ = &window;
     state.init().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn confirm_init(state: State<DesktopStore>) {
+    // The webview applied an InitState that parsed into its types (the
+    // startup init or a store-changed broadcast): its saves may flow
+    // (ADR-0010 amendment, 2026-11-27). Revocation is the shell's own
+    // move: a failed `init` closes the gate.
+    state.set_webview_confirmed(true);
 }
 
 #[tauri::command]
@@ -377,6 +441,7 @@ fn run_desktop(pending_script: Option<PathBuf>) {
         .manage(PendingOpen(Mutex::new(pending_script)))
         .invoke_handler(tauri::generate_handler![
             init,
+            confirm_init,
             save_function,
             save_constant,
             save_script,
@@ -822,10 +887,46 @@ mod tests {
         assert!(seen.contains("epher-probe after"), "seen: {seen}");
     }
 
+    // The save gate (ADR-0010 amendment, 2026-11-27): the webview is
+    // the only side that knows whether the store's data parsed into
+    // this app's types. Until it confirms a loaded store, every save
+    // would be a blind write; the stale-webview case (a dist built
+    // from an older format) warned "could not load saved data; starting
+    // fresh" and then wrote that fresh session over a store it never
+    // read.
+    #[test]
+    fn saves_stay_blocked_until_the_webview_confirms_a_loaded_store() {
+        let dir = tempfile::tempdir().unwrap();
+        let desktop = DesktopStore::with_dir(dir.path());
+        assert!(desktop.save_history(&[]).is_err(), "no confirm, no write");
+        desktop.set_webview_confirmed(true);
+        assert!(desktop.save_history(&[]).is_ok(), "confirmed, writes flow");
+    }
+
+    // A load that fails after the gate opened (the file corrupted or
+    // written by an incompatible format mid-run) closes it again: the
+    // shell cannot know what the webview holds, so it must not let it
+    // write.
+    #[test]
+    fn a_failed_init_revokes_the_confirmation() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(dir.path().join("setting")).unwrap();
+        std::fs::write(dir.path().join("setting/history.json"), "{not json").unwrap();
+        let desktop = DesktopStore::with_dir(dir.path());
+        desktop.set_webview_confirmed(true);
+        assert!(desktop.init().is_err(), "the corrupt file fails the load");
+        assert!(
+            desktop.save_history(&[]).is_err(),
+            "a failed load must never be written over"
+        );
+    }
+
     #[test]
     fn init_reports_what_the_cli_would_load() {
         let dir = tempfile::tempdir().unwrap();
         let desktop = DesktopStore::with_dir(dir.path());
+        // the gate is open: the webview has confirmed a loaded store
+        desktop.set_webview_confirmed(true);
         desktop
             .save_function(
                 "fib",
@@ -857,6 +958,8 @@ mod tests {
         // by a saved script.
         let dir = tempfile::tempdir().unwrap();
         let desktop = DesktopStore::with_dir(dir.path());
+        // the gate is open: the webview has confirmed a loaded store
+        desktop.set_webview_confirmed(true);
         // the function body uses the constant: proves constants replay and
         // are visible inside functions (ADR-0012)
         desktop.save_function("f", "def f(x) = x ^ 2 + c").unwrap();

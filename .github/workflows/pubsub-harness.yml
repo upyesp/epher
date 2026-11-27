@@ -1,0 +1,64 @@
+# The publish/subscribe regression harness (ADR-0010 amendment,
+# 2026-11-27): scripts/repl-pubsub-harness.py drives the real `epher
+# repl` and `epher tui` in ptys against one shared store and asserts the
+# whole live matrix, including the Up-interrupt path a piped test can
+# never reach (rustyline only enters raw mode on a terminal). It needs
+# the unified release binary, which pulls the desktop shell's Linux
+# dependencies; the job therefore runs only when the surfaces it guards
+# change, not on every push.
+name: pubsub harness
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - "crates/cli/**"
+      - "crates/tui/**"
+      - "crates/store/**"
+      - "crates/core/**"
+      - "crates/web/**"
+      - "scripts/repl-pubsub-harness.py"
+      - ".github/workflows/pubsub-harness.yml"
+  pull_request:
+    paths:
+      - "crates/cli/**"
+      - "crates/tui/**"
+      - "crates/store/**"
+      - "crates/core/**"
+      - "crates/web/**"
+      - "scripts/repl-pubsub-harness.py"
+      - ".github/workflows/pubsub-harness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pubsub-harness
+  cancel-in-progress: true
+
+jobs:
+  harness:
+    name: live REPL/TUI pub/sub matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # The unified `epher` binary carries the desktop shell, whose
+      # Linux build needs the webkit/gtk stack (the release recipe's
+      # list, minus the bundling-only pieces).
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev \
+            libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Build the release binary
+        run: cargo build --release -p app --bin epher
+
+      - name: Run the harness
+        run: python3 scripts/repl-pubsub-harness.py

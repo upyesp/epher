@@ -3753,6 +3753,11 @@ fn epher_app() -> Html {
             if let Some(name) = state.theme {
                 theme.set(name);
             }
+            // The state parsed into this app's types: open the shell's
+            // save gate (ADR-0010 amendment, 2026-11-27). Runs for the
+            // startup init and for every store-changed broadcast, so
+            // every applied state re-arms the saves.
+            bridge.confirm_init();
         }
     };
     {
