@@ -93,7 +93,16 @@ pub fn step(
 /// else `~/.epher`, and load the saved session (functions, scripts,
 /// history), warning and starting fresh if the store is unreadable.
 fn open_store_with_session() -> (DocStore<FsStore>, Session, Localizer) {
-    let store = DocStore::new(FsStore::new(default_store_dir()));
+    open_store_with_session_at(&default_store_dir())
+}
+
+/// The same door rooted at an explicit directory, so a caller that also
+/// watches the store (the REPL's pub/sub) reads and watches one and the
+/// same directory.
+fn open_store_with_session_at(
+    dir: &std::path::Path,
+) -> (DocStore<FsStore>, Session, Localizer) {
+    let store = DocStore::new(FsStore::new(dir));
     let session = match load_session(&store) {
         Ok(s) => s,
         Err(e) => {
@@ -230,14 +239,36 @@ pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
 /// detected device locales (ADR-0008). Diagnostics print to stderr
 /// (red on a terminal) and the conversation continues; quitting exits 0.
 pub fn run_repl() -> Result<(), EpherError> {
-    let (store, mut session, mut localizer) = open_store_with_session();
+    let store_dir = default_store_dir();
+    let (store, mut session, mut localizer) = open_store_with_session_at(&store_dir);
     // The run's plot state (ADR-0020): `graph` lines accumulate here and
     // `graph save <file>` writes the SVG the desktop and PWA produce.
     let mut plots = epher_shell::plots::Plots::new();
+    // Publish/subscribe (ADR-0010 amendment, 2026-11-27): the REPL is a
+    // long-lived frontend like the TUI and the desktop app, not a
+    // transient one. This watcher delivers a signal whenever another
+    // frontend writes the shared store; each reader drains it at the
+    // line boundary, where reloading is safe. Subscribe-at-start
+    // (seeding the editor once) left every later foreign write invisible
+    // to the arrows and overwritten by the next per-line save.
+    let watcher = epher_store::watch::spawn_store_watcher(store_dir);
+    let foreign_pending = spawn_foreign_write_pump(watcher);
     if io::stdin().is_terminal() {
-        run_repl_interactive(&store, &mut session, &mut localizer, &mut plots)
+        run_repl_interactive(
+            &store,
+            &mut session,
+            &mut localizer,
+            &mut plots,
+            &foreign_pending,
+        )
     } else {
-        run_repl_piped(&store, &mut session, &mut localizer, &mut plots)
+        run_repl_piped(
+            &store,
+            &mut session,
+            &mut localizer,
+            &mut plots,
+            &foreign_pending,
+        )
     }
 }
 
@@ -324,6 +355,48 @@ fn repl_history_lines(session: &Session) -> Vec<String> {
     session.history_expressions().collect()
 }
 
+/// The store's session becomes the live session (ADR-0010 amendment,
+/// 2026-11-27): history and bindings come from the store, then the
+/// definitions this session created but has not `save`d yet replay over
+/// it (the TUI's reload rule), so a foreign write (or our own echo)
+/// cannot erase live work; the store's bindings win. Returns whether
+/// the reload happened; a store that cannot be read leaves the session
+/// as it was. Reloads never write, so no loop is possible.
+fn reload_session_from_store(store: &DocStore<FsStore>, session: &mut Session) -> bool {
+    let Ok(mut fresh) = load_session(store) else {
+        return false;
+    };
+    for source in session.def_sources().values() {
+        fresh.submit_quiet(source);
+    }
+    for source in session.const_sources().values() {
+        fresh.submit_quiet(source);
+    }
+    *session = fresh;
+    true
+}
+
+/// Reload the session and rebuild the editor's recall list from it
+/// (ADR-0010 amendment, 2026-11-27): a write from another frontend is
+/// one up-press away at the very next prompt, and the editor never
+/// walks a stale list that the next per-line save would clobber. The
+/// list is rebuilt from scratch through the same door startup used
+/// ([`repl_history_lines`]), so recall stays expressions only.
+fn refresh_repl_view(
+    store: &DocStore<FsStore>,
+    session: &mut Session,
+    rl: &mut rustyline::DefaultEditor,
+) -> bool {
+    if !reload_session_from_store(store, session) {
+        return false;
+    }
+    let _ = rl.clear_history();
+    for entry in repl_history_lines(session) {
+        let _ = rl.add_history_entry(entry);
+    }
+    true
+}
+
 /// The Ctrl-L key handler (ADR-0096): raises the flag the REPL loop
 /// acts on, and ends the `readline` call at once with `AcceptLine` so
 /// the clear happens on the key press, not on some later Enter. The
@@ -348,19 +421,75 @@ impl rustyline::ConditionalEventHandler for ClearHistoryKey {
     }
 }
 
+/// Forward the store watcher's signals into a flag the readline key
+/// handlers can poll (ADR-0010 amendment, 2026-11-27). The channel is
+/// consumed here and nowhere else: the key handlers and the loop cannot
+/// share a `try_recv` without racing, and a flag is all they can safely
+/// read while rustyline owns the editor mid-read.
+fn spawn_foreign_write_pump(rx: std::sync::mpsc::Receiver<()>) -> Arc<AtomicBool> {
+    let pending = Arc::new(AtomicBool::new(false));
+    let flag = Arc::clone(&pending);
+    let spawned = std::thread::Builder::new()
+        .name("epher-repl-watch".into())
+        .spawn(move || {
+            for _ in rx {
+                flag.store(true, Ordering::SeqCst);
+            }
+        });
+    if let Err(e) = spawned {
+        // Degraded, not dead: the boundary reloads still work, but the
+        // Up interrupt never fires. Say so rather than fail silently.
+        eprintln!("warning: the store watch could not start ({e}); \
+                   foreign writes reload at the next line boundary only");
+    }
+    pending
+}
+
+/// Up while another frontend's write is pending: end the read so the
+/// loop can reload the store and re-prompt (ADR-0010 amendment,
+/// 2026-11-27). rustyline owns the editor while the read is in flight,
+/// so the recall list cannot be reloaded underneath it; the key ends
+/// the read instead, the loop restores the buffer, and the very next Up
+/// walks the fresh list. With no pending write this returns `None` and
+/// rustyline's default walk applies, untouched.
+struct RefreshOnUpKey {
+    pending: Arc<AtomicBool>,
+    requested: Arc<AtomicBool>,
+}
+
+impl rustyline::ConditionalEventHandler for RefreshOnUpKey {
+    fn handle(
+        &self,
+        _evt: &rustyline::Event,
+        _n: rustyline::RepeatCount,
+        positive: bool,
+        _ctx: &rustyline::EventContext<'_>,
+    ) -> Option<rustyline::Cmd> {
+        if positive && self.pending.load(Ordering::SeqCst) {
+            self.requested.store(true, Ordering::SeqCst);
+            Some(rustyline::Cmd::AcceptLine)
+        } else {
+            None
+        }
+    }
+}
+
 /// The terminal reader (ADR-0086): rustyline owns line editing and the
 /// in-session history. Arrow keys move in the line, up and down walk
 /// the history; the shared store seeds it at startup and receives every
 /// line, so recall reaches previous sessions without a history file
-/// (ADR-0027 amendment). Ctrl-C abandons the current line for a fresh
-/// prompt; Ctrl-D (EOF) ends the session; Ctrl-L clears the history
-/// (ADR-0096), the TUI's gesture, through the same `clear history`
-/// path.
+/// (ADR-0027 amendment). Foreign writes reload at every line boundary
+/// (ADR-0010 amendment, 2026-11-27), and Up ends the read when one is
+/// pending, so recall reaches them without a typed line in between.
+/// Ctrl-C abandons the current line for a fresh prompt; Ctrl-D (EOF)
+/// ends the session; Ctrl-L clears the history (ADR-0096), the TUI's
+/// gesture, through the same `clear history` path.
 fn run_repl_interactive(
     store: &DocStore<FsStore>,
     session: &mut Session,
     localizer: &mut Localizer,
     plots: &mut epher_shell::plots::Plots,
+    foreign_pending: &Arc<AtomicBool>,
 ) -> Result<(), EpherError> {
     let mut rl =
         rustyline::DefaultEditor::new().map_err(|e| EpherError::Io(e.to_string()))?;
@@ -385,14 +514,73 @@ fn run_repl_interactive(
             requested: Arc::clone(&clear_requested),
         })),
     );
+    // Up ends the read when a foreign write is pending, so recall sees
+    // it without a typed line in between (the loop reloads and restores
+    // the buffer).
+    let up_refresh_requested = Arc::new(AtomicBool::new(false));
+    rl.bind_sequence(
+        rustyline::KeyEvent(rustyline::KeyCode::Up, rustyline::Modifiers::NONE),
+        rustyline::EventHandler::Conditional(Box::new(RefreshOnUpKey {
+            pending: Arc::clone(foreign_pending),
+            requested: Arc::clone(&up_refresh_requested),
+        })),
+    );
+    // The half-typed buffer a refresh-interrupted read handed back is
+    // restored into the next prompt, so nothing the user typed is lost
+    // to the reload.
+    let mut prefill: Option<String> = None;
+    // The unreadable-store warning prints once per failure episode, not
+    // once per line: the pump flags our own saves too, and every
+    // boundary would otherwise repeat it.
+    let mut reload_warned = false;
     loop {
         let prompt = format!("{} ", localizer.lookup("prompt"));
-        let read = match rl.readline(&prompt) {
+        let read = match prefill.take() {
+            Some(buffer) => rl.readline_with_initial(&prompt, (&buffer, "")),
+            None => rl.readline(&prompt),
+        };
+        let read = match read {
             Ok(line) => Some(line),
             Err(ReadlineError::Interrupted) => None, // Ctrl-C: fresh prompt
             Err(ReadlineError::Eof) => break,        // Ctrl-D: quit
             Err(e) => return Err(EpherError::Io(e.to_string())),
         };
+        // Subscribe (ADR-0010 amendment, 2026-11-27): the pump thread
+        // flags writes from other frontends while this prompt sat
+        // blocked. Reload before anything acts on the returned line, so
+        // the arrows reach foreign entries and the per-line save carries
+        // them instead of erasing them. Reloads never write, so no loop
+        // is possible; the Ctrl-L clear below still runs after the
+        // reload, so a racing foreign write cannot resurrect what the
+        // clear removes.
+        let up_refresh = up_refresh_requested.swap(false, Ordering::SeqCst);
+        let foreign_write = foreign_pending.swap(false, Ordering::SeqCst);
+        if up_refresh || foreign_write {
+            if refresh_repl_view(store, session, &mut rl) {
+                reload_warned = false;
+            } else if !reload_warned {
+                // The store could not be read. A store the REPL cannot
+                // read is one no frontend can read, so the session in
+                // memory stays authoritative and the per-line saves
+                // keep going (overwriting it is repair, not loss; the
+                // desktop's save gate guards the real hole, ADR-0010
+                // amendment 2026-11-27). Say the reload failed rather
+                // than degrade silently.
+                reload_warned = true;
+                eprintln!("warning: could not reload the shared store; keeping this session in memory");
+            }
+            if up_refresh {
+                // The Up handler ended the read: what it handed back is
+                // the line as typed (or as walked so far), not a
+                // submission. The reload waited for this line boundary
+                // (the TUI's in-flight-entry rule) and the very next
+                // Up walks the fresh list.
+                if let Some(buffer) = read {
+                    prefill = Some(buffer);
+                }
+                continue;
+            }
+        }
         // The flag means Ctrl-L ended the read: clear both lists (the
         // editor's in place, so the arrows stop recalling at once; the
         // session's, persisted to the store) and drop the half-typed
@@ -434,6 +622,7 @@ fn run_repl_piped(
     session: &mut Session,
     localizer: &mut Localizer,
     plots: &mut epher_shell::plots::Plots,
+    foreign_pending: &AtomicBool,
 ) -> Result<(), EpherError> {
     let stdin = io::stdin();
     let mut lines = stdin.lock().lines();
@@ -446,6 +635,14 @@ fn run_repl_piped(
             .map_err(|e| EpherError::Io(e.to_string()))?;
         let Some(line) = lines.next() else { break }; // EOF
         let line = line.map_err(|e| EpherError::Io(e.to_string()))?;
+        // Subscribe like the interactive reader (ADR-0010 amendment,
+        // 2026-11-27): a scripted session can run minutes, and its
+        // per-line saves must carry what another frontend wrote in the
+        // meantime, not overwrite it. Nothing prints here, so piped
+        // transcripts stay byte-identical.
+        if foreign_pending.swap(false, Ordering::SeqCst) {
+            reload_session_from_store(store, session);
+        }
         if repl_line(&line, store, session, localizer, plots)? {
             break;
         }
@@ -643,6 +840,66 @@ mod tests {
             ["6+3", "graph x ^ 2", "1/0", "x = 10; x + 5"],
             "every recalled line re-runs as recorded; no answer suffix"
         );
+    }
+
+    // The store became the live view (ADR-0010 amendment, 2026-11-27):
+    // between prompts a foreign write (TUI, desktop, one-shot) reloads
+    // into the session and the editor's recall list, so the arrows reach
+    // it and the next per-line save carries it instead of erasing it.
+    // rustyline's list is only reachable in-process, so this is the seam
+    // for the reload the pty harness proves end to end.
+    #[test]
+    fn repl_refresh_rebuilds_the_recall_list_from_the_store() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = DocStore::new(FsStore::new(dir.path()));
+        let mut session = Session::default();
+        session.submit("1+1");
+        let mut rl = rustyline::DefaultEditor::new().unwrap();
+        for entry in repl_history_lines(&session) {
+            let _ = rl.add_history_entry(entry);
+        }
+        // Another frontend writes while the prompt sits open.
+        save_history(
+            &store,
+            &[epher_core::HistoryEntry {
+                expr: "9*9".into(),
+                out: Some("= 81".into()),
+            }],
+        )
+        .unwrap();
+        assert!(refresh_repl_view(&store, &mut session, &mut rl));
+        let recall: Vec<&str> = rl.history().iter().map(String::as_str).collect();
+        assert!(
+            recall.contains(&"9*9"),
+            "a foreign entry must be one up-press away: {recall:?}"
+        );
+        // The session converged: the REPL's next save keeps the foreign
+        // entry (the stale view used to overwrite the whole list).
+        save_history(&store, session.history()).unwrap();
+        let stored = epher_store::persist::history(&store).unwrap();
+        assert!(
+            stored.iter().any(|e| e.expr == "9*9"),
+            "the converged save must not clobber: {stored:?}"
+        );
+    }
+
+    // The pump turns watcher signals into the flag the key handlers
+    // poll; the channel has one consumer, so the loop's swap and the
+    // handlers' loads see every write.
+    #[test]
+    fn the_watch_pump_flags_foreign_writes() {
+        let (tx, rx) = std::sync::mpsc::channel();
+        let pending = spawn_foreign_write_pump(rx);
+        assert!(!pending.load(Ordering::SeqCst));
+        tx.send(()).unwrap();
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
+        while !pending.load(Ordering::SeqCst) {
+            assert!(
+                std::time::Instant::now() < deadline,
+                "the pump never set the flag"
+            );
+            std::thread::sleep(std::time::Duration::from_millis(5));
+        }
     }
 
     // The bug this replaces: a raw seed put `6+3  = 9` on the Up arrow,

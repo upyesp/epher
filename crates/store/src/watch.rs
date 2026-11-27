@@ -1,10 +1,13 @@
 //! Publish/subscribe for the shared store (ADR-0010 amendment): every
 //! frontend writes its state to the store immediately as changes happen,
-//! and the long-lived frontends (TUI, desktop app) watch the store
+//! and the long-lived frontends (TUI, desktop app, REPL) watch the store
 //! directory so another frontend's write is reflected live, no restart,
-//! no refresh action. CLI one-shots and the REPL are transient: they
-//! subscribe by reading at startup and publish per line, which is all a
-//! prompt-based interface can honor.
+//! no refresh action. The REPL reloads at line boundaries, and its Up
+//! key ends a stale read so recall reaches foreign writes without a
+//! typed line in between (2026-11-27 amendment). CLI one-shots are
+//! transient: they subscribe by reading at startup and publish once:
+//! the run is milliseconds, so a mid-run foreign write is not a
+//! scenario.
 
 use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, Sender};

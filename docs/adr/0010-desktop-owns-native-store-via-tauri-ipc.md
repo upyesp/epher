@@ -137,3 +137,79 @@ name: a", so no plot, slider, or play button appeared):
   submit, the slider, and the apply all read and write in lockstep
   with the render state (the project's stale-deref rule), so the
   merge always sees the current session.
+
+## Amendment (2026-11-27): the REPL subscribes live, its saves never clobber, and the desktop refuses to save what it could not read
+
+A live audit (REPL, TUI, desktop app, one-shot, and a fresh second
+REPL all open and active against one shared store; a pty harness
+driving the CLI/TUI and screenshots the desktop app) found the
+2026-08-27 amendment's subscribe-at-start claim for the REPL false in
+both directions, and one of the two failures destroyed data:
+
+- **The REPL's arrow walk never saw foreign writes.** rustyline's list
+  was seeded once at startup and never re-read, so entries the TUI or
+  desktop added while the REPL sat open were unreachable; the
+  reported bug.
+- **Worse, the REPL's per-line publish erased them.** `save_history`
+  writes the whole list from the session's view; with no reload that
+  view went stale, and a REPL line overwrote `history.json` with it;
+  the TUI's entry vanished from the store, not just from a display.
+
+The REPL is now a **live subscriber**, the TUI's pattern at a
+prompt's granularity:
+
+- A watcher pump thread flags foreign writes (the channel has one
+  consumer; a flag is all a key handler can safely read while
+  rustyline owns the editor). If the pump thread itself cannot start,
+  the REPL says so and degrades to boundary-only reloads.
+- When the store cannot be read (a corrupt or unreadable file), the
+  reload fails loudly (one warning per failure episode) and the
+  session in memory stays authoritative: a store the REPL cannot read
+  is one no frontend can read, so the per-line saves keep going;
+  overwriting such a file is repair, not loss. The desktop's save
+  gate guards the real hole, a readable store the webview could not
+  parse.
+- The reader reloads the store's session at every line boundary (after
+  a read returns, before the line acts), replaying the session's
+  unsaved `def`/`const` sources over it (the TUI's merge rule) and
+  rebuilds the recall list through `repl_history_lines`, so the seed
+  policy of ADR-0086 applies to every reload, not just startup. A
+  piped session reloads the same way, silently, so transcripts stay
+  byte-identical. Reloads never write, so no loop is possible.
+- rustyline cannot reload mid-read, so **Up ends a stale read**: when
+  a foreign write is pending, an Up key handler (the Ctrl-L
+  `ConditionalEventHandler` pattern) ends the readline; the loop
+  reloads, restores the half-typed buffer into the next prompt
+  (`readline_with_initial`), and the very next Up walks the fresh
+  list. Nothing is evaluated and nothing typed is lost. This retires
+  the 2026-08-27 sentence "subscribe-at-start is all a prompt-based
+  interface can honor"; the prompt boundary is a reload point, and
+  one Up press is a boundary.
+- **The desktop's save gate** closes the audit's second hole: the
+  shell's `init` can succeed while the webview's deserialize of the
+  same state fails: a web build from an older data format warned
+  "could not load saved data … starting fresh" and would then have
+  written that fresh session over a store it never read. The webview
+  now confirms each applied state (`confirm_init`), and until a
+  confirmation arrives every `save_*` command refuses; a failed
+  `init` revokes the confirmation, and each applied `store-changed`
+  state re-arms it. The browser PWA has no native store, so it is
+  out of the gate's scope (its persistence remains session-only).
+- Known limitation (accepted): the gate re-arms only on a state the
+  webview parsed. A frontend left open across a store-format change
+  (an upgraded CLI writing records while an older desktop app runs)
+  that fails to parse a `store-changed` payload keeps its pre-change
+  view; restart the older app after upgrading any other frontend.
+- Regression seams: two piped-REPL integration tests (a foreign
+  one-shot write lands mid-session and survives the REPL's next line;
+  a foreign binding is visible to the next line), a unit test for the
+  reload/rebuild helper, shell gate unit tests, and a pty harness
+  (`scripts/repl-pubsub-harness.py`) driving the real editor and the
+  real TUI concurrently: the loop that found the bug, kept so the
+  next audit starts from evidence instead of screenshots, and wired
+  into CI (`pubsub-harness.yml`) on the pushes and PRs that touch the
+  pub/sub surfaces.
+
+The one-shot keeps its startup read: its whole run is milliseconds,
+so a mid-run foreign write is not a scenario, and its publish already
+carries the fresh view it loaded (unchanged).

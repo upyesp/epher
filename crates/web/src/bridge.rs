@@ -184,6 +184,20 @@ impl Bridge {
         self.spawn("save_history", args);
     }
 
+    /// Tell the shell the last applied state parsed into this app's
+    /// types, so its save gate can open (ADR-0010 amendment,
+    /// 2026-11-27). The shell refuses every save until this arrives:
+    /// a webview that could not read the store (a web build from an
+    /// older data format) must not overwrite it with a fresh session.
+    /// Fire-and-forget; a refused save surfaces its own console error.
+    /// Browser builds have no shell: no-op.
+    pub fn confirm_init(self) {
+        if self != Bridge::Tauri {
+            return;
+        }
+        self.spawn("confirm_init", JsValue::UNDEFINED);
+    }
+
     /// Persist the shared session snapshot (ADR-0010 amendment): the
     /// environment's bindings, user assignments and `ans`, so the next
     /// CLI/REPL/TUI/desktop frontend starts where this one left off.

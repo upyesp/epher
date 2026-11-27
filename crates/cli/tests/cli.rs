@@ -394,6 +394,118 @@ fn piped_scripts_save_svgs_across_lines() {
     assert!(doc.contains("root"), "{doc}");
 }
 
+/// The REPL with stdin still open, for tests that write to the store
+/// while the session runs.
+fn spawn_live_repl(store_dir: &str) -> std::process::Child {
+    epher_bin()
+        .arg("repl")
+        .env("EPHER_STORE_DIR", store_dir)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap()
+}
+
+/// Poll the store's history until `pred` holds, for tests where another
+/// frontend writes while the REPL is open (atomic writes mean the file
+/// is always whole when it is readable).
+fn wait_for_history(store_dir: &str, pred: impl Fn(&str) -> bool, what: &str) {
+    let path = std::path::Path::new(store_dir).join("setting/history.json");
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+    loop {
+        if let Ok(text) = std::fs::read_to_string(&path) {
+            if pred(&text) {
+                return;
+            }
+        }
+        assert!(
+            std::time::Instant::now() < deadline,
+            "the store never held {what}"
+        );
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+}
+
+/// Publish/subscribe (ADR-0010 amendment, 2026-11-27): a write from
+/// another frontend while the REPL is open must survive the REPL's next
+/// per-line save. The stale in-memory view used to overwrite the whole
+/// history; the other frontend's entry vanished from the store, data
+/// loss, not just a stale display (found live: the TUI's `4+5` was
+/// erased by the open REPL's next line).
+#[test]
+fn repl_keeps_a_foreign_write_that_lands_mid_session() {
+    let dir = tempfile::tempdir().unwrap();
+    let store_dir = dir.path().to_str().unwrap().to_string();
+    let mut child = spawn_live_repl(&store_dir);
+    let stdin = child.stdin.as_mut().unwrap();
+    stdin.write_all(b"2+3\n").unwrap();
+    stdin.flush().unwrap();
+    wait_for_history(
+        &store_dir,
+        |t| t.contains("2+3"),
+        "the REPL's own first line",
+    );
+    // A one-shot writes while the REPL sits at its prompt (the TUI or
+    // desktop app in the field report; the one-shot is the same door).
+    let foreign = epher_bin()
+        .arg("4+5")
+        .env("EPHER_STORE_DIR", &store_dir)
+        .output()
+        .unwrap();
+    assert!(foreign.status.success());
+    wait_for_history(&store_dir, |t| t.contains("4+5"), "the foreign write");
+    // Give the store watcher a beat to deliver the signal.
+    std::thread::sleep(std::time::Duration::from_millis(100));
+    stdin.write_all(b"7-1\n").unwrap();
+    stdin.flush().unwrap();
+    drop(stdin);
+    let out = child.wait_with_output().unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("6"), "7-1 must still evaluate: {stdout}");
+    let final_history =
+        std::fs::read_to_string(dir.path().join("setting/history.json")).unwrap();
+    assert!(final_history.contains("2+3"), "own first line: {final_history}");
+    assert!(
+        final_history.contains("4+5"),
+        "the foreign entry must survive (it used to be clobbered): {final_history}"
+    );
+    assert!(final_history.contains("7-1"), "own last line: {final_history}");
+}
+
+/// A binding another frontend saved while the REPL is open is visible to
+/// the next line: the REPL reloads the shared session snapshot between
+/// prompts (ADR-0010 amendment) instead of evaluating on its stale view.
+#[test]
+fn repl_sees_a_foreign_binding_between_prompts() {
+    let dir = tempfile::tempdir().unwrap();
+    let store_dir = dir.path().to_str().unwrap().to_string();
+    let mut child = spawn_live_repl(&store_dir);
+    let stdin = child.stdin.as_mut().unwrap();
+    stdin.write_all(b"k = 10\n").unwrap();
+    stdin.flush().unwrap();
+    wait_for_history(&store_dir, |t| t.contains("k = 10"), "the REPL's assignment");
+    let foreign = epher_bin()
+        .arg("w = 7")
+        .env("EPHER_STORE_DIR", &store_dir)
+        .output()
+        .unwrap();
+    assert!(foreign.status.success());
+    wait_for_history(&store_dir, |t| t.contains("w = 7"), "the foreign binding");
+    std::thread::sleep(std::time::Duration::from_millis(100));
+    stdin.write_all(b"w + 1\n").unwrap();
+    stdin.flush().unwrap();
+    drop(stdin);
+    let out = child.wait_with_output().unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        stdout.contains("8"),
+        "the foreign binding must be visible to the next line: {stdout}"
+    );
+}
+
 #[test]
 fn repl_graph_save_and_the_empty_diagnostic() {
     let dir = tempfile::tempdir().unwrap();
