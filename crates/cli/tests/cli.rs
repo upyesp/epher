@@ -455,8 +455,6 @@ fn repl_keeps_a_foreign_write_that_lands_mid_session() {
         .unwrap();
     assert!(foreign.status.success());
     wait_for_history(&store_dir, |t| t.contains("4+5"), "the foreign write");
-    // Give the store watcher a beat to deliver the signal.
-    std::thread::sleep(std::time::Duration::from_millis(100));
     stdin.write_all(b"7-1\n").unwrap();
     stdin.flush().unwrap();
     drop(stdin);
@@ -493,7 +491,6 @@ fn repl_sees_a_foreign_binding_between_prompts() {
         .unwrap();
     assert!(foreign.status.success());
     wait_for_history(&store_dir, |t| t.contains("w = 7"), "the foreign binding");
-    std::thread::sleep(std::time::Duration::from_millis(100));
     stdin.write_all(b"w + 1\n").unwrap();
     stdin.flush().unwrap();
     drop(stdin);
@@ -797,6 +794,32 @@ fn a_bare_identifier_argument_stays_an_expression() {
     assert!(
         !String::from_utf8_lossy(&out.stderr).contains("not a script"),
         "the file was executed"
+    );
+}
+
+/// A `load` publishes before the prompt returns (ADR-0010 amendment,
+/// 2026-11-28): a second session, or any other frontend, finds the
+/// script's assignments and lines in the store. They used to stay in the
+/// first session's memory until its next line saved, and were then lost
+/// to the reload at that boundary on a fresh profile.
+#[test]
+fn repl_load_publishes_before_the_next_line() {
+    let dir = tempfile::tempdir().unwrap();
+    let script = dir.path().join("setup.epher");
+    std::fs::write(&script, "rate = 7\n").unwrap();
+    let store_dir = dir.path().to_str().unwrap();
+    let first = repl_output(store_dir, &format!("load {}\nquit\n", script.display()));
+    assert!(first.contains("= 7"), "the script ran: {first}");
+    // Nothing else was submitted, yet the store already holds the work.
+    let second = repl_output(store_dir, "rate * 100\nquit\n");
+    assert!(
+        second.contains("= 700"),
+        "the loaded assignment must be in the store: {second}"
+    );
+    let stored = std::fs::read_to_string(dir.path().join("setting/history.json")).unwrap();
+    assert!(
+        stored.contains("rate = 7"),
+        "the script's lines are published too: {stored}"
     );
 }
 
