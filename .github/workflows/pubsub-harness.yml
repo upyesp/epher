@@ -1,8 +1,9 @@
 # The publish/subscribe regression harness (ADR-0010 amendment,
-# 2026-11-27): scripts/repl-pubsub-harness.py drives the real `epher
+# 2026-11-28): scripts/repl-pubsub-harness.py drives the real `epher
 # repl` and `epher tui` in ptys against one shared store and asserts the
-# whole live matrix, including the Up-interrupt path a piped test can
-# never reach (rustyline only enters raw mode on a terminal). It needs
+# whole live matrix, including the paths a piped test can never reach
+# (rustyline only enters raw mode on a terminal): the first Up after a
+# submitted line, the first Up after a foreign write, and Ctrl-R. It needs
 # the unified release binary, which pulls the desktop shell's Linux
 # dependencies; the job therefore runs only when the surfaces it guards
 # change, not on every push.
@@ -56,6 +57,16 @@ jobs:
           sudo apt-get install -y \
             libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev \
             libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      # The desktop shell's Tauri context embeds crates/web/dist, which is
+      # a Trunk (wasm) build and gitignored. The harness drives `repl` and
+      # `tui` only, never the desktop window, so a stub page satisfies the
+      # context macro without dragging the wasm toolchain into this job.
+      - name: Stub the web assets the desktop context embeds
+        run: |
+          mkdir -p crates/web/dist
+          printf '<!doctype html><title>pubsub harness stub</title>\n' \
+            > crates/web/dist/index.html
 
       - name: Build the release binary
         run: cargo build --release -p app --bin epher

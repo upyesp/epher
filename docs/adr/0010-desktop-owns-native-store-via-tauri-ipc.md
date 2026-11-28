@@ -85,6 +85,10 @@ session-only (this ADR's PWA column is unchanged).
 
 ## Amendment (2026-08-27): publish/subscribe: the shared store syncs live between open frontends, and the Windows store path is fixed
 
+*The REPL's half of the Subscribe bullet below is superseded: 2026-11-27
+made the REPL a live subscriber and 2026-11-28 says how. The TUI's and
+the desktop's watchers stand as described.*
+
 The store is the single source of truth, but an open frontend only saw
 what it loaded at startup: history created in the TUI never appeared in
 an already-running desktop app until a restart. The shared-storage
@@ -139,6 +143,10 @@ name: a", so no plot, slider, or play button appeared):
   merge always sees the current session.
 
 ## Amendment (2026-11-27): the REPL subscribes live, its saves never clobber, and the desktop refuses to save what it could not read
+
+*The REPL mechanism in this section (the watcher pump, the flag, and Up
+ending a stale read) is superseded by the 2026-11-28 amendment below; the
+desktop's save gate and the unreadable-store rule stand.*
 
 A live audit (REPL, TUI, desktop app, one-shot, and a fresh second
 REPL all open and active against one shared store; a pty harness
@@ -213,3 +221,101 @@ prompt's granularity:
 The one-shot keeps its startup read: its whole run is milliseconds,
 so a mid-run foreign write is not a scenario, and its publish already
 carries the fresh view it loaded (unchanged).
+
+## Amendment (2026-11-28): the REPL subscribes by content, its own writes are not foreign, Up recalls in one press, and `load` publishes at once
+
+A measurement pass on the released 0.9.28 (a pty harness driving
+`epher repl` against an isolated store, twelve scenarios) traced three
+defects to the 2026-11-27 watcher flag, one of them data loss:
+
+- **The first Up after every submitted line was swallowed** (40 of 40
+  at a human pause, in every session, foreign writes or not). The flag
+  was set by every store-directory event, and a file event carries no
+  origin: the REPL's own per-line save was an event too, and so was its
+  own startup (it creates the store directory). Up then ended the read
+  (`Cmd::AcceptLine`): the press printed a newline and a fresh prompt,
+  so it looked like Enter on an empty line, and "Up Up" landed on the
+  newest entry instead of the one before it. The watcher armed the flag
+  within 2 to 5 ms of the write, so only machine-speed presses escaped.
+- **A foreign entry needed two presses**, and Ctrl-R before any line
+  boundary answered `(failed reverse-i-search)` for an entry the store
+  held. Both were as specified ("one Up press is a boundary"): the cost
+  of the mechanism, not of the contract.
+- **`load` lost work.** The `load` branch returned before the per-line
+  save, so the `load` line, the script's lines, and its assignments
+  lived only in memory; the reload at the next boundary (any foreign
+  write, or the startup echo on a fresh profile) replaced the session
+  with the store's copy. `load setup.epher` then `rate * 100` answered
+  `unknown name: rate`: 0 of 10 survivals on a fresh profile.
+
+The mechanism changes; the contract does not:
+
+- **Subscribe by content.** The REPL runs no watcher thread. A foreign
+  write is pending exactly when the store's history or session snapshot
+  differ from the session's own (`compare_with_store`: an equality of
+  parsed records, not of bytes), checked at each line boundary, in
+  both readers; the interactive reader's recall list, which is what
+  the arrows and Ctrl-R read, is compared separately at every prompt
+  and key press (next bullet). The REPL's own saves leave the store
+  equal to the session, so they never count: there is no event, no
+  flag, and no window between a write and its recognition. A store with no
+  session snapshot yet has nothing to differ from. The reload replays
+  the session's unsaved `def`/`const` sources as before, reloads never
+  write, and the unreadable-store rule of 2026-11-27 stands (one
+  warning per failure episode, the session in memory stays
+  authoritative, the saves keep going).
+- **The editor's history is the store's** (`StoreHistory`, rustyline's
+  `History` trait over the shared store). rustyline asks the list its
+  length at every prompt and reads an entry on every Up, Down, and
+  Ctrl-R keystroke; each ask first compares the store's history with
+  what the list was last built from or told, and rebuilds the list
+  through the one recall door (`recall_lines`, the ADR-0086 seed
+  policy) when they differ. The loop reports its own saves (`note`) and
+  its boundary reloads (`adopt`); a `load`'s recorded script lines join
+  the walk as the session records them. A line typed in this session
+  stays in the walk, as typed, until a foreign write (or a `load`,
+  which rebuilds the list from the session) really happens; it used to
+  survive only until the next boundary, since every boundary reloaded.
+- **Up recalls in one press**, own line or foreign. rustyline fixes its
+  cursor at the prompt (the index it holds equals the length while
+  nothing is walked) and steps from there, so a list that grew while
+  the prompt sat open would leave the first Up on the entry before the
+  new one; the wrapper remembers the length it reported before a
+  rebuild and re-anchors that one step to the new end (an empty list
+  reports one slot, so the first entry ever is reachable); until that
+  first step, the length rustyline sees stays the old one, so its
+  "not walking" check still passes and the half-typed line is still
+  backed up (Down brings it back). Ctrl-R never writes rustyline's
+  cursor, so its own start is translated the same way and an Up after
+  an aborted search still starts from the old end. The Up key handler,
+  the buffer restore, and `readline_with_initial` are gone: nothing
+  ends a read but the user.
+- **`load` publishes at once**, like the TUI's publish on every submit:
+  history and the session snapshot are saved right after the script
+  runs, before the run's outcome propagates, so a failed script keeps
+  the effects that did run (ADR-0040's rule that the `load` line joins
+  the history is unchanged).
+- Known limitation (accepted, as before): a foreign write landing
+  during a line's evaluation sits between the boundary check and the
+  per-line save, and the save overwrites it (last-write-wins). The
+  window is the evaluation, sub-millisecond for a normal line.
+- Regression seams: the two piped-REPL integration tests (unchanged)
+  and a third for `load` across processes; unit tests for the change
+  detector, the reload helper, and the store-backed history through
+  rustyline's trait (a foreign write on the next press, Ctrl-R, no
+  rebuild on own saves, the first Up after the list grew, the first
+  entry ever); and the pty harness (`scripts/repl-pubsub-harness.py`),
+  which now asserts the first Up after a submitted line, the first Up
+  after a foreign write, Ctrl-R before a boundary, and `load` on a
+  fresh profile, and whose teardown reaps without blocking (it used to
+  hang after its last check and never print a verdict). The CI job
+  stubs the web assets the desktop context embeds, so it builds again.
+- Cost, on the same harness: a line round trip of 0.34 to 0.67 ms
+  median with 1,000 stored entries (0.25 to 0.64 before), startup 5 to
+  12 ms.
+
+The TUI and the desktop app keep their watchers: they have no cursor to
+re-anchor and a display to refresh live, so the 2026-08-27 "Subscribe"
+bullet's description of them stands. For the REPL that bullet is
+superseded twice over: 2026-11-27 made it a live subscriber, and this
+amendment is how.

@@ -113,6 +113,10 @@ this ADR stands.
 
 ## Amendment 2026-11-27: foreign writes reload at the line boundary, and Up ends a stale read
 
+*The reload-at-every-boundary and Up-ends-a-stale-read mechanism in this
+section is superseded by the 2026-11-28 amendment below; the one recall
+door and the silent piped reload stand.*
+
 The editor was seeded once, so recall froze at startup: entries other
 frontends wrote while the REPL was open were unreachable by the
 arrows, and the stale view's next per-line save erased them from the
@@ -130,3 +134,32 @@ piped session reloads silently between lines, keeping transcripts
 byte-identical. Interactive recall is pty-verified
 (`scripts/repl-pubsub-harness.py`); a pipe still cannot enter raw
 mode.
+
+## Amendment 2026-11-28: the editor's list is the store's, and Up recalls in one press
+
+The 2026-11-27 reader reloaded at every boundary because it could not
+tell a foreign write from its own echo, and ended the read on Up for
+the same reason; the first press after every submitted line was
+swallowed, and a foreign entry took two presses. 0.9.28 shipped that
+behaviour (ADR-0010 amendment, 2026-11-28, has the measurements, and
+the `load` that publishes at once as part of the same change). The
+editor's history is now a rustyline `History` over the shared store
+(`StoreHistory`): every ask rustyline makes, the length at each prompt
+and the entry on each Up, Down, and Ctrl-R keystroke, first compares
+the store's history with what the list was last built from or told,
+and rebuilds through the one recall door (`recall_lines`) only when
+they differ. The loop reports its own saves, so they never rebuild
+anything, and a line typed in this session stays in the walk, as typed,
+until a foreign write or a `load` really happens (it used to survive only
+until the next boundary).
+
+Up recalls in one press, own line or foreign: rustyline fixes its
+cursor at the prompt and steps from it, so the wrapper re-anchors the
+first step after the list grew to the new end, and an empty list
+reports one slot so the first entry ever is reachable. The Up key
+handler, the buffer restore, and `readline_with_initial` are gone; the
+Ctrl-L clear (ADR-0096) and the Ctrl-C fresh prompt are unchanged; a
+piped session compares and reloads silently between lines, so
+transcripts stay byte-identical. Interactive recall is pty-verified
+(`scripts/repl-pubsub-harness.py`: the first Up after a submitted line,
+after a foreign write, and Ctrl-R); a pipe still cannot enter raw mode.
