@@ -34,7 +34,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0007 | Localize the UI; never localize the scripting language | 2026-08-13 | accepted |
 | 0008 | UI localization: Fluent catalogs embedded at build time (amended: de/pt joined) | 2026-08-13 | accepted |
 | 0009 | Accessibility: WCAG 2.2 AA for the web/PWA, keyboard-first terminals elsewhere (amended: automated axe scans in the `a11y` Playwright suite) | 2026-08-13 | accepted |
-| 0010 | The Desktop App Owns the Native Store; the Webview Bridges to It (amended: the store carries the shared session snapshot, variables and `ans`, and the CLI one-shot joins the store; publish/subscribe, live sync between open frontends, and the Windows store path fixed) | 2026-08-14 (amended 2026-08-27) | accepted |
+| 0010 | The Desktop App Owns the Native Store; the Webview Bridges to It (amended: shared session snapshot, variables and `ans`; publish/subscribe and live sync between open frontends; the Windows store path; the desktop's saves keep live constants; the REPL subscribes live, its saves never clobber, and the desktop refuses to save what it could not read) | 2026-08-14 (amended 2026-08-27, 2026-08-28, 2026-11-27) | accepted |
 | 0011 | One `epher` Binary Hosts Every Frontend | 2026-08-15 | accepted |
 | 0012 | User-defined constants: `const name = value`, visible like `pi` | 2026-08-16 | accepted |
 | 0013 | The command line follows clig.dev | 2026-08-17 | accepted |
@@ -110,7 +110,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0083 | The landing hero is a real capture of all five surfaces | 2026-11-10 | accepted (supersedes the ADR-0030 hero on this point) |
 | 0084 | The macOS GUI hands off to the wrapper-free build | 2026-11-11 | accepted (amends 0011) |
 | 0085 | Quaternions are a first-class value with reserved `j` and `k` | 2026-11-18 | accepted (amends 0043, 0065) |
-| 0086 | The REPL edits its line like a shell | 2026-11-20 | accepted |
+| 0086 | The REPL edits its line like a shell (amended 2026-11-27: foreign writes reload at the line boundary, and Up ends a stale read) | 2026-11-20 | accepted |
 | 0087 | The desktop webview never keeps a stale shell | 2026-11-20 | accepted |
 | 0088 | The language server reads epher code blocks inside markdown | 2026-11-21 | accepted |
 | 0089 | The store manifest hides the console application under the approved headless waiver | 2026-11-21 | accepted |
